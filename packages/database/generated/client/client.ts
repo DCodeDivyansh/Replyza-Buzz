@@ -56,3 +56,18 @@ export type InstagramAccount = Prisma.InstagramAccountModel
  * 
  */
 export type RefreshToken = Prisma.RefreshTokenModel
+/**
+ * Model Automation
+ * 
+ */
+export type Automation = Prisma.AutomationModel
+/**
+ * Model WebhookEvent
+ * 
+ */
+export type WebhookEvent = Prisma.WebhookEventModel
+/**
+ * Model AutomationExecution
+ * 
+ */
+export type AutomationExecution = Prisma.AutomationExecutionModel

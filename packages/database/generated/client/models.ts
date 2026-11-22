@@ -11,4 +11,7 @@
 export type * from './models/User.js'
 export type * from './models/InstagramAccount.js'
 export type * from './models/RefreshToken.js'
+export type * from './models/Automation.js'
+export type * from './models/WebhookEvent.js'
+export type * from './models/AutomationExecution.js'
 export type * from './commonInputTypes.js'

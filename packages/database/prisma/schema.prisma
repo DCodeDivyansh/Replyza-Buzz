@@ -31,7 +31,9 @@ model InstagramAccount {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automations   Automation[]
+  webhookEvents WebhookEvent[]
 
   @@index([userId])
   @@map("instagram_accounts")
@@ -51,4 +53,120 @@ model RefreshToken {
   @@index([userId])
   @@index([familyId])
   @@map("refresh_tokens")
+}
+
+
+
+enum AutomationTrigger {
+  ANY_COMMENT
+  KEYWORD
+}
+
+enum AutomationStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+}
+
+enum WebhookEventStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum ExecutionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  PARTIAL
+  FAILED
+}
+
+enum ActionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+model Automation {
+  id                 String            @id @default(uuid()) @db.Uuid
+  instagramAccountId String            @db.Uuid
+
+  name               String
+  mediaId            String
+  mediaPermalink     String?
+  mediaType          String?
+
+  triggerType        AutomationTrigger
+  keywords           String[]          @default([])
+
+  publicReplyText    String
+  dmMessageText      String
+  dmLink             String?
+
+  status             AutomationStatus  @default(DRAFT)
+
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  instagramAccount   InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  executions         AutomationExecution[]
+
+  @@unique([instagramAccountId, mediaId])
+  @@index([instagramAccountId, status])
+  @@map("automations")
+}
+
+model WebhookEvent {
+  id                    String             @id @default(uuid()) @db.Uuid
+  instagramAccountId    String             @db.Uuid
+
+  commentId             String
+  mediaId               String
+  commenterInstagramId  String
+  commenterUsername     String?
+  commentText           String
+
+  eventPayload          Json
+  status                WebhookEventStatus @default(RECEIVED)
+
+  receivedAt            DateTime           @default(now())
+  processedAt           DateTime?
+
+  instagramAccount      InstagramAccount   @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  execution             AutomationExecution?
+
+  @@unique([instagramAccountId, commentId])
+  @@index([status, receivedAt])
+  @@index([mediaId])
+  @@map("webhook_events")
+}
+
+model AutomationExecution {
+  id                 String          @id @default(uuid()) @db.Uuid
+  automationId       String          @db.Uuid
+  webhookEventId     String          @unique @db.Uuid
+
+  status             ExecutionStatus @default(PENDING)
+
+  publicReplyStatus  ActionStatus    @default(PENDING)
+  privateReplyStatus ActionStatus    @default(PENDING)
+
+  metaReplyId        String?
+  metaPrivateReplyId String?
+
+  errorMessage       String?
+
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime        @default(now())
+
+  automation         Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  webhookEvent       WebhookEvent    @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
+
+  @@index([automationId, createdAt])
+  @@index([status])
+  @@map("automation_executions")
 }

@@ -9,7 +9,49 @@
 * 🟢 You can import this file directly.
 */
 
+export const AutomationTrigger = {
+  ANY_COMMENT: 'ANY_COMMENT',
+  KEYWORD: 'KEYWORD'
+} as const
+
+export type AutomationTrigger = (typeof AutomationTrigger)[keyof typeof AutomationTrigger]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const AutomationStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED'
+} as const
+
+export type AutomationStatus = (typeof AutomationStatus)[keyof typeof AutomationStatus]
+
+
+export const WebhookEventStatus = {
+  RECEIVED: 'RECEIVED',
+  PROCESSING: 'PROCESSING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED'
+} as const
+
+export type WebhookEventStatus = (typeof WebhookEventStatus)[keyof typeof WebhookEventStatus]
+
+
+export const ExecutionStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  PARTIAL: 'PARTIAL',
+  FAILED: 'FAILED'
+} as const
+
+export type ExecutionStatus = (typeof ExecutionStatus)[keyof typeof ExecutionStatus]
+
+
+export const ActionStatus = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  FAILED: 'FAILED',
+  SKIPPED: 'SKIPPED'
+} as const
+
+export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus]

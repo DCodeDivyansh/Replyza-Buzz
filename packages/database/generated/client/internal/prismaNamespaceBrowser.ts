@@ -53,7 +53,10 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   InstagramAccount: 'InstagramAccount',
-  RefreshToken: 'RefreshToken'
+  RefreshToken: 'RefreshToken',
+  Automation: 'Automation',
+  WebhookEvent: 'WebhookEvent',
+  AutomationExecution: 'AutomationExecution'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -110,12 +113,74 @@ export const RefreshTokenScalarFieldEnum = {
 export type RefreshTokenScalarFieldEnum = (typeof RefreshTokenScalarFieldEnum)[keyof typeof RefreshTokenScalarFieldEnum]
 
 
+export const AutomationScalarFieldEnum = {
+  id: 'id',
+  instagramAccountId: 'instagramAccountId',
+  name: 'name',
+  mediaId: 'mediaId',
+  mediaPermalink: 'mediaPermalink',
+  mediaType: 'mediaType',
+  triggerType: 'triggerType',
+  keywords: 'keywords',
+  publicReplyText: 'publicReplyText',
+  dmMessageText: 'dmMessageText',
+  dmLink: 'dmLink',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationScalarFieldEnum = (typeof AutomationScalarFieldEnum)[keyof typeof AutomationScalarFieldEnum]
+
+
+export const WebhookEventScalarFieldEnum = {
+  id: 'id',
+  instagramAccountId: 'instagramAccountId',
+  commentId: 'commentId',
+  mediaId: 'mediaId',
+  commenterInstagramId: 'commenterInstagramId',
+  commenterUsername: 'commenterUsername',
+  commentText: 'commentText',
+  eventPayload: 'eventPayload',
+  status: 'status',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt'
+} as const
+
+export type WebhookEventScalarFieldEnum = (typeof WebhookEventScalarFieldEnum)[keyof typeof WebhookEventScalarFieldEnum]
+
+
+export const AutomationExecutionScalarFieldEnum = {
+  id: 'id',
+  automationId: 'automationId',
+  webhookEventId: 'webhookEventId',
+  status: 'status',
+  publicReplyStatus: 'publicReplyStatus',
+  privateReplyStatus: 'privateReplyStatus',
+  metaReplyId: 'metaReplyId',
+  metaPrivateReplyId: 'metaPrivateReplyId',
+  errorMessage: 'errorMessage',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -132,4 +197,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

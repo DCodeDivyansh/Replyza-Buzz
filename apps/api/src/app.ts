@@ -13,6 +13,7 @@ import authRoutes from "./routes/auth.routes";
 
 import { notFoundHandler } from "./middleware/not-found.middleware";
 import { errorHandler } from "./middleware/error.middleware";
+import automationRoutes from "./routes/automation.routes";
 
 const app = express();
 
@@ -46,6 +47,10 @@ app.use(cookieParser());
 // API routes.
 app.use("/api/v1", healthRoutes);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/automations", automationRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // Handle unknown routes.
 app.use(notFoundHandler);
