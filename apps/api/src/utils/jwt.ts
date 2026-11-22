@@ -1,13 +1,21 @@
+
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
 
 export interface AccessTokenPayload {
   userId: string;
+  familyId: string;
 }
 
-export function generateAccessToken(userId: string): string {
+export function generateAccessToken(
+  userId: string,
+  familyId: string
+): string {
   return jwt.sign(
-    { userId },
+    {
+      userId,
+      familyId
+    },
     env.JWT_SECRET,
     {
       algorithm: "HS256",
@@ -18,7 +26,9 @@ export function generateAccessToken(userId: string): string {
   );
 }
 
-export function verifyAccessToken(token: string): AccessTokenPayload {
+export function verifyAccessToken(
+  token: string
+): AccessTokenPayload {
   const payload = jwt.verify(token, env.JWT_SECRET, {
     algorithms: ["HS256"],
     issuer: "replyza-api",
@@ -27,10 +37,14 @@ export function verifyAccessToken(token: string): AccessTokenPayload {
 
   if (
     typeof payload === "string" ||
-    typeof payload.userId !== "string"
+    typeof payload.userId !== "string" ||
+    typeof payload.familyId !== "string"
   ) {
     throw new Error("Invalid access token payload");
   }
 
-  return { userId: payload.userId };
+  return {
+    userId: payload.userId,
+    familyId: payload.familyId
+  };
 }

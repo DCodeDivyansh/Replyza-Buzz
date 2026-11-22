@@ -10,6 +10,7 @@ import {
 } from "../controllers/auth.controller";
 
 import { authenticate } from "../middleware/auth.middleware";
+import { csrfProtection } from "../middleware/csrf.middleware";
 
 import {
   authRateLimiter,
@@ -37,6 +38,7 @@ router.post(
 router.post(
   "/refresh",
   authRateLimiter,
+  csrfProtection,
   refresh
 );
 
@@ -44,6 +46,7 @@ router.post(
 router.post(
   "/logout",
   authRateLimiter,
+  csrfProtection,
   logout
 );
 
