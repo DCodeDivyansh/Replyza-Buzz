@@ -2,6 +2,8 @@
 import argon2 from "argon2";
 import { prisma } from "@replyza/database";
 import type { RegisterInput } from "../validators/auth.validator";
+import type { LoginInput } from "../validators/auth.validator";
+import { generateAccessToken } from "../utils/jwt";
 
 export class AuthError extends Error {
   constructor(
@@ -56,4 +58,42 @@ export async function registerUser(input: RegisterInput) {
 
     throw error;
   }
+}
+
+
+export async function loginUser(input: LoginInput) {
+  // 1. Find the user by email.
+  const user = await prisma.user.findUnique({
+    where: {
+      email: input.email
+    }
+  });
+
+  // 2. Reject unknown email addresses.
+  if (!user) {
+    throw new AuthError("Invalid email or password", 401);
+  }
+
+  // 3. Verify the supplied password against its stored hash.
+  const passwordMatches = await argon2.verify(
+    user.passwordHash,
+    input.password
+  );
+
+  if (!passwordMatches) {
+    throw new AuthError("Invalid email or password", 401);
+  }
+
+  // 4. Generate an access token.
+  const accessToken = generateAccessToken(user.id);
+
+  // 5. Return safe user details and token.
+  return {
+    accessToken,
+    user: {
+      id: user.id,
+      email: user.email,
+      createdAt: user.createdAt
+    }
+  };
 }
