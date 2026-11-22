@@ -1,8 +1,10 @@
-
 import dotenv from "dotenv";
+import path from "node:path";
 import { z } from "zod";
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(process.cwd(), "../../.env")
+});
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"])
@@ -13,6 +15,8 @@ const envSchema = z.object({
 
   FRONTEND_URL: z.string().url()
     .default("http://localhost:3000"),
+
+  DATABASE_URL: z.string().min(1)
 });
 
 const result = envSchema.safeParse(process.env);
