@@ -12,6 +12,8 @@ import healthRoutes from "./routes/health.routes";
 import { notFoundHandler } from "./middleware/not-found.middleware";
 import { errorHandler } from "./middleware/error.middleware";
 
+import authRoutes from "./routes/auth.routes";
+
 const app = express();
 
 // Hide Express technology information.
@@ -40,6 +42,7 @@ app.use(
 
 // API routes.
 app.use("/api/v1", healthRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 // Handle unknown routes.
 app.use(notFoundHandler);
