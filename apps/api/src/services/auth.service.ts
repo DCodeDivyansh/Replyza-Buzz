@@ -11,6 +11,7 @@ import { generateAccessToken } from "../utils/jwt";
 
 import {
   generateRefreshToken,
+  hashRefreshToken,
   generateTokenFamilyId
 } from "../utils/refresh-token";
 
@@ -149,3 +150,132 @@ export async function loginUser(input: LoginInput) {
     }
   };
 }
+
+
+
+
+
+export async function refreshUserSession(rawToken: string) {
+  const tokenHash = hashRefreshToken(rawToken);
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Find the refresh token.
+    const existingToken = await tx.refreshToken.findUnique({
+      where: { tokenHash }
+    });
+
+    if (!existingToken) {
+      return {
+        success: false as const,
+        message: "Invalid refresh token"
+      };
+    }
+
+    // 2. Detect reuse of a revoked token.
+    if (existingToken.revokedAt) {
+      await tx.refreshToken.updateMany({
+        where: {
+          familyId: existingToken.familyId,
+          revokedAt: null
+        },
+        data: {
+          revokedAt: new Date()
+        }
+      });
+
+      return {
+        success: false as const,
+        message: "Refresh token reuse detected"
+      };
+    }
+
+    // 3. Check expiration.
+    if (existingToken.expiresAt <= new Date()) {
+      await tx.refreshToken.updateMany({
+        where: {
+          id: existingToken.id,
+          revokedAt: null
+        },
+        data: {
+          revokedAt: new Date()
+        }
+      });
+
+      return {
+        success: false as const,
+        message: "Refresh token expired"
+      };
+    }
+
+    // 4. Atomically claim the existing token.
+    const claimedToken = await tx.refreshToken.updateMany({
+      where: {
+        id: existingToken.id,
+        revokedAt: null,
+        expiresAt: { gt: new Date() }
+      },
+      data: {
+        revokedAt: new Date()
+      }
+    });
+
+    // 5. If another request already consumed it,
+    // revoke the entire session family.
+    if (claimedToken.count !== 1) {
+      await tx.refreshToken.updateMany({
+        where: {
+          familyId: existingToken.familyId,
+          revokedAt: null
+        },
+        data: {
+          revokedAt: new Date()
+        }
+      });
+
+      return {
+        success: false as const,
+        message: "Refresh token reuse detected"
+      };
+    }
+
+    // 6. Generate replacement token.
+    const { token, tokenHash: newTokenHash } =
+      generateRefreshToken();
+
+    const expiresAt = new Date(
+      Date.now() + authConfig.refreshTokenLifetimeMs
+    );
+
+    // 7. Store replacement token in the same transaction.
+    await tx.refreshToken.create({
+      data: {
+        userId: existingToken.userId,
+        tokenHash: newTokenHash,
+        familyId: existingToken.familyId,
+        expiresAt
+      }
+    });
+
+    // 8. Generate new access token.
+    const accessToken = generateAccessToken(
+      existingToken.userId
+    );
+
+    return {
+      success: true as const,
+      accessToken,
+      refreshToken: token
+    };
+  });
+
+  // Throw only AFTER the transaction commits.
+  if (!result.success) {
+    throw new AuthError(result.message, 401);
+  }
+
+  return {
+    accessToken: result.accessToken,
+    refreshToken: result.refreshToken
+  };
+}
+

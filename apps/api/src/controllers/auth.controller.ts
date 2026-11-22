@@ -1,6 +1,6 @@
 
 import type { Request, Response, NextFunction } from "express";
-import { registerUser, AuthError, loginUser } from "../services/auth.service";
+import { registerUser, AuthError, loginUser, refreshUserSession, } from "../services/auth.service";
 import { registerSchema, loginSchema } from "../validators/auth.validator";
 import { prisma } from "@replyza/database";
 import { refreshCookieOptions } from "../config/cookie.config";
@@ -134,3 +134,59 @@ export async function getCurrentUser(
     }
 }
 
+
+export async function refresh(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    // 1. Read refresh token from HttpOnly cookie.
+    const refreshToken = req.cookies?.replyza_refresh;
+
+    if (
+      typeof refreshToken !== "string" ||
+      refreshToken.length === 0
+    ) {
+      res.status(401).json({
+        success: false,
+        message: "Refresh token required"
+      });
+      return;
+    }
+
+    // 2. Rotate refresh token and generate new access token.
+    const result = await refreshUserSession(refreshToken);
+
+    // 3. Replace the old cookie with the new refresh token.
+    res.cookie(
+      "replyza_refresh",
+      result.refreshToken,
+      refreshCookieOptions
+    );
+
+    // 4. Return only the new access token.
+    res.status(200).json({
+      success: true,
+      message: "Session refreshed successfully",
+      data: {
+        accessToken: result.accessToken
+      }
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      res.clearCookie("replyza_refresh", {
+        ...refreshCookieOptions,
+        maxAge: undefined
+      });
+
+      res.status(error.statusCode).json({
+        success: false,
+        message: error.message
+      });
+      return;
+    }
+
+    next(error);
+  }
+}
