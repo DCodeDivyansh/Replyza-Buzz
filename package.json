@@ -1,0 +1,14 @@
+
+{
+  "name": "replyza",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "build:web": "pnpm --filter web build",
+    "lint:web": "pnpm --filter web lint"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
