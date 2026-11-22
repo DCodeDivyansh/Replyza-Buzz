@@ -1,6 +1,6 @@
 
 import type { Request, Response, NextFunction } from "express";
-import { registerUser, AuthError, loginUser, refreshUserSession, } from "../services/auth.service";
+import { registerUser, AuthError, loginUser,logoutUser, refreshUserSession } from "../services/auth.service";
 import { registerSchema, loginSchema } from "../validators/auth.validator";
 import { prisma } from "@replyza/database";
 import { refreshCookieOptions } from "../config/cookie.config";
@@ -187,6 +187,35 @@ export async function refresh(
       return;
     }
 
+    next(error);
+  }
+}
+
+
+
+export async function logout(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const refreshToken = req.cookies?.replyza_refresh;
+
+    if (typeof refreshToken === "string" && refreshToken.length > 0) {
+      await logoutUser(refreshToken);
+    }
+
+    // Clear the browser cookie.
+    res.clearCookie("replyza_refresh", {
+      ...refreshCookieOptions,
+      maxAge: undefined
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully"
+    });
+  } catch (error) {
     next(error);
   }
 }

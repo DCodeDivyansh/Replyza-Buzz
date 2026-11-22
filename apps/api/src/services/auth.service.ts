@@ -279,3 +279,32 @@ export async function refreshUserSession(rawToken: string) {
   };
 }
 
+
+
+export async function logoutUser(rawToken: string): Promise<void> {
+  const tokenHash = hashRefreshToken(rawToken);
+
+  // Find the session associated with this refresh token.
+  const existingToken = await prisma.refreshToken.findUnique({
+    where: {
+      tokenHash
+    },
+    select: {
+      familyId: true
+    }
+  });
+
+  // Revoke all active tokens belonging to this session.
+  if (existingToken) {
+    await prisma.refreshToken.updateMany({
+      where: {
+        familyId: existingToken.familyId,
+        revokedAt: null
+      },
+      data: {
+        revokedAt: new Date()
+      }
+    });
+  }
+}
+
