@@ -16,6 +16,7 @@ model User {
   updatedAt         DateTime @updatedAt
 
   instagramAccounts InstagramAccount[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -34,4 +35,20 @@ model InstagramAccount {
 
   @@index([userId])
   @@map("instagram_accounts")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique
+  familyId  String   @db.Uuid
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
 }

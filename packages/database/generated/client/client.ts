@@ -51,3 +51,8 @@ export type User = Prisma.UserModel
  * 
  */
 export type InstagramAccount = Prisma.InstagramAccountModel
+/**
+ * Model RefreshToken
+ * 
+ */
+export type RefreshToken = Prisma.RefreshTokenModel

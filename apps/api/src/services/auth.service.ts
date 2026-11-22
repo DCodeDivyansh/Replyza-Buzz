@@ -1,10 +1,22 @@
 
 import argon2 from "argon2";
 import { prisma } from "@replyza/database";
-import type { RegisterInput } from "../validators/auth.validator";
-import type { LoginInput } from "../validators/auth.validator";
+
+import type {
+  RegisterInput,
+  LoginInput
+} from "../validators/auth.validator";
+
 import { generateAccessToken } from "../utils/jwt";
 
+import {
+  generateRefreshToken,
+  generateTokenFamilyId
+} from "../utils/refresh-token";
+
+import { authConfig } from "../config/auth.config";
+
+// Custom authentication error.
 export class AuthError extends Error {
   constructor(
     message: string,
@@ -15,10 +27,14 @@ export class AuthError extends Error {
   }
 }
 
+// ==========================================
+// REGISTER USER
+// ==========================================
+
 export async function registerUser(input: RegisterInput) {
   const email = input.email;
 
-  // 1. Hash the password before storing it.
+  // 1. Hash password using Argon2id.
   const passwordHash = await argon2.hash(input.password, {
     type: argon2.argon2id,
     memoryCost: 19456,
@@ -27,7 +43,7 @@ export async function registerUser(input: RegisterInput) {
   });
 
   try {
-    // 2. Create the user in PostgreSQL.
+    // 2. Create user in PostgreSQL.
     const user = await prisma.user.create({
       data: {
         email,
@@ -40,10 +56,12 @@ export async function registerUser(input: RegisterInput) {
       }
     });
 
-    // 3. Return only safe user information.
+    // 3. Return safe user information.
     return user;
+
   } catch (error: unknown) {
-    // 4. Handle duplicate email addresses.
+
+    // 4. Handle duplicate email.
     if (
       typeof error === "object" &&
       error !== null &&
@@ -60,36 +78,70 @@ export async function registerUser(input: RegisterInput) {
   }
 }
 
+// ==========================================
+// LOGIN USER
+// ==========================================
 
 export async function loginUser(input: LoginInput) {
-  // 1. Find the user by email.
+
+  // 1. Find user by email.
   const user = await prisma.user.findUnique({
     where: {
       email: input.email
     }
   });
 
-  // 2. Reject unknown email addresses.
+  // 2. Reject unknown email.
   if (!user) {
-    throw new AuthError("Invalid email or password", 401);
+    throw new AuthError(
+      "Invalid email or password",
+      401
+    );
   }
 
-  // 3. Verify the supplied password against its stored hash.
+  // 3. Verify password.
   const passwordMatches = await argon2.verify(
     user.passwordHash,
     input.password
   );
 
   if (!passwordMatches) {
-    throw new AuthError("Invalid email or password", 401);
+    throw new AuthError(
+      "Invalid email or password",
+      401
+    );
   }
 
-  // 4. Generate an access token.
+  // 4. Generate access token.
   const accessToken = generateAccessToken(user.id);
 
-  // 5. Return safe user details and token.
+  // 5. Generate refresh token.
+  const { token, tokenHash } = generateRefreshToken();
+
+  // 6. Create a unique session family.
+  const familyId = generateTokenFamilyId();
+
+  // 7. Calculate expiration date.
+  const expiresAt = new Date(
+    Date.now() + authConfig.refreshTokenLifetimeMs
+  );
+
+  // 8. Store refresh token hash in PostgreSQL.
+  await prisma.refreshToken.create({
+    data: {
+      userId: user.id,
+      tokenHash,
+      familyId,
+      expiresAt
+    }
+  });
+
+  // 9. Return token and safe user information.
+  // The raw refresh token will be placed in an HttpOnly cookie
+  // by the login controller, not returned in the JSON response.
   return {
     accessToken,
+    refreshToken: token,
     user: {
       id: user.id,
       email: user.email,
