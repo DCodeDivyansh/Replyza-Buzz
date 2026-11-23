@@ -162,6 +162,8 @@ model AutomationExecution {
   errorMessage       String?
 
   startedAt          DateTime?
+  leaseExpiresAt     DateTime?
+  leaseToken         String?         @db.Uuid
   completedAt        DateTime?
   createdAt          DateTime        @default(now())
 

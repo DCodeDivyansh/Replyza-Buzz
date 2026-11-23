@@ -35,6 +35,8 @@ export type AutomationExecutionMinAggregateOutputType = {
   metaPrivateReplyId: string | null
   errorMessage: string | null
   startedAt: Date | null
+  leaseExpiresAt: Date | null
+  leaseToken: string | null
   completedAt: Date | null
   createdAt: Date | null
 }
@@ -50,6 +52,8 @@ export type AutomationExecutionMaxAggregateOutputType = {
   metaPrivateReplyId: string | null
   errorMessage: string | null
   startedAt: Date | null
+  leaseExpiresAt: Date | null
+  leaseToken: string | null
   completedAt: Date | null
   createdAt: Date | null
 }
@@ -65,6 +69,8 @@ export type AutomationExecutionCountAggregateOutputType = {
   metaPrivateReplyId: number
   errorMessage: number
   startedAt: number
+  leaseExpiresAt: number
+  leaseToken: number
   completedAt: number
   createdAt: number
   _all: number
@@ -82,6 +88,8 @@ export type AutomationExecutionMinAggregateInputType = {
   metaPrivateReplyId?: true
   errorMessage?: true
   startedAt?: true
+  leaseExpiresAt?: true
+  leaseToken?: true
   completedAt?: true
   createdAt?: true
 }
@@ -97,6 +105,8 @@ export type AutomationExecutionMaxAggregateInputType = {
   metaPrivateReplyId?: true
   errorMessage?: true
   startedAt?: true
+  leaseExpiresAt?: true
+  leaseToken?: true
   completedAt?: true
   createdAt?: true
 }
@@ -112,6 +122,8 @@ export type AutomationExecutionCountAggregateInputType = {
   metaPrivateReplyId?: true
   errorMessage?: true
   startedAt?: true
+  leaseExpiresAt?: true
+  leaseToken?: true
   completedAt?: true
   createdAt?: true
   _all?: true
@@ -200,6 +212,8 @@ export type AutomationExecutionGroupByOutputType = {
   metaPrivateReplyId: string | null
   errorMessage: string | null
   startedAt: Date | null
+  leaseExpiresAt: Date | null
+  leaseToken: string | null
   completedAt: Date | null
   createdAt: Date
   _count: AutomationExecutionCountAggregateOutputType | null
@@ -236,6 +250,8 @@ export type AutomationExecutionWhereInput = {
   metaPrivateReplyId?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   startedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
+  leaseExpiresAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
+  leaseToken?: Prisma.UuidNullableFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationExecution"> | Date | string
   automation?: Prisma.XOR<Prisma.AutomationScalarRelationFilter, Prisma.AutomationWhereInput>
@@ -253,6 +269,8 @@ export type AutomationExecutionOrderByWithRelationInput = {
   metaPrivateReplyId?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  leaseExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  leaseToken?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   automation?: Prisma.AutomationOrderByWithRelationInput
@@ -273,6 +291,8 @@ export type AutomationExecutionWhereUniqueInput = Prisma.AtLeast<{
   metaPrivateReplyId?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   startedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
+  leaseExpiresAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
+  leaseToken?: Prisma.UuidNullableFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationExecution"> | Date | string
   automation?: Prisma.XOR<Prisma.AutomationScalarRelationFilter, Prisma.AutomationWhereInput>
@@ -290,6 +310,8 @@ export type AutomationExecutionOrderByWithAggregationInput = {
   metaPrivateReplyId?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   startedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  leaseExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  leaseToken?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.AutomationExecutionCountOrderByAggregateInput
@@ -311,6 +333,8 @@ export type AutomationExecutionScalarWhereWithAggregatesInput = {
   metaPrivateReplyId?: Prisma.StringNullableWithAggregatesFilter<"AutomationExecution"> | string | null
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"AutomationExecution"> | string | null
   startedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
+  leaseExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
+  leaseToken?: Prisma.UuidNullableWithAggregatesFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AutomationExecution"> | Date | string
 }
@@ -324,6 +348,8 @@ export type AutomationExecutionCreateInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
   automation: Prisma.AutomationCreateNestedOneWithoutExecutionsInput
@@ -341,6 +367,8 @@ export type AutomationExecutionUncheckedCreateInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -354,6 +382,8 @@ export type AutomationExecutionUpdateInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automation?: Prisma.AutomationUpdateOneRequiredWithoutExecutionsNestedInput
@@ -371,6 +401,8 @@ export type AutomationExecutionUncheckedUpdateInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -386,6 +418,8 @@ export type AutomationExecutionCreateManyInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -399,6 +433,8 @@ export type AutomationExecutionUpdateManyMutationInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -414,6 +450,8 @@ export type AutomationExecutionUncheckedUpdateManyInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -444,6 +482,8 @@ export type AutomationExecutionCountOrderByAggregateInput = {
   metaPrivateReplyId?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
+  leaseExpiresAt?: Prisma.SortOrder
+  leaseToken?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -459,6 +499,8 @@ export type AutomationExecutionMaxOrderByAggregateInput = {
   metaPrivateReplyId?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
+  leaseExpiresAt?: Prisma.SortOrder
+  leaseToken?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -474,6 +516,8 @@ export type AutomationExecutionMinOrderByAggregateInput = {
   metaPrivateReplyId?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   startedAt?: Prisma.SortOrder
+  leaseExpiresAt?: Prisma.SortOrder
+  leaseToken?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
@@ -569,6 +613,8 @@ export type AutomationExecutionCreateWithoutAutomationInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
   webhookEvent: Prisma.WebhookEventCreateNestedOneWithoutExecutionInput
@@ -584,6 +630,8 @@ export type AutomationExecutionUncheckedCreateWithoutAutomationInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -628,6 +676,8 @@ export type AutomationExecutionScalarWhereInput = {
   metaPrivateReplyId?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   errorMessage?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   startedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
+  leaseExpiresAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
+  leaseToken?: Prisma.UuidNullableFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationExecution"> | Date | string
 }
@@ -641,6 +691,8 @@ export type AutomationExecutionCreateWithoutWebhookEventInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
   automation: Prisma.AutomationCreateNestedOneWithoutExecutionsInput
@@ -656,6 +708,8 @@ export type AutomationExecutionUncheckedCreateWithoutWebhookEventInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -685,6 +739,8 @@ export type AutomationExecutionUpdateWithoutWebhookEventInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automation?: Prisma.AutomationUpdateOneRequiredWithoutExecutionsNestedInput
@@ -700,6 +756,8 @@ export type AutomationExecutionUncheckedUpdateWithoutWebhookEventInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -714,6 +772,8 @@ export type AutomationExecutionCreateManyAutomationInput = {
   metaPrivateReplyId?: string | null
   errorMessage?: string | null
   startedAt?: Date | string | null
+  leaseExpiresAt?: Date | string | null
+  leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
 }
@@ -727,6 +787,8 @@ export type AutomationExecutionUpdateWithoutAutomationInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhookEvent?: Prisma.WebhookEventUpdateOneRequiredWithoutExecutionNestedInput
@@ -742,6 +804,8 @@ export type AutomationExecutionUncheckedUpdateWithoutAutomationInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -756,6 +820,8 @@ export type AutomationExecutionUncheckedUpdateManyWithoutAutomationInput = {
   metaPrivateReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -773,6 +839,8 @@ export type AutomationExecutionSelect<ExtArgs extends runtime.Types.Extensions.I
   metaPrivateReplyId?: boolean
   errorMessage?: boolean
   startedAt?: boolean
+  leaseExpiresAt?: boolean
+  leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
@@ -790,6 +858,8 @@ export type AutomationExecutionSelectCreateManyAndReturn<ExtArgs extends runtime
   metaPrivateReplyId?: boolean
   errorMessage?: boolean
   startedAt?: boolean
+  leaseExpiresAt?: boolean
+  leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
@@ -807,6 +877,8 @@ export type AutomationExecutionSelectUpdateManyAndReturn<ExtArgs extends runtime
   metaPrivateReplyId?: boolean
   errorMessage?: boolean
   startedAt?: boolean
+  leaseExpiresAt?: boolean
+  leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
@@ -824,11 +896,13 @@ export type AutomationExecutionSelectScalar = {
   metaPrivateReplyId?: boolean
   errorMessage?: boolean
   startedAt?: boolean
+  leaseExpiresAt?: boolean
+  leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
 }
 
-export type AutomationExecutionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "automationId" | "webhookEventId" | "status" | "publicReplyStatus" | "privateReplyStatus" | "metaReplyId" | "metaPrivateReplyId" | "errorMessage" | "startedAt" | "completedAt" | "createdAt", ExtArgs["result"]["automationExecution"]>
+export type AutomationExecutionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "automationId" | "webhookEventId" | "status" | "publicReplyStatus" | "privateReplyStatus" | "metaReplyId" | "metaPrivateReplyId" | "errorMessage" | "startedAt" | "leaseExpiresAt" | "leaseToken" | "completedAt" | "createdAt", ExtArgs["result"]["automationExecution"]>
 export type AutomationExecutionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
   webhookEvent?: boolean | Prisma.WebhookEventDefaultArgs<ExtArgs>
@@ -859,6 +933,8 @@ export type $AutomationExecutionPayload<ExtArgs extends runtime.Types.Extensions
     metaPrivateReplyId: string | null
     errorMessage: string | null
     startedAt: Date | null
+    leaseExpiresAt: Date | null
+    leaseToken: string | null
     completedAt: Date | null
     createdAt: Date
   }, ExtArgs["result"]["automationExecution"]>
@@ -1296,6 +1372,8 @@ export interface AutomationExecutionFieldRefs {
   readonly metaPrivateReplyId: Prisma.FieldRef<"AutomationExecution", 'String'>
   readonly errorMessage: Prisma.FieldRef<"AutomationExecution", 'String'>
   readonly startedAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
+  readonly leaseExpiresAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
+  readonly leaseToken: Prisma.FieldRef<"AutomationExecution", 'String'>
   readonly completedAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
 }

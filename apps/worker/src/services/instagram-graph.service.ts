@@ -35,8 +35,9 @@ export class MetaApiUnknownOutcomeError extends Error {
 async function graphPost(
   path: string,
   token: string,
-  body: URLSearchParams
-): Promise<MetaApiSuccess> {
+  body: URLSearchParams,
+  expectedResponseField: "id" | "message_id"
+): Promise<string> {
   const url =
     `https://graph.facebook.com/${workerEnv.metaGraphApiVersion}/${path}`;
 
@@ -58,7 +59,7 @@ async function graphPost(
     );
   }
 
-  let result: MetaApiSuccess | { error?: MetaApiErrorPayload };
+  let result: MetaApiSuccess | { error: MetaApiErrorPayload };
 
   try {
     result = await response.json();
@@ -78,19 +79,31 @@ async function graphPost(
     }
 
     throw new MetaApiError(
-      error?.message ?? `Meta API rejected the request (HTTP ${response.status}).`,
+      error?.message ??
+      `Meta API rejected the request (HTTP ${response.status}).`,
       response.status,
       error
     );
   }
 
-  if (!("id" in result) || !result.id) {
+  if ("error" in result) {
     throw new MetaApiUnknownOutcomeError(
-      "Meta accepted the request but did not return a reply ID."
+      "Meta returned an unexpected error response."
     );
   }
 
-  return result;
+  const responseId =
+    expectedResponseField === "id"
+      ? result.id
+      : result.message_id;
+
+  if (typeof responseId !== "string" || !responseId) {
+    throw new MetaApiUnknownOutcomeError(
+      `Meta accepted the request but did not return ${expectedResponseField}.`
+    );
+  }
+
+  return responseId;
 }
 
 export async function publishCommentReply(
@@ -100,11 +113,33 @@ export async function publishCommentReply(
 ): Promise<string> {
   const body = new URLSearchParams({ message });
 
-  const result = await graphPost(
+  return graphPost(
     `${encodeURIComponent(commentId)}/replies`,
     token,
-    body
+    body,
+    "id"
   );
+}
 
-  return result.id!;
+export async function sendPrivateReply(
+  instagramUserId: string,
+  commentId: string,
+  message: string,
+  token: string
+): Promise<string> {
+  const body = new URLSearchParams({
+    recipient: JSON.stringify({
+      comment_id: commentId,
+    }),
+    message: JSON.stringify({
+      text: message,
+    }),
+  });
+
+  return graphPost(
+    `${encodeURIComponent(instagramUserId)}/messages`,
+    token,
+    body,
+    "message_id"
+  );
 }

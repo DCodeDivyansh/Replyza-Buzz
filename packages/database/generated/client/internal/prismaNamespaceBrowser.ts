@@ -161,6 +161,8 @@ export const AutomationExecutionScalarFieldEnum = {
   metaPrivateReplyId: 'metaPrivateReplyId',
   errorMessage: 'errorMessage',
   startedAt: 'startedAt',
+  leaseExpiresAt: 'leaseExpiresAt',
+  leaseToken: 'leaseToken',
   completedAt: 'completedAt',
   createdAt: 'createdAt'
 } as const

@@ -1,7 +1,250 @@
 
 import { Job, UnrecoverableError } from "bullmq";
+import { randomUUID } from "node:crypto";
 import { prisma } from "@replyza/database";
+import { decryptToken } from "@replyza/shared";
+
 import type { AutomationJobData } from "../queues/automation.queue";
+
+import { workerEnv } from "../config/env";
+
+import {
+  claimAction,
+  completePublicReply,
+  completePrivateReply,
+  markActionFailed,
+  markActionUnknown,
+} from "../services/action-state.service";
+
+import {
+  claimExecution,
+  renewExecutionLease,
+  releaseExecutionLease,
+  recoverExpiredExecution,
+  assertExecutionOwnership,
+} from "../services/execution-lease.service";
+
+import {
+  publishCommentReply,
+  sendPrivateReply,
+  MetaApiError,
+  MetaApiUnknownOutcomeError,
+} from "../services/instagram-graph.service";
+
+type ActionResult =
+  | "SUCCESS"
+  | "FAILED"
+  | "UNKNOWN"
+  | "SKIPPED"
+  | "BLOCKED";
+
+
+async function executeAction(
+  executionId: string,
+  leaseToken: string,
+  action: "public" | "private",
+  isLeaseLost: () => boolean,
+  send: () => Promise<string>,
+  save: (resultId: string) => Promise<void>
+): Promise<ActionResult> {
+  await assertExecutionOwnership(executionId, leaseToken);
+
+  if (isLeaseLost()) {
+    throw new Error("Execution lease lost; refusing to send action");
+  }
+
+  const claimed = await claimAction(
+    executionId,
+    action,
+    leaseToken
+  );
+
+  if (!claimed) {
+    const current = await prisma.automationExecution.findUnique({
+      where: { id: executionId },
+      select: {
+        publicReplyStatus: true,
+        privateReplyStatus: true,
+      },
+    });
+
+    if (!current) {
+      throw new Error(`Execution disappeared: ${executionId}`);
+    }
+
+    const currentStatus =
+      action === "public"
+        ? current.publicReplyStatus
+        : current.privateReplyStatus;
+
+    console.log(
+      `[Worker] ${action} action was not claimed. State: ${currentStatus}`
+    );
+
+    if (currentStatus === "PROCESSING" || currentStatus === "PENDING") {
+      console.warn(
+        `[Worker] ${action} action is unresolved. Automatic resend prevented.`
+      );
+
+      return "BLOCKED";
+    }
+
+    return currentStatus;
+  }
+
+  try {
+    // Verify ownership immediately before contacting Meta.
+    await assertExecutionOwnership(executionId, leaseToken);
+
+    if (isLeaseLost()) {
+      throw new Error("Execution lease lost; refusing to send action");
+    }
+
+    const resultId = await send();
+
+    // The save operation also verifies the lease token.
+    await save(resultId);
+
+    console.log(
+      `[Worker] ${action} action completed: ${executionId}`
+    );
+
+    return "SUCCESS";
+  } catch (error) {
+    if (error instanceof MetaApiError) {
+      await markActionFailed(
+        executionId,
+        action,
+        leaseToken,
+        error.message
+      );
+
+      console.error(
+        `[Worker] ${action} action rejected by Meta:`,
+        error.message
+      );
+
+      return "FAILED";
+    }
+
+    const reason =
+      error instanceof MetaApiUnknownOutcomeError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : "Unexpected error; action outcome is uncertain.";
+
+    await markActionUnknown(
+      executionId,
+      action,
+      leaseToken,
+      reason
+    );
+
+    console.error(
+      `[Worker] ${action} action outcome unknown:`,
+      reason
+    );
+
+    return "UNKNOWN";
+  }
+}
+
+
+
+async function finalizeExecution(
+  executionId: string,
+  webhookEventId: string,
+  leaseToken: string
+): Promise<void> {
+  await prisma.$transaction(async (tx) => {
+    const execution = await tx.automationExecution.findFirst({
+      where: {
+        id: executionId,
+        status: "PROCESSING",
+        leaseToken,
+        leaseExpiresAt: {
+          gt: new Date(),
+        },
+      },
+      select: {
+        publicReplyStatus: true,
+        privateReplyStatus: true,
+      },
+    });
+
+    if (!execution) {
+      throw new Error(
+        `Cannot finalize execution; ownership lost: ${executionId}`
+      );
+    }
+
+    const publicStatus = execution.publicReplyStatus;
+    const privateStatus = execution.privateReplyStatus;
+
+    let finalStatus: "COMPLETED" | "PARTIAL" | "FAILED";
+
+    if (
+      publicStatus === "SUCCESS" &&
+      privateStatus === "SUCCESS"
+    ) {
+      finalStatus = "COMPLETED";
+    } else if (
+      publicStatus === "SUCCESS" ||
+      privateStatus === "SUCCESS" ||
+      publicStatus === "UNKNOWN" ||
+      privateStatus === "UNKNOWN" ||
+      publicStatus === "PROCESSING" ||
+      privateStatus === "PROCESSING" ||
+      publicStatus === "PENDING" ||
+      privateStatus === "PENDING"
+    ) {
+      finalStatus = "PARTIAL";
+    } else {
+      finalStatus = "FAILED";
+    }
+
+    const updated = await tx.automationExecution.updateMany({
+      where: {
+        id: executionId,
+        status: "PROCESSING",
+        leaseToken,
+        leaseExpiresAt: {
+          gt: new Date(),
+        },
+      },
+      data: {
+        status: finalStatus,
+        completedAt: new Date(),
+        leaseToken: null,
+        leaseExpiresAt: null,
+      },
+    });
+
+    if (updated.count !== 1) {
+      throw new Error(
+        `Execution ownership lost during finalization: ${executionId}`
+      );
+    }
+
+    await tx.webhookEvent.update({
+      where: { id: webhookEventId },
+      data: {
+        status: "PROCESSED",
+        processedAt: new Date(),
+      },
+    });
+
+    console.log(
+      `[Worker] Execution finalized: ${executionId} | ` +
+      `Public: ${publicStatus} | ` +
+      `Private: ${privateStatus} | ` +
+      `Final: ${finalStatus}`
+    );
+  });
+}
+
+
 
 export async function processAutomationJob(
   job: Job<AutomationJobData>
@@ -10,10 +253,14 @@ export async function processAutomationJob(
 
   console.log(`[Worker] Processing execution: ${executionId}`);
 
-  const execution = await prisma.automationExecution.findUnique({
+  let execution = await prisma.automationExecution.findUnique({
     where: { id: executionId },
     include: {
-      automation: true,
+      automation: {
+        include: {
+          instagramAccount: true,
+        },
+      },
       webhookEvent: true,
     },
   });
@@ -24,7 +271,6 @@ export async function processAutomationJob(
     );
   }
 
-  // Ensure the job IDs match the database relationships.
   if (
     execution.automationId !== automationId ||
     execution.webhookEventId !== webhookEventId
@@ -34,98 +280,309 @@ export async function processAutomationJob(
     );
   }
 
-  if (execution.status === "COMPLETED") {
-    console.log(`[Worker] Execution already completed: ${executionId}`);
+  if (
+    execution.status === "COMPLETED" ||
+    execution.status === "FAILED"
+  ) {
+    console.log(
+      `[Worker] Execution already terminal: ${execution.status}`
+    );
     return;
   }
 
-  const { automation, webhookEvent } = execution;
+  // Recover an abandoned execution only after its lease expires.
+  if (execution.status === "PROCESSING") {
+    const recovered = await recoverExpiredExecution(executionId);
 
-  // Validate account and media ownership.
+    if (!recovered) {
+      console.log(
+        `[Worker] Execution still owned by another worker: ${executionId}`
+      );
+      return;
+    }
+
+    execution = await prisma.automationExecution.findUnique({
+      where: { id: executionId },
+      include: {
+        automation: {
+          include: {
+            instagramAccount: true,
+          },
+        },
+        webhookEvent: true,
+      },
+    });
+
+    if (!execution || execution.status !== "PARTIAL") {
+      return;
+    }
+
+    console.warn(
+      `[Worker] Recovered expired execution: ${executionId}`
+    );
+  }
+
+  const { automation, webhookEvent } = execution;
+  const account = automation.instagramAccount;
+
   if (
     automation.instagramAccountId !== webhookEvent.instagramAccountId ||
-    automation.mediaId !== webhookEvent.mediaId
+    automation.mediaId !== webhookEvent.mediaId ||
+    account.id !== webhookEvent.instagramAccountId
   ) {
-    await prisma.automationExecution.update({
-      where: { id: executionId },
-      data: {
-        status: "FAILED",
-        publicReplyStatus: "SKIPPED",
-        privateReplyStatus: "SKIPPED",
-        errorMessage: "Automation and webhook event do not match",
-        completedAt: new Date(),
-      },
-    });
-
-    await prisma.webhookEvent.update({
-      where: { id: webhookEventId },
-      data: { status: "FAILED" },
-    });
-
     throw new UnrecoverableError(
-      "Automation and webhook event relationship mismatch"
+      "Automation, account and webhook event do not match"
     );
   }
 
-  // Do not execute a draft or paused automation.
-  if (automation.status !== "ACTIVE") {
-    await prisma.automationExecution.update({
-      where: { id: executionId },
-      data: {
-        status: "FAILED",
-        publicReplyStatus: "SKIPPED",
-        privateReplyStatus: "SKIPPED",
-        errorMessage: `Automation is ${automation.status}; processing skipped`,
-        completedAt: new Date(),
-      },
-    });
+  const leaseToken = randomUUID();
 
-    await prisma.webhookEvent.update({
-      where: { id: webhookEventId },
-      data: { status: "PROCESSED", processedAt: new Date() },
-    });
+  const claimed = await claimExecution(
+    executionId,
+    leaseToken,
+    execution.startedAt
+  );
 
-    throw new UnrecoverableError(
-      `Automation is not active: ${automation.status}`
+  if (!claimed) {
+    console.log(
+      `[Worker] Could not claim execution: ${executionId}`
     );
+    return;
   }
 
-  // Mark the execution as processing.
-  await prisma.$transaction([
-    prisma.automationExecution.update({
-      where: { id: executionId },
-      data: {
-        status: "PROCESSING",
-        startedAt: new Date(),
-        errorMessage: null,
-      },
-    }),
-    prisma.webhookEvent.update({
+  console.log(
+    `[Worker] Execution ownership acquired: ${executionId}`
+  );
+
+  let leaseLost = false;
+  let renewalInFlight = false;
+
+  // Renew the database lease every 30 seconds.
+  const heartbeat = setInterval(async () => {
+    if (renewalInFlight || leaseLost) return;
+
+    renewalInFlight = true;
+
+    try {
+      const renewed = await renewExecutionLease(
+        executionId,
+        leaseToken
+      );
+
+      if (!renewed) {
+        leaseLost = true;
+        console.error(
+          `[Worker] Execution lease lost: ${executionId}`
+        );
+      }
+    } catch (error) {
+      leaseLost = true;
+      console.error(
+        `[Worker] Lease renewal failed: ${executionId}`,
+        error
+      );
+    } finally {
+      renewalInFlight = false;
+    }
+  }, 30_000);
+
+  try {
+    if (automation.status !== "ACTIVE") {
+      const stopped = await prisma.automationExecution.updateMany({
+        where: {
+          id: executionId,
+          status: "PROCESSING",
+          leaseToken,
+          leaseExpiresAt: { gt: new Date() },
+        },
+        data: {
+          status: "FAILED",
+          publicReplyStatus:
+            execution.publicReplyStatus === "PENDING"
+              ? "SKIPPED"
+              : execution.publicReplyStatus,
+          privateReplyStatus:
+            execution.privateReplyStatus === "PENDING"
+              ? "SKIPPED"
+              : execution.privateReplyStatus,
+          errorMessage: `Automation is ${automation.status}; processing skipped`,
+          completedAt: new Date(),
+          leaseToken: null,
+          leaseExpiresAt: null,
+        },
+      });
+
+      if (stopped.count !== 1) {
+        throw new Error(
+          `Could not stop inactive automation: ${executionId}`
+        );
+      }
+
+      await prisma.webhookEvent.update({
+        where: { id: webhookEventId },
+        data: {
+          status: "PROCESSED",
+          processedAt: new Date(),
+        },
+      });
+
+      throw new UnrecoverableError(
+        `Automation is not active: ${automation.status}`
+      );
+    }
+
+    await assertExecutionOwnership(executionId, leaseToken);
+
+    // Decrypt the connected Instagram account token.
+    let accessToken: string;
+
+    try {
+      accessToken = decryptToken(
+        account.encryptedAccessToken,
+        workerEnv.metaTokenEncryptionKey
+      );
+    } catch {
+      const failed = await prisma.automationExecution.updateMany({
+        where: {
+          id: executionId,
+          status: "PROCESSING",
+          leaseToken,
+          leaseExpiresAt: { gt: new Date() },
+        },
+        data: {
+          status: "FAILED",
+          errorMessage: "Instagram access token decryption failed",
+          publicReplyStatus:
+            execution.publicReplyStatus === "PENDING"
+              ? "SKIPPED"
+              : execution.publicReplyStatus,
+          privateReplyStatus:
+            execution.privateReplyStatus === "PENDING"
+              ? "SKIPPED"
+              : execution.privateReplyStatus,
+          completedAt: new Date(),
+          leaseToken: null,
+          leaseExpiresAt: null,
+        },
+      });
+
+      if (failed.count !== 1) {
+        throw new Error(
+          `Could not persist token decryption failure: ${executionId}`
+        );
+      }
+
+      await prisma.webhookEvent.update({
+        where: { id: webhookEventId },
+        data: { status: "FAILED" },
+      });
+
+      throw new UnrecoverableError(
+        "Could not decrypt the Instagram access token"
+      );
+    }
+
+    if (!accessToken) {
+      throw new UnrecoverableError(
+        "Instagram access token is empty"
+      );
+    }
+
+    await prisma.webhookEvent.update({
       where: { id: webhookEventId },
       data: { status: "PROCESSING" },
-    }),
-  ]);
+    });
 
-  // Temporary dry-run stage: no Instagram API calls yet.
-  await prisma.automationExecution.update({
-    where: { id: executionId },
-    data: {
-      status: "PARTIAL",
-      publicReplyStatus: "SKIPPED",
-      privateReplyStatus: "SKIPPED",
-      errorMessage:
-        "Validation successful. Instagram reply actions are not implemented yet.",
-      completedAt: new Date(),
-    },
-  });
+    // Action 1: Public comment reply.
+    const publicResult = await executeAction(
+      executionId,
+      leaseToken,
+      "public",
+      () => leaseLost,
+      () =>
+        publishCommentReply(
+          webhookEvent.commentId,
+          automation.publicReplyText,
+          accessToken
+        ),
+      (replyId) =>
+        completePublicReply(
+          executionId,
+          leaseToken,
+          replyId
+        )
+    );
 
-  await prisma.webhookEvent.update({
-    where: { id: webhookEventId },
-    data: {
-      status: "PROCESSED",
-      processedAt: new Date(),
-    },
-  });
+    if (leaseLost) {
+      throw new Error(
+        `Execution lease lost after public action: ${executionId}`
+      );
+    }
 
-  console.log(`[Worker] Validation successful: ${executionId}`);
+    if (publicResult === "BLOCKED") {
+      await finalizeExecution(
+        executionId,
+        webhookEventId,
+        leaseToken
+      );
+      return;
+    }
+
+    // Action 2: Private Instagram reply.
+    const privateMessage = automation.dmLink
+      ? `${automation.dmMessageText}\n${automation.dmLink}`
+      : automation.dmMessageText;
+
+    const privateResult = await executeAction(
+      executionId,
+      leaseToken,
+      "private",
+      () => leaseLost,
+      () =>
+        sendPrivateReply(
+          account.instagramUserId,
+          webhookEvent.commentId,
+          privateMessage,
+          accessToken
+        ),
+      (messageId) =>
+        completePrivateReply(
+          executionId,
+          leaseToken,
+          messageId
+        )
+    );
+
+    if (leaseLost) {
+      throw new Error(
+        `Execution lease lost after private action: ${executionId}`
+      );
+    }
+
+    if (privateResult === "BLOCKED") {
+      console.warn(
+        `[Worker] Private action blocked: ${executionId}`
+      );
+    }
+
+    await finalizeExecution(
+      executionId,
+      webhookEventId,
+      leaseToken
+    );
+  } finally {
+    clearInterval(heartbeat);
+
+    if (!leaseLost) {
+      await releaseExecutionLease(
+        executionId,
+        leaseToken
+      ).catch((error) => {
+        console.error(
+          `[Worker] Could not release execution lease: ${executionId}`,
+          error
+        );
+      });
+    }
+  }
 }

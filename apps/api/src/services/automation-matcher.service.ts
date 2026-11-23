@@ -1,11 +1,20 @@
 
 import { prisma } from "@replyza/database";
-import { automationQueue } from "../queues/automation.queue";
+import { enqueueAutomationExecution } from "../queues/automation.queue";
 
 interface MatchAutomationInput {
   instagramAccountId: string;
   mediaId: string;
   commentText: string;
+}
+
+function isDuplicateError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
 }
 
 export async function findMatchingAutomation(
@@ -46,7 +55,6 @@ export async function findMatchingAutomation(
 export async function matchAndQueueAutomation(
   webhookEventId: string
 ) {
-  // Always load the event from PostgreSQL.
   const event = await prisma.webhookEvent.findUnique({
     where: { id: webhookEventId },
   });
@@ -55,53 +63,101 @@ export async function matchAndQueueAutomation(
     throw new Error(`Webhook event not found: ${webhookEventId}`);
   }
 
-  const automation = await findMatchingAutomation({
-    instagramAccountId: event.instagramAccountId,
-    mediaId: event.mediaId,
-    commentText: event.commentText,
-  });
-
-  if (!automation) {
-    await prisma.webhookEvent.update({
-      where: { id: event.id },
-      data: {
-        status: "PROCESSED",
-        processedAt: new Date(),
-      },
-    });
-
-    return { matched: false, queued: false };
-  }
-
-  // Unique webhookEventId ensures one execution per comment.
-  const execution = await prisma.automationExecution.upsert({
+  // An existing execution always takes precedence over a new match.
+  let execution = await prisma.automationExecution.findUnique({
     where: {
       webhookEventId: event.id,
     },
-    create: {
-      automationId: automation.id,
-      webhookEventId: event.id,
-      status: "PENDING",
+    select: {
+      id: true,
+      automationId: true,
+      status: true,
     },
-    update: {},
   });
 
-  // A deterministic job ID prevents duplicate queue jobs.
-  await automationQueue.add(
-    "process-automation",
-    {
-      executionId: execution.id,
-      automationId: automation.id,
-      webhookEventId: event.id,
-    },
-    {
-      jobId: execution.id,
+  if (!execution) {
+    const automation = await findMatchingAutomation({
+      instagramAccountId: event.instagramAccountId,
+      mediaId: event.mediaId,
+      commentText: event.commentText,
+    });
+
+    if (!automation) {
+      await prisma.webhookEvent.update({
+        where: { id: event.id },
+        data: {
+          status: "PROCESSED",
+          processedAt: new Date(),
+        },
+      });
+
+      return { matched: false, queued: false };
     }
-  );
+
+    try {
+      execution = await prisma.automationExecution.create({
+        data: {
+          automationId: automation.id,
+          webhookEventId: event.id,
+          status: "PENDING",
+        },
+        select: {
+          id: true,
+          automationId: true,
+          status: true,
+        },
+      });
+    } catch (error) {
+      if (!isDuplicateError(error)) {
+        throw error;
+      }
+
+      // Another webhook delivery may have created the execution.
+      execution = await prisma.automationExecution.findUnique({
+        where: {
+          webhookEventId: event.id,
+        },
+        select: {
+          id: true,
+          automationId: true,
+          status: true,
+        },
+      });
+
+      if (!execution) {
+        throw new Error(
+          `Execution could not be retrieved for webhook event: ${event.id}`
+        );
+      }
+    }
+  }
+
+  // Never use a newly matched automation ID here.
+    // PostgreSQL is authoritative for execution state.
+  // Never enqueue terminal or currently processing executions.
+  if (
+    execution.status === "COMPLETED" ||
+    execution.status === "FAILED" ||
+    execution.status === "PROCESSING"
+  ) {
+    return {
+      matched: true,
+      queued: false,
+      executionId: execution.id,
+      executionStatus: execution.status,
+    };
+  }
+
+  const queueResult = await enqueueAutomationExecution({
+    executionId: execution.id,
+    automationId: execution.automationId,
+    webhookEventId: event.id,
+  });
 
   return {
     matched: true,
-    queued: true,
+    queued: queueResult === "QUEUED",
     executionId: execution.id,
+    executionStatus: execution.status,
   };
 }

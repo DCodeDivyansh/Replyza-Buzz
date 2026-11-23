@@ -40,3 +40,30 @@ export const automationQueue = new Queue<AutomationJobData>(
     },
   }
 );
+
+export async function enqueueAutomationExecution(
+  data: AutomationJobData
+): Promise<"QUEUED" | "ALREADY_QUEUED"> {
+  const existingJob = await automationQueue.getJob(data.executionId);
+
+  if (existingJob) {
+    const state = await existingJob.getState();
+
+    if (state !== "completed" && state !== "failed") {
+      return "ALREADY_QUEUED";
+    }
+
+    // Remove an old terminal BullMQ job before re-enqueueing.
+    await existingJob.remove();
+  }
+
+  await automationQueue.add(
+    "process-automation",
+    data,
+    {
+      jobId: data.executionId,
+    }
+  );
+
+  return "QUEUED";
+}
