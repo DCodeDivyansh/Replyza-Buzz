@@ -4,6 +4,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { env } from "../config/env";
 import { logger } from "../utils/logger";
+import { persistInstagramCommentEvents } from "../services/instagram-webhook.service";
 
 function safeCompare(first: string, second: string): boolean {
   const firstBuffer = Buffer.from(first);
@@ -62,7 +63,8 @@ export const verifyInstagramWebhook: RequestHandler = (req, res) => {
   res.status(200).type("text/plain").send(challenge);
 };
 
-export const receiveInstagramWebhook: RequestHandler = (req, res) => {
+
+export const receiveInstagramWebhook: RequestHandler = async (req, res) => {
   const rawBody = req.rawBody;
 
   if (!rawBody) {
@@ -77,7 +79,6 @@ export const receiveInstagramWebhook: RequestHandler = (req, res) => {
 
   if (!verifyMetaSignature(rawBody, signature)) {
     logger.warn("Instagram webhook signature validation failed");
-
     res.status(401).json({
       success: false,
       message: "Invalid webhook signature"
@@ -99,18 +100,31 @@ export const receiveInstagramWebhook: RequestHandler = (req, res) => {
     return;
   }
 
-  const payload = body as Record<string, unknown>;
-  const entryCount = Array.isArray(payload.entry)
-    ? payload.entry.length
-    : 0;
+  try {
+    const result = await persistInstagramCommentEvents(
+      body as Record<string, unknown>
+    );
 
-  logger.info(
-    {
-      object: payload.object,
-      entryCount
-    },
-    "Instagram webhook event received"
-  );
+    logger.info(
+      {
+        saved: result.saved,
+        duplicates: result.duplicates,
+        ignored: result.ignored
+      },
+      "Instagram webhook events persisted"
+    );
 
-  res.status(200).send("EVENT_RECEIVED");
+    res.status(200).send("EVENT_RECEIVED");
+  } catch (error) {
+    logger.error(
+      { err: error },
+      "Failed to persist Instagram webhook event"
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to process webhook event"
+    });
+  }
 };
+

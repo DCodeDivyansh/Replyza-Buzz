@@ -13,8 +13,14 @@ const envSchema = z.object({
     FRONTEND_URL: z.string().url().default("http://localhost:3000"),
     DATABASE_URL: z.string().min(1),
     JWT_SECRET: z.string().min(32),
+    SESSION_SECRET: z.string().min(32),
     META_APP_SECRET: z.string().min(1),
-    META_WEBHOOK_VERIFY_TOKEN: z.string().min(32)
+    META_WEBHOOK_VERIFY_TOKEN: z.string().min(32),
+    META_APP_ID: z.string().min(1),
+    META_LOGIN_CONFIG_ID: z.string().min(1),
+    META_REDIRECT_URI: z.string().url(),
+    META_GRAPH_API_VERSION: z.string().regex(/^v\d+\.\d+$/),
+    META_TOKEN_ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/),
 });
 
 const result = envSchema.safeParse(process.env);
