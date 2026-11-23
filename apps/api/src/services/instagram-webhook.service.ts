@@ -1,5 +1,6 @@
 
 import { prisma } from "@replyza/database";
+import { matchAndQueueAutomation } from "./automation-matcher.service";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -16,10 +17,7 @@ function isNonEmptyString(value: unknown): value is string {
 }
 
 function isDuplicateError(error: unknown): boolean {
-  return (
-    isRecord(error) &&
-    error.code === "P2002"
-  );
+  return isRecord(error) && error.code === "P2002";
 }
 
 export async function persistInstagramCommentEvents(
@@ -41,7 +39,7 @@ export async function persistInstagramCommentEvents(
 
     const instagramAccount = await prisma.instagramAccount.findUnique({
       where: { instagramUserId: rawEntry.id },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!instagramAccount) {
@@ -80,8 +78,10 @@ export async function persistInstagramCommentEvents(
         continue;
       }
 
+      let webhookEventId: string;
+
       try {
-        await prisma.webhookEvent.create({
+        const event = await prisma.webhookEvent.create({
           data: {
             instagramAccountId: instagramAccount.id,
             commentId: comment.id,
@@ -91,19 +91,44 @@ export async function persistInstagramCommentEvents(
               ? commenter.username
               : null,
             commentText: comment.text,
-            eventPayload: JSON.parse(JSON.stringify(comment))
-          }
+            eventPayload: JSON.parse(JSON.stringify(comment)),
+          },
+          select: { id: true },
         });
 
+        webhookEventId = event.id;
         saved++;
       } catch (error) {
-        if (isDuplicateError(error)) {
-          duplicates++;
-          continue;
+        if (!isDuplicateError(error)) {
+          throw error;
         }
 
-        throw error;
+        duplicates++;
+
+        // Recover an event that was saved previously but not queued.
+        const existingEvent = await prisma.webhookEvent.findUnique({
+          where: {
+            instagramAccountId_commentId: {
+              instagramAccountId: instagramAccount.id,
+              commentId: comment.id,
+            },
+          },
+          select: { id: true },
+        });
+
+        if (!existingEvent) {
+          throw new Error(
+            `Duplicate webhook event could not be retrieved: ${comment.id}`
+          );
+        }
+
+        webhookEventId = existingEvent.id;
       }
+
+      // Run matching for both new and duplicate deliveries.
+      // If Redis is unavailable, this throws and the webhook returns 500.
+      // A subsequent Meta retry can then attempt queue insertion again.
+      await matchAndQueueAutomation(webhookEventId);
     }
   }
 
