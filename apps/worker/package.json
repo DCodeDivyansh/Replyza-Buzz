@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@replyza/database": "workspace:*",
+    "@replyza/shared": "workspace:*",
     "bullmq": "^5.0.0",
     "ioredis": "^5.0.0"
   },

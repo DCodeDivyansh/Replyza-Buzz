@@ -85,8 +85,10 @@ enum ExecutionStatus {
 
 enum ActionStatus {
   PENDING
+  PROCESSING
   SUCCESS
   FAILED
+  UNKNOWN
   SKIPPED
 }
 

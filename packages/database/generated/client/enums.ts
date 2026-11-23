@@ -49,8 +49,10 @@ export type ExecutionStatus = (typeof ExecutionStatus)[keyof typeof ExecutionSta
 
 export const ActionStatus = {
   PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
   SUCCESS: 'SUCCESS',
   FAILED: 'FAILED',
+  UNKNOWN: 'UNKNOWN',
   SKIPPED: 'SKIPPED'
 } as const
 
