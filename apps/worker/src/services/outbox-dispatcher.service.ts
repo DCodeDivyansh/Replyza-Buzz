@@ -1,7 +1,15 @@
 import { prisma } from "@replyza/database";
+import { decryptToken } from "@replyza/shared";
 import { automationQueue, type AutomationJobData } from "../queues/automation.queue";
 import { followCheckQueue, type FollowCheckJobData } from "../queues/follow-check.queue";
+import { workerEnv } from "../config/env";
 import { recoverExpiredExecution } from "./execution-lease.service";
+import { reconcileCommentReply } from "./instagram-graph.service";
+import {
+  markDeliveryActionSent,
+  markDeliveryActionNeedsReview,
+  syncExecutionFromDeliveryActions,
+} from "./delivery-action.service";
 
 const MAX_OUTBOX_ATTEMPTS = 10;
 const CLAIM_LEASE_MS = 30_000;
@@ -10,6 +18,7 @@ interface AutomationOutboxPayload {
   executionId: string;
   automationId: string;
   webhookEventId: string;
+  actionType?: "PUBLIC_REPLY" | "HOOK_DM";
 }
 
 interface FollowCheckOutboxPayload {
@@ -63,9 +72,15 @@ export async function dispatchPendingOutboxEvents(): Promise<{
     }
 
     try {
-      if (event.eventType === "AUTOMATION_EXECUTION") {
+      if (
+        event.eventType === "AUTOMATION_EXECUTION" ||
+        event.eventType === "AUTOMATION_ACTION"
+      ) {
         const payload = event.payload as unknown as AutomationOutboxPayload;
-        const existingJob = await automationQueue.getJob(payload.executionId);
+        const jobId = payload.actionType
+          ? `${payload.executionId}:${payload.actionType}`
+          : payload.executionId;
+        const existingJob = await automationQueue.getJob(jobId);
         if (existingJob) {
           const state = await existingJob.getState();
           if (state === "completed" || state === "failed") {
@@ -74,14 +89,17 @@ export async function dispatchPendingOutboxEvents(): Promise<{
         }
 
         await automationQueue.add(
-          "process-automation",
+          payload.actionType
+            ? `process-${payload.actionType.toLowerCase()}`
+            : "process-automation",
           {
             executionId: payload.executionId,
             automationId: payload.automationId,
             webhookEventId: payload.webhookEventId,
+            actionType: payload.actionType,
           } satisfies AutomationJobData,
           {
-            jobId: payload.executionId,
+            jobId,
           }
         );
       } else if (event.eventType === "FOLLOW_CHECK") {
@@ -311,6 +329,59 @@ export async function recoverOrphanedRecords(
         },
       });
       orphanedMessagingQueued++;
+    }
+  }
+
+  // 4. Reconcile stale SENDING delivery_actions (> 2 minutes old) without blind resend
+  const staleSendingCutoff = new Date(now.getTime() - 120_000);
+  const staleActions = await prisma.deliveryAction.findMany({
+    where: {
+      status: "SENDING",
+      updatedAt: { lte: staleSendingCutoff },
+    },
+    include: {
+      execution: {
+        include: {
+          automation: { include: { instagramAccount: true } },
+          webhookEvent: true,
+        },
+      },
+    },
+    take: 25,
+  });
+
+  for (const action of staleActions) {
+    const exec = action.execution;
+    if (action.actionType === "PUBLIC_REPLY") {
+      try {
+        const token = decryptToken(
+          exec.automation.instagramAccount.encryptedAccessToken,
+          workerEnv.metaTokenEncryptionKey
+        );
+        const foundId = await reconcileCommentReply(
+          exec.webhookEvent.commentId,
+          exec.automation.publicReplyText,
+          exec.automation.instagramAccount.instagramUserId,
+          token
+        );
+        if (foundId) {
+          await markDeliveryActionSent(exec.id, "PUBLIC_REPLY", foundId);
+          await syncExecutionFromDeliveryActions(exec.id, exec.webhookEventId);
+          continue;
+        }
+      } catch {
+        // Fall through to NEEDS_REVIEW
+      }
+    }
+
+    await markDeliveryActionNeedsReview(
+      exec.id,
+      action.actionType,
+      "STALE_SENDING",
+      "Worker interrupted while sending; marked NEEDS_REVIEW to prevent duplicate messages"
+    );
+    if (action.actionType === "PUBLIC_REPLY" || action.actionType === "HOOK_DM") {
+      await syncExecutionFromDeliveryActions(exec.id, exec.webhookEventId);
     }
   }
 
