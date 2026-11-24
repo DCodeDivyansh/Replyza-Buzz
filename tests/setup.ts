@@ -44,6 +44,7 @@ export async function cleanDatabase() {
       automation_executions,
       webhook_events,
       automations,
+      automation_templates,
       instagram_accounts,
       refresh_tokens,
       users

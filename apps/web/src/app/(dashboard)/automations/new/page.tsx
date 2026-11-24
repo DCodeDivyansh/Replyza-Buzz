@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest, ApiClientError } from "@/lib/api-client";
@@ -9,17 +9,15 @@ import {
   CreateAutomationPayload,
   InstagramAccountInfo,
 } from "@/types/automation";
-import { AutomationForm } from "@/components/automations/automation-form";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { BuilderWizard } from "@/components/automations/builder/builder-wizard";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { ErrorAlert } from "@/components/feedback/error-alert";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
-export default function NewAutomationPage() {
+function NewAutomationContent() {
   const router = useRouter();
-  const [discoveredAccounts, setDiscoveredAccounts] = useState<
-    InstagramAccountInfo[]
-  >([]);
+  const [discoveredAccounts, setDiscoveredAccounts] = useState<InstagramAccountInfo[]>([]);
   const [hasLoadedAccounts, setHasLoadedAccounts] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
@@ -41,15 +39,22 @@ export default function NewAutomationPage() {
     loadAccounts();
   }, []);
 
-  const handleCreate = async (payload: unknown) => {
+  const handleCreate = async (payload: CreateAutomationPayload, activateNow: boolean) => {
     setIsLoading(true);
     setPageError(null);
 
     try {
-      await apiRequest<Automation>("/automations", {
+      const createRes = await apiRequest<Automation>("/automations", {
         method: "POST",
-        body: JSON.stringify(payload as CreateAutomationPayload),
+        body: JSON.stringify(payload),
       });
+
+      if (activateNow && createRes.data?.id) {
+        await apiRequest(`/automations/${createRes.data.id}/status`, {
+          method: "PATCH",
+          body: JSON.stringify({ status: "ACTIVE" }),
+        });
+      }
 
       router.push("/automations");
     } catch (err) {
@@ -58,13 +63,22 @@ export default function NewAutomationPage() {
       } else {
         setPageError("Failed to create automation. Please try again.");
       }
+      throw err;
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (!hasLoadedAccounts) {
+    return (
+      <div className="py-20 flex justify-center">
+        <Spinner size="lg" label="Loading accounts..." />
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/automations">
           <Button variant="ghost" size="sm" className="gap-1 p-2 text-zinc-500">
@@ -72,52 +86,41 @@ export default function NewAutomationPage() {
           </Button>
         </Link>
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900">
-            Create Automation
-          </h2>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight text-zinc-900">
+              Automation Builder
+            </h1>
+            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
+              <Sparkles className="h-2.5 w-2.5" /> 6-Step Guided
+            </span>
+          </div>
           <p className="text-xs text-zinc-500 mt-0.5">
-            Configure automated comments and DMs for an Instagram post or reel
+            Create high-converting comment-to-DM flows with zero manual media ID entry.
           </p>
         </div>
       </div>
 
-      <ErrorAlert
-        message={pageError || ""}
-        onDismiss={() => setPageError(null)}
+      {pageError && <ErrorAlert message={pageError} />}
+
+      <BuilderWizard
+        discoveredAccounts={discoveredAccounts}
+        onSubmit={handleCreate}
+        isSubmitting={isLoading}
       />
-
-      {hasLoadedAccounts && discoveredAccounts.length === 0 && (
-        <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/70 text-xs text-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p className="font-semibold text-amber-900">No Instagram Account Connected</p>
-            <p className="text-amber-700 mt-0.5">
-              You must connect an Instagram Professional or Creator account before you can activate comment triggers.
-            </p>
-          </div>
-          <Link href="/instagram">
-            <Button size="sm" variant="outline" className="border-amber-300 text-amber-900 hover:bg-amber-100/70 shrink-0">
-              Connect Instagram
-            </Button>
-          </Link>
-        </div>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Workflow Configuration</CardTitle>
-          <CardDescription>
-            Specify trigger keywords, public reply comments, and direct messages.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AutomationForm
-            isEditMode={false}
-            discoveredAccounts={discoveredAccounts}
-            onSubmit={handleCreate}
-            isLoading={isLoading}
-          />
-        </CardContent>
-      </Card>
     </div>
+  );
+}
+
+export default function NewAutomationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-20 flex justify-center">
+          <Spinner size="lg" label="Preparing builder..." />
+        </div>
+      }
+    >
+      <NewAutomationContent />
+    </Suspense>
   );
 }

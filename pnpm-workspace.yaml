@@ -13,4 +13,4 @@ allowBuilds:
   unrs-resolver: false
 
 overrides:
-  effect: ">=3.22.1"
+  effect: ">=3.22.1 <4.0.0"

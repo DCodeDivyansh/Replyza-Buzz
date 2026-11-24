@@ -71,6 +71,11 @@ export async function createAutomation(
         publicReplyText: input.publicReplyText,
         dmMessageText: input.dmMessageText,
         dmLink: input.dmLink,
+        followRequired: input.followRequired ?? false,
+        followInstructionText: input.followInstructionText,
+        followSuccessText: input.followSuccessText,
+        followFallbackText: input.followFallbackText,
+        templateId: input.templateId,
         status: "DRAFT"
       }
     });

@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Bot,
+  Images,
+  LayoutTemplate,
   Activity,
   Settings,
   LogOut,
@@ -24,6 +26,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Automations", href: "/automations", icon: Bot },
+  { name: "Media Library", href: "/media", icon: Images },
+  { name: "Templates", href: "/templates", icon: LayoutTemplate },
   { name: "Instagram", href: "/instagram", icon: InstagramIcon },
   { name: "Activity", href: "/activity", icon: Activity },
   { name: "Settings", href: "/settings", icon: Settings },

@@ -23,6 +23,7 @@ import {
   Send,
   Link as LinkIcon,
   Clock,
+  UserCheck,
 } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/icons";
 
@@ -275,6 +276,26 @@ export default function AutomationDetailsPage({
                     <span>{automation.dmLink}</span>
                     <ExternalLink className="h-3 w-3" />
                   </a>
+                </div>
+              )}
+
+              {/* Follow-to-Get-Link Status */}
+              {automation.followRequired && (
+                <div className="space-y-2 pt-3 border-t border-zinc-150">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-700">
+                    <UserCheck className="h-3.5 w-3.5 text-purple-600" />
+                    <span>Follow-to-Get-Link (Gate Active)</span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-purple-50/50 border border-purple-100 text-xs text-purple-900 space-y-1.5">
+                    <p>
+                      <strong>Instruction:</strong> {automation.followInstructionText || "Follow to get link"}
+                    </p>
+                    {automation.followSuccessText && (
+                      <p>
+                        <strong>Success Delivery:</strong> {automation.followSuccessText}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>

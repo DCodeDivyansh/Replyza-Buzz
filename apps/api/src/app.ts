@@ -16,6 +16,7 @@ import automationRoutes from "./routes/automation.routes";
 import instagramWebhookRoutes from "./routes/instagram-webhook.routes";
 import instagramOAuthRoutes from "./routes/instagram-oauth.routes";
 import instagramAccountRoutes from "./routes/instagram-account.routes";
+import templateRoutes from "./routes/template.routes";
 import metaRoutes from "./routes/meta.routes";
 
 import { notFoundHandler } from "./middleware/not-found.middleware";
@@ -89,6 +90,7 @@ app.use("/api/v1/automations", automationRoutes);
 app.use("/api/v1/webhooks", instagramWebhookRoutes);
 app.use("/api/v1/instagram/oauth", instagramOAuthRoutes);
 app.use("/api/v1/instagram", instagramAccountRoutes);
+app.use("/api/v1/templates", templateRoutes);
 app.use("/api/v1/meta", metaRoutes);
 
 // Error handling must come after all routes.

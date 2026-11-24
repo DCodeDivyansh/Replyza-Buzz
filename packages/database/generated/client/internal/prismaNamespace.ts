@@ -402,7 +402,8 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
-  AutomationExecution: 'AutomationExecution'
+  AutomationExecution: 'AutomationExecution',
+  AutomationTemplate: 'AutomationTemplate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -418,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution"
+    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "automationTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -866,6 +867,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AutomationTemplate: {
+      payload: Prisma.$AutomationTemplatePayload<ExtArgs>
+      fields: Prisma.AutomationTemplateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AutomationTemplateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AutomationTemplateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>
+        }
+        findFirst: {
+          args: Prisma.AutomationTemplateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AutomationTemplateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>
+        }
+        findMany: {
+          args: Prisma.AutomationTemplateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>[]
+        }
+        create: {
+          args: Prisma.AutomationTemplateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>
+        }
+        createMany: {
+          args: Prisma.AutomationTemplateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AutomationTemplateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>[]
+        }
+        delete: {
+          args: Prisma.AutomationTemplateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>
+        }
+        update: {
+          args: Prisma.AutomationTemplateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>
+        }
+        deleteMany: {
+          args: Prisma.AutomationTemplateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AutomationTemplateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AutomationTemplateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>[]
+        }
+        upsert: {
+          args: Prisma.AutomationTemplateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationTemplatePayload>
+        }
+        aggregate: {
+          args: Prisma.AutomationTemplateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAutomationTemplate>
+        }
+        groupBy: {
+          args: Prisma.AutomationTemplateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AutomationTemplateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AutomationTemplateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AutomationTemplateCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -956,6 +1031,11 @@ export const AutomationScalarFieldEnum = {
   publicReplyText: 'publicReplyText',
   dmMessageText: 'dmMessageText',
   dmLink: 'dmLink',
+  followRequired: 'followRequired',
+  followInstructionText: 'followInstructionText',
+  followSuccessText: 'followSuccessText',
+  followFallbackText: 'followFallbackText',
+  templateId: 'templateId',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -999,6 +1079,29 @@ export const AutomationExecutionScalarFieldEnum = {
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const AutomationTemplateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  category: 'category',
+  description: 'description',
+  triggerType: 'triggerType',
+  keywords: 'keywords',
+  publicReplyText: 'publicReplyText',
+  dmMessageText: 'dmMessageText',
+  dmLink: 'dmLink',
+  followRequired: 'followRequired',
+  followInstructionText: 'followInstructionText',
+  followSuccessText: 'followSuccessText',
+  followFallbackText: 'followFallbackText',
+  isSystem: 'isSystem',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationTemplateScalarFieldEnum = (typeof AutomationTemplateScalarFieldEnum)[keyof typeof AutomationTemplateScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1100,6 +1203,13 @@ export type EnumAutomationTriggerFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'AutomationTrigger[]'
  */
 export type ListEnumAutomationTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AutomationTrigger[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1343,6 +1453,7 @@ export type GlobalOmitConfig = {
   automation?: Prisma.AutomationOmit
   webhookEvent?: Prisma.WebhookEventOmit
   automationExecution?: Prisma.AutomationExecutionOmit
+  automationTemplate?: Prisma.AutomationTemplateOmit
 }
 
 /* Types for Logging */

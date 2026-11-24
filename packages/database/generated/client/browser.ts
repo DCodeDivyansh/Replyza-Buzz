@@ -47,3 +47,8 @@ export type WebhookEvent = Prisma.WebhookEventModel
  * 
  */
 export type AutomationExecution = Prisma.AutomationExecutionModel
+/**
+ * Model AutomationTemplate
+ * 
+ */
+export type AutomationTemplate = Prisma.AutomationTemplateModel

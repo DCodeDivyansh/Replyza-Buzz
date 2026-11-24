@@ -56,7 +56,8 @@ export const ModelName = {
   RefreshToken: 'RefreshToken',
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
-  AutomationExecution: 'AutomationExecution'
+  AutomationExecution: 'AutomationExecution',
+  AutomationTemplate: 'AutomationTemplate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -126,6 +127,11 @@ export const AutomationScalarFieldEnum = {
   publicReplyText: 'publicReplyText',
   dmMessageText: 'dmMessageText',
   dmLink: 'dmLink',
+  followRequired: 'followRequired',
+  followInstructionText: 'followInstructionText',
+  followSuccessText: 'followSuccessText',
+  followFallbackText: 'followFallbackText',
+  templateId: 'templateId',
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -169,6 +175,29 @@ export const AutomationExecutionScalarFieldEnum = {
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const AutomationTemplateScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  category: 'category',
+  description: 'description',
+  triggerType: 'triggerType',
+  keywords: 'keywords',
+  publicReplyText: 'publicReplyText',
+  dmMessageText: 'dmMessageText',
+  dmLink: 'dmLink',
+  followRequired: 'followRequired',
+  followInstructionText: 'followInstructionText',
+  followSuccessText: 'followSuccessText',
+  followFallbackText: 'followFallbackText',
+  isSystem: 'isSystem',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationTemplateScalarFieldEnum = (typeof AutomationTemplateScalarFieldEnum)[keyof typeof AutomationTemplateScalarFieldEnum]
 
 
 export const SortOrder = {

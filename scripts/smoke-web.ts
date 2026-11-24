@@ -76,6 +76,31 @@ function startMockMetaServer(): Promise<http.Server> {
           return;
         }
 
+        // Instagram Media listing
+        if (req.url?.includes("/media")) {
+          res.writeHead(200, { "Content-Type": "application/json" });
+          res.end(
+            JSON.stringify({
+              data: [
+                {
+                  id: "media_pw_999",
+                  caption: "Exclusive launch discount! Comment DEAL to claim your coupon code #launch",
+                  media_type: "IMAGE",
+                  media_product_type: "FEED",
+                  permalink: "https://www.instagram.com/p/smoke_deal_777/",
+                  timestamp: "2026-11-24T12:00:00+0000",
+                },
+              ],
+              paging: {
+                cursors: {
+                  after: "mock_cursor_after_123",
+                },
+              },
+            })
+          );
+          return;
+        }
+
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ success: true }));
       });

@@ -2,7 +2,7 @@
 import { Job, UnrecoverableError } from "bullmq";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@replyza/database";
-import { decryptToken } from "@replyza/shared";
+import { decryptToken, interpolateVariables } from "@replyza/shared";
 
 import type { AutomationJobData } from "../queues/automation.queue";
 
@@ -27,6 +27,7 @@ import {
 import {
   publishCommentReply,
   sendPrivateReply,
+  sendPrivateReplyWithQuickReply,
   MetaApiError,
   MetaApiUnknownOutcomeError,
 } from "../services/instagram-graph.service";
@@ -517,6 +518,19 @@ export async function processAutomationJob(
       data: { status: "PROCESSING" },
     });
 
+    // Variable interpolation context
+    const variableContext = {
+      firstName: webhookEvent.commenterUsername,
+      username: webhookEvent.commenterUsername,
+      keyword: webhookEvent.commentText,
+      link: automation.dmLink,
+    };
+
+    const interpolatedPublicReply = interpolateVariables(
+      automation.publicReplyText,
+      variableContext
+    );
+
     // Action 1: Public comment reply.
     const publicResult = await executeAction(
       executionId,
@@ -526,7 +540,7 @@ export async function processAutomationJob(
       () =>
         publishCommentReply(
           webhookEvent.commentId,
-          automation.publicReplyText,
+          interpolatedPublicReply,
           accessToken
         ),
       (replyId) =>
@@ -553,22 +567,53 @@ export async function processAutomationJob(
     }
 
     // Action 2: Private Instagram reply.
-    const privateMessage = automation.dmLink
-      ? `${automation.dmMessageText}\n${automation.dmLink}`
-      : automation.dmMessageText;
+    let privateActionSender: () => Promise<string>;
+
+    if (automation.followRequired) {
+      const instructionText = interpolateVariables(
+        automation.followInstructionText ||
+          "Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇",
+        variableContext
+      );
+      const quickReplies = [
+        {
+          content_type: "text" as const,
+          title: "I've followed! ✅",
+          payload: `FOLLOW_CHECK:${executionId}`,
+        },
+      ];
+      privateActionSender = () =>
+        sendPrivateReplyWithQuickReply(
+          account.instagramUserId,
+          webhookEvent.commentId,
+          instructionText,
+          quickReplies,
+          accessToken
+        );
+    } else {
+      const baseDm = interpolateVariables(
+        automation.dmMessageText,
+        variableContext
+      );
+      const privateMessage = automation.dmLink
+        ? `${baseDm}\n${automation.dmLink}`
+        : baseDm;
+
+      privateActionSender = () =>
+        sendPrivateReply(
+          account.instagramUserId,
+          webhookEvent.commentId,
+          privateMessage,
+          accessToken
+        );
+    }
 
     const privateResult = await executeAction(
       executionId,
       leaseToken,
       "private",
       () => leaseLost,
-      () =>
-        sendPrivateReply(
-          account.instagramUserId,
-          webhookEvent.commentId,
-          privateMessage,
-          accessToken
-        ),
+      privateActionSender,
       (messageId) =>
         completePrivateReply(
           executionId,

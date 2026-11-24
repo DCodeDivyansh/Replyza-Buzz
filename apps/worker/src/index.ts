@@ -4,6 +4,7 @@ import { prisma } from "@replyza/database";
 import { redisConnection } from "./config/redis";
 import { processAutomationJob } from "./processors/automation.processor";
 import { checkTokenExpirations } from "./processors/token-expiry.processor";
+import { processFollowCheckJob } from "./processors/follow-check.processor";
 
 const worker = new Worker(
   "automation-processing",
@@ -13,6 +14,26 @@ const worker = new Worker(
     concurrency: 5,
   }
 );
+
+const followCheckWorker = new Worker(
+  "follow-check-processing",
+  processFollowCheckJob,
+  {
+    connection: redisConnection,
+    concurrency: 5,
+  }
+);
+
+followCheckWorker.on("completed", (job) => {
+  console.log(`[FollowCheckWorker] Job completed: ${job.id}`);
+});
+
+followCheckWorker.on("failed", (job, error) => {
+  console.error(
+    `[FollowCheckWorker] Job failed: ${job?.id ?? "unknown"}`,
+    error.message
+  );
+});
 
 // Token expiry checker queue & repeatable job
 const tokenExpiryQueue = new Queue("token-expiry-checker", {
@@ -78,6 +99,7 @@ async function shutdown(signal: string) {
   console.log(`[Worker] Received ${signal}; shutting down`);
 
   await worker.close();
+  await followCheckWorker.close();
   await tokenExpiryWorker.close();
   await tokenExpiryQueue.close();
   await redisConnection.quit();

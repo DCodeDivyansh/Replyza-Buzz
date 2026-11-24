@@ -59,6 +59,18 @@ export function AutomationForm({
     initialData?.dmMessageText || ""
   );
   const [dmLink, setDmLink] = useState(initialData?.dmLink || "");
+  const [followRequired, setFollowRequired] = useState(
+    initialData?.followRequired ?? false
+  );
+  const [followInstructionText, setFollowInstructionText] = useState(
+    initialData?.followInstructionText || ""
+  );
+  const [followSuccessText, setFollowSuccessText] = useState(
+    initialData?.followSuccessText || ""
+  );
+  const [followFallbackText, setFollowFallbackText] = useState(
+    initialData?.followFallbackText || ""
+  );
 
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<
@@ -200,6 +212,10 @@ export function AutomationForm({
         publicReplyText: publicReplyText.trim(),
         dmMessageText: dmMessageText.trim(),
         dmLink: dmLink.trim() || null,
+        followRequired,
+        followInstructionText: followRequired ? followInstructionText.trim() : null,
+        followSuccessText: followRequired ? followSuccessText.trim() : null,
+        followFallbackText: followRequired ? followFallbackText.trim() : null,
       };
       await onSubmit(payload);
     } else {
@@ -214,6 +230,10 @@ export function AutomationForm({
         publicReplyText: publicReplyText.trim(),
         dmMessageText: dmMessageText.trim(),
         dmLink: dmLink.trim() || undefined,
+        followRequired,
+        followInstructionText: followRequired ? followInstructionText.trim() : undefined,
+        followSuccessText: followRequired ? followSuccessText.trim() : undefined,
+        followFallbackText: followRequired ? followFallbackText.trim() : undefined,
       };
       await onSubmit(payload);
     }
@@ -458,6 +478,55 @@ export function AutomationForm({
           onChange={(e) => setDmLink(e.target.value)}
           helperText="Optional call-to-action link attached to the DM message"
         />
+
+        {/* Follow-to-Get-Link Configuration */}
+        <div className="pt-4 border-t border-zinc-100">
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/50">
+            <div>
+              <span className="text-xs font-semibold text-zinc-900 block">
+                Follow-to-Get-Link (Require Follower Status)
+              </span>
+              <span className="text-[11px] text-zinc-500">
+                User must follow your account to unlock the destination link in DM
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              checked={followRequired}
+              onChange={(e) => setFollowRequired(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
+            />
+          </div>
+
+          {followRequired && (
+            <div className="mt-3 space-y-3 p-3.5 rounded-xl border border-purple-200 bg-purple-50/30">
+              <Textarea
+                label="Follow Instruction DM"
+                rows={2}
+                value={followInstructionText}
+                onChange={(e) => setFollowInstructionText(e.target.value)}
+                placeholder="Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇"
+                helperText="Sent with the interactive 'I've followed! ✅' Quick Reply button"
+              />
+              <Textarea
+                label="Success Delivery DM"
+                rows={2}
+                value={followSuccessText}
+                onChange={(e) => setFollowSuccessText(e.target.value)}
+                placeholder="Woohoo! Thanks for following {{first_name}} 🎉 Here is your link:"
+                helperText="Sent once follower status is confirmed"
+              />
+              <Textarea
+                label="Fallback DM"
+                rows={2}
+                value={followFallbackText}
+                onChange={(e) => setFollowFallbackText(e.target.value)}
+                placeholder="Looks like you aren't following us yet! Follow our profile and tap the button below to get your link."
+                helperText="Sent if user taps button before following"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="pt-4 border-t border-zinc-100 flex items-center justify-between">

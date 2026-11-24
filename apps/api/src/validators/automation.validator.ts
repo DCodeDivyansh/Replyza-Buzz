@@ -1,9 +1,11 @@
 
 import { z } from "zod";
 
+const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
 export const createAutomationSchema = z
   .object({
-    instagramAccountId: z.string().uuid(),
+    instagramAccountId: z.string().regex(uuidRegex, "Invalid account ID UUID"),
 
     name: z.string().trim().min(1).max(100),
 
@@ -26,7 +28,17 @@ export const createAutomationSchema = z
 
     dmMessageText: z.string().trim().min(1).max(2000),
 
-    dmLink: z.string().url().optional()
+    dmLink: z.string().url().optional(),
+
+    followRequired: z.boolean().default(false),
+
+    followInstructionText: z.string().trim().max(1000).nullable().optional(),
+
+    followSuccessText: z.string().trim().max(1000).nullable().optional(),
+
+    followFallbackText: z.string().trim().max(1000).nullable().optional(),
+
+    templateId: z.string().regex(uuidRegex, "Invalid template ID UUID").nullable().optional()
   })
   .superRefine((data, ctx) => {
     if (data.triggerType === "KEYWORD" && data.keywords.length === 0) {
@@ -61,7 +73,17 @@ export const updateAutomationSchema = z
 
     dmMessageText: z.string().trim().min(1).max(2000).optional(),
 
-    dmLink: z.string().url().nullable().optional()
+    dmLink: z.string().url().nullable().optional(),
+
+    followRequired: z.boolean().optional(),
+
+    followInstructionText: z.string().trim().max(1000).nullable().optional(),
+
+    followSuccessText: z.string().trim().max(1000).nullable().optional(),
+
+    followFallbackText: z.string().trim().max(1000).nullable().optional(),
+
+    templateId: z.string().regex(uuidRegex, "Invalid template ID UUID").nullable().optional()
   })
   .strict()
   .superRefine((data, ctx) => {

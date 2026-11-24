@@ -3,7 +3,17 @@ import { cn } from "@/lib/utils";
 import { AutomationStatus } from "@/types/automation";
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: "default" | "active" | "draft" | "paused" | "indigo" | "danger";
+  variant?:
+    | "default"
+    | "active"
+    | "draft"
+    | "paused"
+    | "indigo"
+    | "danger"
+    | "purple"
+    | "blue"
+    | "gray"
+    | "green";
   status?: AutomationStatus;
 }
 
@@ -29,6 +39,10 @@ export function Badge({
     paused: "bg-amber-50 text-amber-700 border-amber-200/80",
     indigo: "bg-indigo-50 text-indigo-700 border-indigo-200/80",
     danger: "bg-red-50 text-red-700 border-red-200/80",
+    purple: "bg-purple-50 text-purple-700 border-purple-200/80",
+    blue: "bg-sky-50 text-sky-700 border-sky-200/80",
+    gray: "bg-zinc-100 text-zinc-600 border-zinc-200",
+    green: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
   };
 
   return (

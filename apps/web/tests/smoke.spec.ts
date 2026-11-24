@@ -69,67 +69,68 @@ test.describe("Web Application End-to-End Smoke Test", () => {
     expect(page.url()).toContain("instagram=connected");
     await page.waitForLoadState("networkidle");
 
-    // 5. Create Automation
-    console.log("[Playwright] Navigating to /automations/new...");
-    await page.goto("/automations/new");
+    // 5. Verify Media Library and Start Automation from Media
+    console.log("[Playwright] Navigating to /media (Media Library)...");
+    await page.goto("/media");
     await page.waitForLoadState("networkidle");
-    await page.waitForSelector("#automation-name", { timeout: 15000 });
+    await expect(page.getByRole("heading", { name: "Instagram Media Library" })).toBeVisible({ timeout: 10000 });
 
-    // Fill Basic Settings
-    await page.fill("#automation-name", "Playwright Web Automation");
+    // Verify media item rendered from mock Meta
+    const mediaCard = page.locator('div', { hasText: "Exclusive launch discount!" }).first();
+    await expect(mediaCard).toBeVisible({ timeout: 10000 });
 
-    // Select connected Instagram account or fill input
-    const accountSelect = page.locator("select").first();
-    const accountInput = page.locator('input[placeholder*="Instagram Account UUID"]');
+    // Click "Automate Post" on the media card
+    console.log("[Playwright] Clicking 'Automate Post' on media card...");
+    await mediaCard.getByRole("link", { name: "Automate Post" }).click();
 
-    if ((await accountSelect.count()) > 0) {
-      const options = accountSelect.locator("option");
-      if ((await options.count()) > 0) {
-        const optionValue = await options.first().getAttribute("value");
-        if (optionValue) {
-          await accountSelect.selectOption(optionValue);
-        }
-      }
-    } else if ((await accountInput.count()) > 0) {
-      await accountInput.fill("ig_pw_account_777");
-    }
+    // Should navigate to /automations/new with mediaId pre-selected (Step 2: Template)
+    await page.waitForURL((url) => url.pathname.includes("/automations/new") && url.search.includes("mediaId="), {
+      timeout: 10000,
+    });
+    expect(page.url()).toContain("mediaId=");
 
-    // Media ID
-    await page.fill("#instagram-media-id", "media_pw_999");
+    // Step 2: Choose Template
+    console.log("[Playwright] Step 2: Choosing template...");
+    await page.waitForSelector('button:has-text("Choose Template")', { timeout: 10000 });
+    const chooseTemplateBtn = page.locator('button:has-text("Choose Template")').first();
+    await chooseTemplateBtn.click();
 
-    // Click "Any Comment" trigger type
-    await page.click('button:has-text("Any Comment")');
+    // Step 3: Trigger settings
+    console.log("[Playwright] Step 3: Configuring trigger...");
+    await page.waitForSelector("#auto-name", { timeout: 10000 });
+    await page.fill("#auto-name", "Playwright Web Automation");
 
-    // Public Reply Text
-    await page.fill("#public-reply-to-comment", "Thanks for commenting! Check your DM.");
+    // Click Next Step
+    await page.click('button:has-text("Next Step")');
 
-    // DM Message Text
-    await page.fill('textarea[id*="private-direct-message"]', "Here is your exclusive link!");
+    // Step 4: Craft Responses
+    console.log("[Playwright] Step 4: Reviewing responses...");
+    await page.waitForSelector('textarea', { timeout: 10000 });
+    await page.click('button:has-text("Next Step")');
 
-    // DM Link
-    await page.fill("#dm-action-link", "https://example.com/promo");
+    // Step 5: Follow Gate & Link
+    console.log("[Playwright] Step 5: Setting link destination...");
+    await page.waitForSelector("#target-link", { timeout: 10000 });
+    await page.fill("#target-link", "https://example.com/promo");
+    await page.click('button:has-text("Next Step")');
 
-    // Submit form
-    console.log("[Playwright] Submitting automation creation form...");
-    await page.click('button[type="submit"]');
+    // Step 6: Live Preview & Launch
+    console.log("[Playwright] Step 6: Verifying preview & activating...");
+    await page.waitForSelector('button:has-text("Activate Automation")', { timeout: 10000 });
+
+    // Activate the automation
+    await page.click('button:has-text("Activate Automation")');
 
     // Should redirect to /automations
     await page.waitForURL((url) => url.pathname.includes("/automations"), { timeout: 15000 });
     expect(page.url()).toContain("/automations");
 
     // Verify automation appears in list
-    const automationCard = page.locator('div', { hasText: "Playwright Web Automation" }).first();
-    await expect(automationCard).toBeVisible({ timeout: 10000 });
+    const automationRow = page.locator('div', { hasText: "Playwright Web Automation" }).first();
+    await expect(automationRow).toBeVisible({ timeout: 10000 });
 
-    // 6. Activate then Pause Automation
-    console.log("[Playwright] Activating and Pausing automation...");
-    const activateBtn = page.locator('button[title="Activate automation"]').first();
-    if (await activateBtn.isVisible()) {
-      await activateBtn.click();
-      await expect(page.locator('button[title="Pause automation"]').first()).toBeVisible({ timeout: 5000 });
-    }
-
-    // Now click "Pause"
+    // 6. Pause Automation
+    console.log("[Playwright] Pausing automation...");
     const pauseBtn = page.locator('button[title="Pause automation"]').first();
     await pauseBtn.click();
 
@@ -137,7 +138,14 @@ test.describe("Web Application End-to-End Smoke Test", () => {
     await expect(page.locator('button[title="Activate automation"]').first()).toBeVisible({ timeout: 5000 });
     await expect(page.locator('span', { hasText: "PAUSED" }).first()).toBeVisible();
 
-    // 7. Logout
+    // 7. Verify Templates Page
+    console.log("[Playwright] Navigating to /templates...");
+    await page.goto("/templates");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByRole("heading", { name: "Automation Templates" })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('div', { hasText: "Free Resource Guide" }).first()).toBeVisible();
+
+    // 8. Logout
     console.log("[Playwright] Signing out...");
     const logoutBtn = page.locator('button[aria-label="Sign out"], button[title="Sign out"]').first();
     await logoutBtn.click();

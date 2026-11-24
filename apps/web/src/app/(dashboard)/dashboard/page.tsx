@@ -21,6 +21,8 @@ import {
   Info,
   CheckCircle2,
   AlertCircle,
+  Images,
+  LayoutTemplate,
 } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/icons";
 
@@ -87,6 +89,41 @@ export default function DashboardPage() {
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* Quick Access Enhancement Banners */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Link href="/media" className="group">
+          <div className="flex items-start gap-4 p-4 rounded-xl border border-zinc-200/80 bg-white hover:border-indigo-300 hover:shadow-xs transition-all">
+            <div className="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+              <Images className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-zinc-900 group-hover:text-indigo-600 flex items-center gap-1.5">
+                Instagram Media Library <ArrowRight className="h-3 w-3" />
+              </h3>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                View your live Instagram feed and reels. Click any post to create an automation with zero manual ID entry.
+              </p>
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/templates" className="group">
+          <div className="flex items-start gap-4 p-4 rounded-xl border border-zinc-200/80 bg-white hover:border-indigo-300 hover:shadow-xs transition-all">
+            <div className="h-10 w-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <LayoutTemplate className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-semibold text-zinc-900 group-hover:text-purple-600 flex items-center gap-1.5">
+                Strategy Templates <ArrowRight className="h-3 w-3" />
+              </h3>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                Pre-built flows including Link Delivery, Product Promotions, and Follow-to-Get-Link gates.
+              </p>
+            </div>
+          </div>
+        </Link>
       </div>
 
       {/* Metrics Row */}

@@ -1,6 +1,7 @@
 
 import { prisma } from "@replyza/database";
 import { matchAndQueueAutomation } from "./automation-matcher.service";
+import { enqueueFollowCheck } from "../queues/follow-check.queue";
 import { logger } from "../utils/logger";
 
 type UnknownRecord = Record<string, unknown>;
@@ -55,8 +56,48 @@ export async function persistInstagramCommentEvents(
       continue;
     }
 
+    // 1. Process messaging events (e.g. Quick Reply clicks for Follow-to-Get-Link)
+    if (Array.isArray(rawEntry.messaging)) {
+      for (const rawMsg of rawEntry.messaging) {
+        if (!isRecord(rawMsg)) {
+          ignored++;
+          continue;
+        }
+
+        const sender = isRecord(rawMsg.sender) ? rawMsg.sender : null;
+        const senderId = sender && isNonEmptyString(sender.id) ? sender.id : null;
+        let payloadString: string | null = null;
+
+        if (isRecord(rawMsg.message) && isRecord(rawMsg.message.quick_reply)) {
+          if (isNonEmptyString(rawMsg.message.quick_reply.payload)) {
+            payloadString = rawMsg.message.quick_reply.payload;
+          }
+        } else if (isRecord(rawMsg.postback) && isNonEmptyString(rawMsg.postback.payload)) {
+          payloadString = rawMsg.postback.payload;
+        }
+
+        if (senderId && payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
+          const executionId = payloadString.slice("FOLLOW_CHECK:".length);
+          if (executionId) {
+            await enqueueFollowCheck({
+              executionId,
+              igsid: senderId,
+              instagramUserId: rawEntry.id,
+            });
+            saved++;
+            continue;
+          }
+        }
+
+        ignored++;
+      }
+    }
+
+    // 2. Process changes events (e.g. comments)
     if (!Array.isArray(rawEntry.changes)) {
-      ignored++;
+      if (!Array.isArray(rawEntry.messaging)) {
+        ignored++;
+      }
       continue;
     }
 

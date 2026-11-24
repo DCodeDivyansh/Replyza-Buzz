@@ -23,6 +23,7 @@ import {
   Trash2,
   Edit2,
   Eye,
+  UserCheck,
 } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/icons";
 
@@ -263,6 +264,11 @@ export default function AutomationsPage() {
                           ? `Keyword (${auto.keywords.length})`
                           : "Any Comment"}
                       </span>
+                      {auto.followRequired && (
+                        <span className="text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                          <UserCheck className="h-3 w-3" /> Follow-to-Get-Link
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-4 text-xs text-zinc-500 flex-wrap">

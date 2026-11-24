@@ -35,6 +35,11 @@ export type AutomationMinAggregateOutputType = {
   publicReplyText: string | null
   dmMessageText: string | null
   dmLink: string | null
+  followRequired: boolean | null
+  followInstructionText: string | null
+  followSuccessText: string | null
+  followFallbackText: string | null
+  templateId: string | null
   status: $Enums.AutomationStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -51,6 +56,11 @@ export type AutomationMaxAggregateOutputType = {
   publicReplyText: string | null
   dmMessageText: string | null
   dmLink: string | null
+  followRequired: boolean | null
+  followInstructionText: string | null
+  followSuccessText: string | null
+  followFallbackText: string | null
+  templateId: string | null
   status: $Enums.AutomationStatus | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -68,6 +78,11 @@ export type AutomationCountAggregateOutputType = {
   publicReplyText: number
   dmMessageText: number
   dmLink: number
+  followRequired: number
+  followInstructionText: number
+  followSuccessText: number
+  followFallbackText: number
+  templateId: number
   status: number
   createdAt: number
   updatedAt: number
@@ -86,6 +101,11 @@ export type AutomationMinAggregateInputType = {
   publicReplyText?: true
   dmMessageText?: true
   dmLink?: true
+  followRequired?: true
+  followInstructionText?: true
+  followSuccessText?: true
+  followFallbackText?: true
+  templateId?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -102,6 +122,11 @@ export type AutomationMaxAggregateInputType = {
   publicReplyText?: true
   dmMessageText?: true
   dmLink?: true
+  followRequired?: true
+  followInstructionText?: true
+  followSuccessText?: true
+  followFallbackText?: true
+  templateId?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -119,6 +144,11 @@ export type AutomationCountAggregateInputType = {
   publicReplyText?: true
   dmMessageText?: true
   dmLink?: true
+  followRequired?: true
+  followInstructionText?: true
+  followSuccessText?: true
+  followFallbackText?: true
+  templateId?: true
   status?: true
   createdAt?: true
   updatedAt?: true
@@ -209,6 +239,11 @@ export type AutomationGroupByOutputType = {
   publicReplyText: string
   dmMessageText: string
   dmLink: string | null
+  followRequired: boolean
+  followInstructionText: string | null
+  followSuccessText: string | null
+  followFallbackText: string | null
+  templateId: string | null
   status: $Enums.AutomationStatus
   createdAt: Date
   updatedAt: Date
@@ -247,6 +282,11 @@ export type AutomationWhereInput = {
   publicReplyText?: Prisma.StringFilter<"Automation"> | string
   dmMessageText?: Prisma.StringFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followRequired?: Prisma.BoolFilter<"Automation"> | boolean
+  followInstructionText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followSuccessText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followFallbackText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  templateId?: Prisma.UuidNullableFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
@@ -266,6 +306,11 @@ export type AutomationOrderByWithRelationInput = {
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  followRequired?: Prisma.SortOrder
+  followInstructionText?: Prisma.SortOrderInput | Prisma.SortOrder
+  followSuccessText?: Prisma.SortOrderInput | Prisma.SortOrder
+  followFallbackText?: Prisma.SortOrderInput | Prisma.SortOrder
+  templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -289,6 +334,11 @@ export type AutomationWhereUniqueInput = Prisma.AtLeast<{
   publicReplyText?: Prisma.StringFilter<"Automation"> | string
   dmMessageText?: Prisma.StringFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followRequired?: Prisma.BoolFilter<"Automation"> | boolean
+  followInstructionText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followSuccessText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followFallbackText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  templateId?: Prisma.UuidNullableFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
@@ -308,6 +358,11 @@ export type AutomationOrderByWithAggregationInput = {
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  followRequired?: Prisma.SortOrder
+  followInstructionText?: Prisma.SortOrderInput | Prisma.SortOrder
+  followSuccessText?: Prisma.SortOrderInput | Prisma.SortOrder
+  followFallbackText?: Prisma.SortOrderInput | Prisma.SortOrder
+  templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -331,6 +386,11 @@ export type AutomationScalarWhereWithAggregatesInput = {
   publicReplyText?: Prisma.StringWithAggregatesFilter<"Automation"> | string
   dmMessageText?: Prisma.StringWithAggregatesFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  followRequired?: Prisma.BoolWithAggregatesFilter<"Automation"> | boolean
+  followInstructionText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  followSuccessText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  followFallbackText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  templateId?: Prisma.UuidNullableWithAggregatesFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusWithAggregatesFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Automation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Automation"> | Date | string
@@ -347,6 +407,11 @@ export type AutomationCreateInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -366,6 +431,11 @@ export type AutomationUncheckedCreateInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -383,6 +453,11 @@ export type AutomationUpdateInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -402,6 +477,11 @@ export type AutomationUncheckedUpdateInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -420,6 +500,11 @@ export type AutomationCreateManyInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -436,6 +521,11 @@ export type AutomationUpdateManyMutationInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -453,6 +543,11 @@ export type AutomationUncheckedUpdateManyInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -493,6 +588,11 @@ export type AutomationCountOrderByAggregateInput = {
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrder
+  followRequired?: Prisma.SortOrder
+  followInstructionText?: Prisma.SortOrder
+  followSuccessText?: Prisma.SortOrder
+  followFallbackText?: Prisma.SortOrder
+  templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -509,6 +609,11 @@ export type AutomationMaxOrderByAggregateInput = {
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrder
+  followRequired?: Prisma.SortOrder
+  followInstructionText?: Prisma.SortOrder
+  followSuccessText?: Prisma.SortOrder
+  followFallbackText?: Prisma.SortOrder
+  templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -525,6 +630,11 @@ export type AutomationMinOrderByAggregateInput = {
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrder
+  followRequired?: Prisma.SortOrder
+  followInstructionText?: Prisma.SortOrder
+  followSuccessText?: Prisma.SortOrder
+  followFallbackText?: Prisma.SortOrder
+  templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -590,6 +700,10 @@ export type AutomationUpdatekeywordsInput = {
   push?: string | string[]
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type EnumAutomationStatusFieldUpdateOperationsInput = {
   set?: $Enums.AutomationStatus
 }
@@ -619,6 +733,11 @@ export type AutomationCreateWithoutInstagramAccountInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -636,6 +755,11 @@ export type AutomationUncheckedCreateWithoutInstagramAccountInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -683,6 +807,11 @@ export type AutomationScalarWhereInput = {
   publicReplyText?: Prisma.StringFilter<"Automation"> | string
   dmMessageText?: Prisma.StringFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followRequired?: Prisma.BoolFilter<"Automation"> | boolean
+  followInstructionText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followSuccessText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followFallbackText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  templateId?: Prisma.UuidNullableFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
@@ -699,6 +828,11 @@ export type AutomationCreateWithoutExecutionsInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -717,6 +851,11 @@ export type AutomationUncheckedCreateWithoutExecutionsInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -749,6 +888,11 @@ export type AutomationUpdateWithoutExecutionsInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -767,6 +911,11 @@ export type AutomationUncheckedUpdateWithoutExecutionsInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -783,6 +932,11 @@ export type AutomationCreateManyInstagramAccountInput = {
   publicReplyText: string
   dmMessageText: string
   dmLink?: string | null
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -799,6 +953,11 @@ export type AutomationUpdateWithoutInstagramAccountInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -816,6 +975,11 @@ export type AutomationUncheckedUpdateWithoutInstagramAccountInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -833,6 +997,11 @@ export type AutomationUncheckedUpdateManyWithoutInstagramAccountInput = {
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -881,6 +1050,11 @@ export type AutomationSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   publicReplyText?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  followRequired?: boolean
+  followInstructionText?: boolean
+  followSuccessText?: boolean
+  followFallbackText?: boolean
+  templateId?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -901,6 +1075,11 @@ export type AutomationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   publicReplyText?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  followRequired?: boolean
+  followInstructionText?: boolean
+  followSuccessText?: boolean
+  followFallbackText?: boolean
+  templateId?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -919,6 +1098,11 @@ export type AutomationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   publicReplyText?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  followRequired?: boolean
+  followInstructionText?: boolean
+  followSuccessText?: boolean
+  followFallbackText?: boolean
+  templateId?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -937,12 +1121,17 @@ export type AutomationSelectScalar = {
   publicReplyText?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  followRequired?: boolean
+  followInstructionText?: boolean
+  followSuccessText?: boolean
+  followFallbackText?: boolean
+  templateId?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AutomationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instagramAccountId" | "name" | "mediaId" | "mediaPermalink" | "mediaType" | "triggerType" | "keywords" | "publicReplyText" | "dmMessageText" | "dmLink" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["automation"]>
+export type AutomationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instagramAccountId" | "name" | "mediaId" | "mediaPermalink" | "mediaType" | "triggerType" | "keywords" | "publicReplyText" | "dmMessageText" | "dmLink" | "followRequired" | "followInstructionText" | "followSuccessText" | "followFallbackText" | "templateId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["automation"]>
 export type AutomationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instagramAccount?: boolean | Prisma.InstagramAccountDefaultArgs<ExtArgs>
   executions?: boolean | Prisma.Automation$executionsArgs<ExtArgs>
@@ -973,6 +1162,11 @@ export type $AutomationPayload<ExtArgs extends runtime.Types.Extensions.Internal
     publicReplyText: string
     dmMessageText: string
     dmLink: string | null
+    followRequired: boolean
+    followInstructionText: string | null
+    followSuccessText: string | null
+    followFallbackText: string | null
+    templateId: string | null
     status: $Enums.AutomationStatus
     createdAt: Date
     updatedAt: Date
@@ -1412,6 +1606,11 @@ export interface AutomationFieldRefs {
   readonly publicReplyText: Prisma.FieldRef<"Automation", 'String'>
   readonly dmMessageText: Prisma.FieldRef<"Automation", 'String'>
   readonly dmLink: Prisma.FieldRef<"Automation", 'String'>
+  readonly followRequired: Prisma.FieldRef<"Automation", 'Boolean'>
+  readonly followInstructionText: Prisma.FieldRef<"Automation", 'String'>
+  readonly followSuccessText: Prisma.FieldRef<"Automation", 'String'>
+  readonly followFallbackText: Prisma.FieldRef<"Automation", 'String'>
+  readonly templateId: Prisma.FieldRef<"Automation", 'String'>
   readonly status: Prisma.FieldRef<"Automation", 'AutomationStatus'>
   readonly createdAt: Prisma.FieldRef<"Automation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Automation", 'DateTime'>

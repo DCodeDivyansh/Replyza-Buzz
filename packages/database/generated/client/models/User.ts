@@ -184,6 +184,7 @@ export type UserWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   instagramAccounts?: Prisma.InstagramAccountListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
+  automationTemplates?: Prisma.AutomationTemplateListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -194,6 +195,7 @@ export type UserOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   instagramAccounts?: Prisma.InstagramAccountOrderByRelationAggregateInput
   refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
+  automationTemplates?: Prisma.AutomationTemplateOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -207,6 +209,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   instagramAccounts?: Prisma.InstagramAccountListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
+  automationTemplates?: Prisma.AutomationTemplateListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -239,6 +242,7 @@ export type UserCreateInput = {
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -249,6 +253,7 @@ export type UserUncheckedCreateInput = {
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -259,6 +264,7 @@ export type UserUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -269,6 +275,7 @@ export type UserUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -324,6 +331,11 @@ export type UserScalarRelationFilter = {
   isNot?: Prisma.UserWhereInput
 }
 
+export type UserNullableScalarRelationFilter = {
+  is?: Prisma.UserWhereInput | null
+  isNot?: Prisma.UserWhereInput | null
+}
+
 export type StringFieldUpdateOperationsInput = {
   set?: string
 }
@@ -360,6 +372,22 @@ export type UserUpdateOneRequiredWithoutRefreshTokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutRefreshTokensInput, Prisma.UserUpdateWithoutRefreshTokensInput>, Prisma.UserUncheckedUpdateWithoutRefreshTokensInput>
 }
 
+export type UserCreateNestedOneWithoutAutomationTemplatesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAutomationTemplatesInput, Prisma.UserUncheckedCreateWithoutAutomationTemplatesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAutomationTemplatesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutAutomationTemplatesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAutomationTemplatesInput, Prisma.UserUncheckedCreateWithoutAutomationTemplatesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAutomationTemplatesInput
+  upsert?: Prisma.UserUpsertWithoutAutomationTemplatesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAutomationTemplatesInput, Prisma.UserUpdateWithoutAutomationTemplatesInput>, Prisma.UserUncheckedUpdateWithoutAutomationTemplatesInput>
+}
+
 export type UserCreateWithoutInstagramAccountsInput = {
   id?: string
   email: string
@@ -367,6 +395,7 @@ export type UserCreateWithoutInstagramAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutInstagramAccountsInput = {
@@ -376,6 +405,7 @@ export type UserUncheckedCreateWithoutInstagramAccountsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutInstagramAccountsInput = {
@@ -401,6 +431,7 @@ export type UserUpdateWithoutInstagramAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInstagramAccountsInput = {
@@ -410,6 +441,7 @@ export type UserUncheckedUpdateWithoutInstagramAccountsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRefreshTokensInput = {
@@ -419,6 +451,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -428,6 +461,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -453,6 +487,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -462,6 +497,63 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutAutomationTemplatesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAutomationTemplatesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAutomationTemplatesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAutomationTemplatesInput, Prisma.UserUncheckedCreateWithoutAutomationTemplatesInput>
+}
+
+export type UserUpsertWithoutAutomationTemplatesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAutomationTemplatesInput, Prisma.UserUncheckedUpdateWithoutAutomationTemplatesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAutomationTemplatesInput, Prisma.UserUncheckedCreateWithoutAutomationTemplatesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAutomationTemplatesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAutomationTemplatesInput, Prisma.UserUncheckedUpdateWithoutAutomationTemplatesInput>
+}
+
+export type UserUpdateWithoutAutomationTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAutomationTemplatesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -472,11 +564,13 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
 export type UserCountOutputType = {
   instagramAccounts: number
   refreshTokens: number
+  automationTemplates: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instagramAccounts?: boolean | UserCountOutputTypeCountInstagramAccountsArgs
   refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs
+  automationTemplates?: boolean | UserCountOutputTypeCountAutomationTemplatesArgs
 }
 
 /**
@@ -503,6 +597,13 @@ export type UserCountOutputTypeCountRefreshTokensArgs<ExtArgs extends runtime.Ty
   where?: Prisma.RefreshTokenWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAutomationTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AutomationTemplateWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -512,6 +613,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   updatedAt?: boolean
   instagramAccounts?: boolean | Prisma.User$instagramAccountsArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
+  automationTemplates?: boolean | Prisma.User$automationTemplatesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -543,6 +645,7 @@ export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = run
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instagramAccounts?: boolean | Prisma.User$instagramAccountsArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
+  automationTemplates?: boolean | Prisma.User$automationTemplatesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -553,6 +656,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   objects: {
     instagramAccounts: Prisma.$InstagramAccountPayload<ExtArgs>[]
     refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
+    automationTemplates: Prisma.$AutomationTemplatePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -956,6 +1060,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   readonly [Symbol.toStringTag]: "PrismaPromise"
   instagramAccounts<T extends Prisma.User$instagramAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$instagramAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InstagramAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   refreshTokens<T extends Prisma.User$refreshTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  automationTemplates<T extends Prisma.User$automationTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$automationTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1428,6 +1533,30 @@ export type User$refreshTokensArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.RefreshTokenScalarFieldEnum | Prisma.RefreshTokenScalarFieldEnum[]
+}
+
+/**
+ * User.automationTemplates
+ */
+export type User$automationTemplatesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AutomationTemplate
+   */
+  select?: Prisma.AutomationTemplateSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AutomationTemplate
+   */
+  omit?: Prisma.AutomationTemplateOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AutomationTemplateInclude<ExtArgs> | null
+  where?: Prisma.AutomationTemplateWhereInput
+  orderBy?: Prisma.AutomationTemplateOrderByWithRelationInput | Prisma.AutomationTemplateOrderByWithRelationInput[]
+  cursor?: Prisma.AutomationTemplateWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AutomationTemplateScalarFieldEnum | Prisma.AutomationTemplateScalarFieldEnum[]
 }
 
 /**

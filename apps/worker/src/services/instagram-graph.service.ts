@@ -144,3 +144,95 @@ export async function sendPrivateReply(
     "message_id"
   );
 }
+
+export interface QuickReplyOption {
+  content_type: "text";
+  title: string;
+  payload: string;
+}
+
+export async function sendPrivateReplyWithQuickReply(
+  instagramUserId: string,
+  commentId: string,
+  message: string,
+  quickReplies: QuickReplyOption[],
+  token: string
+): Promise<string> {
+  const body = new URLSearchParams({
+    recipient: JSON.stringify({
+      comment_id: commentId,
+    }),
+    message: JSON.stringify({
+      text: message,
+      quick_replies: quickReplies,
+    }),
+  });
+
+  return graphPost(
+    `${encodeURIComponent(instagramUserId)}/messages`,
+    token,
+    body,
+    "message_id"
+  );
+}
+
+export async function sendDirectMessage(
+  instagramUserId: string,
+  recipientIgsid: string,
+  message: string,
+  token: string,
+  quickReplies?: QuickReplyOption[]
+): Promise<string> {
+  const messagePayload: { text: string; quick_replies?: QuickReplyOption[] } = {
+    text: message,
+  };
+  if (quickReplies && quickReplies.length > 0) {
+    messagePayload.quick_replies = quickReplies;
+  }
+
+  const body = new URLSearchParams({
+    recipient: JSON.stringify({
+      id: recipientIgsid,
+    }),
+    message: JSON.stringify(messagePayload),
+  });
+
+  return graphPost(
+    `${encodeURIComponent(instagramUserId)}/messages`,
+    token,
+    body,
+    "message_id"
+  );
+}
+
+export async function checkUserFollowsBusiness(
+  igsid: string,
+  token: string
+): Promise<{ isFollowing: boolean; name?: string; username?: string }> {
+  const baseUrl = process.env.META_GRAPH_BASE_URL || "https://graph.facebook.com";
+  const url = new URL(`${baseUrl}/v27.0/${encodeURIComponent(igsid)}`);
+  url.searchParams.set("fields", "is_user_follow_business,name,username");
+  url.searchParams.set("access_token", token);
+
+  const res = await fetch(url.toString());
+  const json = (await res.json()) as {
+    is_user_follow_business?: boolean;
+    name?: string;
+    username?: string;
+    error?: { message?: string };
+  };
+
+  if (!res.ok || json.error) {
+    throw new MetaApiError(
+      json.error?.message || `Failed to check follower status for ${igsid}`,
+      res.status,
+      json.error
+    );
+  }
+
+  return {
+    isFollowing: Boolean(json.is_user_follow_business),
+    name: json.name,
+    username: json.username,
+  };
+}
