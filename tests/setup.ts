@@ -36,7 +36,7 @@ if (!dbUrl.pathname.includes("replyza_test") || !directUrl.pathname.includes("re
   throw new Error(`CRITICAL: Automated tests must run against database 'replyza_test'! Aborting. Database was ${dbUrl.pathname}`);
 }
 
-// Helper to clean tables
+// Helper to clean tables and webhook Redis dedupe keys
 export async function cleanDatabase() {
   const { prisma } = await import("@replyza/database");
   await prisma.$executeRawUnsafe(`
@@ -53,6 +53,11 @@ export async function cleanDatabase() {
       users
     CASCADE;
   `);
+  const { redisConnection } = await import("../apps/api/src/queues/automation.queue");
+  const keys = await redisConnection.keys("ig:dedupe:*");
+  if (keys.length > 0) {
+    await redisConnection.del(...keys);
+  }
 }
 
 afterAll(async () => {

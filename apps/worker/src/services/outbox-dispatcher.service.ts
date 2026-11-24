@@ -78,7 +78,7 @@ export async function dispatchPendingOutboxEvents(): Promise<{
       ) {
         const payload = event.payload as unknown as AutomationOutboxPayload;
         const jobId = payload.actionType
-          ? `${payload.executionId}:${payload.actionType}`
+          ? `${payload.executionId}__${payload.actionType}`
           : payload.executionId;
         const existingJob = await automationQueue.getJob(jobId);
         if (existingJob) {
@@ -105,8 +105,8 @@ export async function dispatchPendingOutboxEvents(): Promise<{
       } else if (event.eventType === "FOLLOW_CHECK") {
         const payload = event.payload as unknown as FollowCheckOutboxPayload;
         const jobId = payload.providerEventId
-          ? `follow-check:${payload.executionId}:${payload.providerEventId}`
-          : `follow-check:${payload.executionId}:${payload.igsid}`;
+          ? `follow-check__${payload.executionId}__${payload.providerEventId}`
+          : `follow-check__${payload.executionId}__${payload.igsid}`;
 
         await followCheckQueue.add(
           "follow-check",

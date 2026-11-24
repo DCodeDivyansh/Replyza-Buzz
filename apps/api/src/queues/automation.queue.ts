@@ -46,7 +46,7 @@ export async function enqueueAutomationExecution(
   data: AutomationJobData
 ): Promise<"QUEUED" | "ALREADY_QUEUED"> {
   const jobId = data.actionType
-    ? `${data.executionId}:${data.actionType}`
+    ? `${data.executionId}__${data.actionType}`
     : data.executionId;
   const existingJob = await automationQueue.getJob(jobId);
 
