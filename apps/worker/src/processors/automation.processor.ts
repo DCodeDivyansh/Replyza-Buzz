@@ -634,6 +634,20 @@ export async function processAutomationJob(
       );
     }
 
+    if (automation.followRequired && privateResult === "SUCCESS") {
+      await prisma.automationExecution.updateMany({
+        where: {
+          id: executionId,
+          leaseToken,
+          leaseExpiresAt: { gt: new Date() },
+        },
+        data: {
+          followCheckStatus: "PENDING",
+          followCheckSentAt: new Date(),
+        },
+      });
+    }
+
     await finalizeExecution(
       executionId,
       webhookEventId,

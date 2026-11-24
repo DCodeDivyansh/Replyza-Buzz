@@ -72,7 +72,7 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
         instagramAccountId: accountId,
         commentId: "comment_user_111",
         mediaId: "post_reels_999",
-        commenterInstagramId: "commenter_user_111",
+        commenterInstagramId: "igsid_messaging_user_888",
         commenterUsername: "jessica_fan",
         commentText: "VIP please!!",
         eventPayload: {},
@@ -138,6 +138,17 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
     const queuedJob = jobs.find((j) => j.data.executionId === executionId);
     expect(queuedJob).toBeDefined();
     expect(queuedJob?.data.igsid).toBe("igsid_messaging_user_888");
+
+    // Verify messaging event persisted in database
+    const messagingEvent = await prisma.messagingWebhookEvent.findFirst({
+      where: {
+        providerEventId: "m_quick_reply_tap_123",
+        instagramAccountId: accountId,
+      },
+    });
+    expect(messagingEvent).toBeDefined();
+    expect(messagingEvent?.executionId).toBe(executionId);
+    expect(messagingEvent?.senderId).toBe("igsid_messaging_user_888");
   });
 
   it("2. Processor sends success DM with link when user is following", async () => {
@@ -201,11 +212,14 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
     expect(sentMessageText).toContain("Woohoo thanks for following Jessica Fan!");
     expect(sentMessageText).toContain("https://superbrand.com/vip-coupon");
 
-    // Execution marked COMPLETED
+    // Execution marked COMPLETED with verified status
     const updated = await prisma.automationExecution.findUnique({
       where: { id: executionId },
     });
     expect(updated?.status).toBe("COMPLETED");
+    expect(updated?.followCheckStatus).toBe("SUCCESS");
+    expect(updated?.metaFollowCheckReplyId).toBe("m_final_link_delivery_777");
+    expect(updated?.followCheckVerifiedAt).toBeDefined();
   });
 
   it("3. Processor sends fallback retry when user is not following", async () => {
@@ -263,5 +277,129 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
     expect(sentMessageText).toContain("You are not following @superbrand yet!");
     expect(sentQuickReplies).toHaveLength(1);
     expect(sentQuickReplies[0].payload).toBe(`FOLLOW_CHECK:${executionId}`);
+
+    const updated = await prisma.automationExecution.findUnique({
+      where: { id: executionId },
+    });
+    expect(updated?.followCheckStatus).toBe("FAILED");
+    expect(updated?.followCheckRetryCount).toBe(1);
+  });
+
+  it("4. Deduplicates duplicate messaging webhooks with the same mid", async () => {
+    const rawPayload = {
+      object: "instagram",
+      entry: [
+        {
+          id: "ig_biz_user_555",
+          time: 1700000000,
+          messaging: [
+            {
+              sender: { id: "igsid_messaging_user_888" },
+              recipient: { id: "ig_biz_user_555" },
+              timestamp: 1700000000,
+              message: {
+                mid: "m_duplicate_tap_456",
+                text: "I've followed! ✅",
+                quick_reply: {
+                  payload: `FOLLOW_CHECK:${executionId}`,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const bodyString = JSON.stringify(rawPayload);
+
+    // Initial delivery
+    const res1 = await request(app)
+      .post("/api/v1/webhooks/instagram")
+      .set("Content-Type", "application/json")
+      .set("x-hub-signature-256", signPayload(bodyString))
+      .send(bodyString)
+      .expect(200);
+
+    expect(res1.text).toBe("EVENT_RECEIVED");
+
+    // Clear queue jobs to isolate duplicate check
+    await followCheckQueue.drain();
+
+    // Duplicate delivery with identical mid
+    const res2 = await request(app)
+      .post("/api/v1/webhooks/instagram")
+      .set("Content-Type", "application/json")
+      .set("x-hub-signature-256", signPayload(bodyString))
+      .send(bodyString)
+      .expect(200);
+
+    expect(res2.text).toBe("EVENT_RECEIVED");
+
+    // Queue must NOT contain any newly enqueued job from duplicate delivery
+    const jobs = await followCheckQueue.getJobs(["waiting", "active", "completed"]);
+    expect(jobs).toHaveLength(0);
+  });
+
+  it("5. Throws UnrecoverableError and blocks delivery when sender ID mismatches (IDOR)", async () => {
+    const fetchSpy = vi.fn();
+    global.fetch = fetchSpy;
+
+    const attackerJob: any = {
+      data: {
+        executionId,
+        igsid: "attacker_spoofed_igsid_999", // Does NOT match commenter igsid_messaging_user_888
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await expect(processFollowCheckJob(attackerJob)).rejects.toThrow(/Sender ID mismatch/);
+
+    // Ensure no API call was made to Meta
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("6. Throws UnrecoverableError on cross-tenant Instagram account mismatch", async () => {
+    const fetchSpy = vi.fn();
+    global.fetch = fetchSpy;
+
+    const crossTenantJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "other_unrelated_biz_user_999", // Does NOT match execution's account
+      },
+    };
+
+    await expect(processFollowCheckJob(crossTenantJob)).rejects.toThrow(/Cross-tenant execution attempt/);
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("7. Idempotent: does not re-send link if execution is already completed", async () => {
+    // Mark execution as already COMPLETED with SUCCESS follow status
+    await prisma.automationExecution.update({
+      where: { id: executionId },
+      data: {
+        status: "COMPLETED",
+        followCheckStatus: "SUCCESS",
+        completedAt: new Date(),
+      },
+    });
+
+    const fetchSpy = vi.fn();
+    global.fetch = fetchSpy;
+
+    const mockJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await processFollowCheckJob(mockJob);
+
+    // Fetch should never be called because job exits early
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

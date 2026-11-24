@@ -403,6 +403,7 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  MessagingWebhookEvent: 'MessagingWebhookEvent',
   AutomationTemplate: 'AutomationTemplate'
 } as const
 
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "automationTemplate"
+    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "messagingWebhookEvent" | "automationTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -867,6 +868,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MessagingWebhookEvent: {
+      payload: Prisma.$MessagingWebhookEventPayload<ExtArgs>
+      fields: Prisma.MessagingWebhookEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MessagingWebhookEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MessagingWebhookEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>
+        }
+        findFirst: {
+          args: Prisma.MessagingWebhookEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MessagingWebhookEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>
+        }
+        findMany: {
+          args: Prisma.MessagingWebhookEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>[]
+        }
+        create: {
+          args: Prisma.MessagingWebhookEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>
+        }
+        createMany: {
+          args: Prisma.MessagingWebhookEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MessagingWebhookEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>[]
+        }
+        delete: {
+          args: Prisma.MessagingWebhookEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>
+        }
+        update: {
+          args: Prisma.MessagingWebhookEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.MessagingWebhookEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MessagingWebhookEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MessagingWebhookEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.MessagingWebhookEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessagingWebhookEventPayload>
+        }
+        aggregate: {
+          args: Prisma.MessagingWebhookEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMessagingWebhookEvent>
+        }
+        groupBy: {
+          args: Prisma.MessagingWebhookEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessagingWebhookEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MessagingWebhookEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessagingWebhookEventCountAggregateOutputType> | number
+        }
+      }
+    }
     AutomationTemplate: {
       payload: Prisma.$AutomationTemplatePayload<ExtArgs>
       fields: Prisma.AutomationTemplateFieldRefs
@@ -1075,10 +1150,32 @@ export const AutomationExecutionScalarFieldEnum = {
   leaseExpiresAt: 'leaseExpiresAt',
   leaseToken: 'leaseToken',
   completedAt: 'completedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  followCheckStatus: 'followCheckStatus',
+  followCheckSentAt: 'followCheckSentAt',
+  followCheckVerifiedAt: 'followCheckVerifiedAt',
+  followCheckRetryCount: 'followCheckRetryCount',
+  metaFollowCheckReplyId: 'metaFollowCheckReplyId'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const MessagingWebhookEventScalarFieldEnum = {
+  id: 'id',
+  instagramAccountId: 'instagramAccountId',
+  providerEventId: 'providerEventId',
+  senderId: 'senderId',
+  recipientId: 'recipientId',
+  payload: 'payload',
+  executionId: 'executionId',
+  status: 'status',
+  rawPayload: 'rawPayload',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt'
+} as const
+
+export type MessagingWebhookEventScalarFieldEnum = (typeof MessagingWebhookEventScalarFieldEnum)[keyof typeof MessagingWebhookEventScalarFieldEnum]
 
 
 export const AutomationTemplateScalarFieldEnum = {
@@ -1117,6 +1214,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1296,6 +1401,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
+
+/**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
 /**
  * Batch Payload for updateMany & deleteMany & createMany
  */
@@ -1453,6 +1572,7 @@ export type GlobalOmitConfig = {
   automation?: Prisma.AutomationOmit
   webhookEvent?: Prisma.WebhookEventOmit
   automationExecution?: Prisma.AutomationExecutionOmit
+  messagingWebhookEvent?: Prisma.MessagingWebhookEventOmit
   automationTemplate?: Prisma.AutomationTemplateOmit
 }
 

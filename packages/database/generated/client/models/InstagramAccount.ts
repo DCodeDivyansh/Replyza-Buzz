@@ -217,6 +217,7 @@ export type InstagramAccountWhereInput = {
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   automations?: Prisma.AutomationListRelationFilter
   webhookEvents?: Prisma.WebhookEventListRelationFilter
+  messagingEvents?: Prisma.MessagingWebhookEventListRelationFilter
 }
 
 export type InstagramAccountOrderByWithRelationInput = {
@@ -232,6 +233,7 @@ export type InstagramAccountOrderByWithRelationInput = {
   user?: Prisma.UserOrderByWithRelationInput
   automations?: Prisma.AutomationOrderByRelationAggregateInput
   webhookEvents?: Prisma.WebhookEventOrderByRelationAggregateInput
+  messagingEvents?: Prisma.MessagingWebhookEventOrderByRelationAggregateInput
 }
 
 export type InstagramAccountWhereUniqueInput = Prisma.AtLeast<{
@@ -250,6 +252,7 @@ export type InstagramAccountWhereUniqueInput = Prisma.AtLeast<{
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   automations?: Prisma.AutomationListRelationFilter
   webhookEvents?: Prisma.WebhookEventListRelationFilter
+  messagingEvents?: Prisma.MessagingWebhookEventListRelationFilter
 }, "id" | "instagramUserId">
 
 export type InstagramAccountOrderByWithAggregationInput = {
@@ -294,6 +297,7 @@ export type InstagramAccountCreateInput = {
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
   automations?: Prisma.AutomationCreateNestedManyWithoutInstagramAccountInput
   webhookEvents?: Prisma.WebhookEventCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountUncheckedCreateInput = {
@@ -308,6 +312,7 @@ export type InstagramAccountUncheckedCreateInput = {
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
   webhookEvents?: Prisma.WebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountUpdateInput = {
@@ -322,6 +327,7 @@ export type InstagramAccountUpdateInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutInstagramAccountNestedInput
   webhookEvents?: Prisma.WebhookEventUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountUncheckedUpdateInput = {
@@ -336,6 +342,7 @@ export type InstagramAccountUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
   webhookEvents?: Prisma.WebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountCreateManyInput = {
@@ -506,6 +513,20 @@ export type InstagramAccountUpdateOneRequiredWithoutWebhookEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.InstagramAccountUpdateToOneWithWhereWithoutWebhookEventsInput, Prisma.InstagramAccountUpdateWithoutWebhookEventsInput>, Prisma.InstagramAccountUncheckedUpdateWithoutWebhookEventsInput>
 }
 
+export type InstagramAccountCreateNestedOneWithoutMessagingEventsInput = {
+  create?: Prisma.XOR<Prisma.InstagramAccountCreateWithoutMessagingEventsInput, Prisma.InstagramAccountUncheckedCreateWithoutMessagingEventsInput>
+  connectOrCreate?: Prisma.InstagramAccountCreateOrConnectWithoutMessagingEventsInput
+  connect?: Prisma.InstagramAccountWhereUniqueInput
+}
+
+export type InstagramAccountUpdateOneRequiredWithoutMessagingEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.InstagramAccountCreateWithoutMessagingEventsInput, Prisma.InstagramAccountUncheckedCreateWithoutMessagingEventsInput>
+  connectOrCreate?: Prisma.InstagramAccountCreateOrConnectWithoutMessagingEventsInput
+  upsert?: Prisma.InstagramAccountUpsertWithoutMessagingEventsInput
+  connect?: Prisma.InstagramAccountWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.InstagramAccountUpdateToOneWithWhereWithoutMessagingEventsInput, Prisma.InstagramAccountUpdateWithoutMessagingEventsInput>, Prisma.InstagramAccountUncheckedUpdateWithoutMessagingEventsInput>
+}
+
 export type InstagramAccountCreateWithoutUserInput = {
   id?: string
   instagramUserId: string
@@ -517,6 +538,7 @@ export type InstagramAccountCreateWithoutUserInput = {
   updatedAt?: Date | string
   automations?: Prisma.AutomationCreateNestedManyWithoutInstagramAccountInput
   webhookEvents?: Prisma.WebhookEventCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountUncheckedCreateWithoutUserInput = {
@@ -530,6 +552,7 @@ export type InstagramAccountUncheckedCreateWithoutUserInput = {
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
   webhookEvents?: Prisma.WebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountCreateOrConnectWithoutUserInput = {
@@ -584,6 +607,7 @@ export type InstagramAccountCreateWithoutAutomationsInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
   webhookEvents?: Prisma.WebhookEventCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountUncheckedCreateWithoutAutomationsInput = {
@@ -597,6 +621,7 @@ export type InstagramAccountUncheckedCreateWithoutAutomationsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   webhookEvents?: Prisma.WebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountCreateOrConnectWithoutAutomationsInput = {
@@ -626,6 +651,7 @@ export type InstagramAccountUpdateWithoutAutomationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
   webhookEvents?: Prisma.WebhookEventUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountUncheckedUpdateWithoutAutomationsInput = {
@@ -639,6 +665,7 @@ export type InstagramAccountUncheckedUpdateWithoutAutomationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhookEvents?: Prisma.WebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountCreateWithoutWebhookEventsInput = {
@@ -652,6 +679,7 @@ export type InstagramAccountCreateWithoutWebhookEventsInput = {
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
   automations?: Prisma.AutomationCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountUncheckedCreateWithoutWebhookEventsInput = {
@@ -665,6 +693,7 @@ export type InstagramAccountUncheckedCreateWithoutWebhookEventsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
 }
 
 export type InstagramAccountCreateOrConnectWithoutWebhookEventsInput = {
@@ -694,6 +723,7 @@ export type InstagramAccountUpdateWithoutWebhookEventsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
   automations?: Prisma.AutomationUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountUncheckedUpdateWithoutWebhookEventsInput = {
@@ -707,6 +737,79 @@ export type InstagramAccountUncheckedUpdateWithoutWebhookEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
+}
+
+export type InstagramAccountCreateWithoutMessagingEventsInput = {
+  id?: string
+  instagramUserId: string
+  username?: string | null
+  encryptedAccessToken: string
+  tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
+  automations?: Prisma.AutomationCreateNestedManyWithoutInstagramAccountInput
+  webhookEvents?: Prisma.WebhookEventCreateNestedManyWithoutInstagramAccountInput
+}
+
+export type InstagramAccountUncheckedCreateWithoutMessagingEventsInput = {
+  id?: string
+  userId: string
+  instagramUserId: string
+  username?: string | null
+  encryptedAccessToken: string
+  tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
+  webhookEvents?: Prisma.WebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
+}
+
+export type InstagramAccountCreateOrConnectWithoutMessagingEventsInput = {
+  where: Prisma.InstagramAccountWhereUniqueInput
+  create: Prisma.XOR<Prisma.InstagramAccountCreateWithoutMessagingEventsInput, Prisma.InstagramAccountUncheckedCreateWithoutMessagingEventsInput>
+}
+
+export type InstagramAccountUpsertWithoutMessagingEventsInput = {
+  update: Prisma.XOR<Prisma.InstagramAccountUpdateWithoutMessagingEventsInput, Prisma.InstagramAccountUncheckedUpdateWithoutMessagingEventsInput>
+  create: Prisma.XOR<Prisma.InstagramAccountCreateWithoutMessagingEventsInput, Prisma.InstagramAccountUncheckedCreateWithoutMessagingEventsInput>
+  where?: Prisma.InstagramAccountWhereInput
+}
+
+export type InstagramAccountUpdateToOneWithWhereWithoutMessagingEventsInput = {
+  where?: Prisma.InstagramAccountWhereInput
+  data: Prisma.XOR<Prisma.InstagramAccountUpdateWithoutMessagingEventsInput, Prisma.InstagramAccountUncheckedUpdateWithoutMessagingEventsInput>
+}
+
+export type InstagramAccountUpdateWithoutMessagingEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  instagramUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
+  automations?: Prisma.AutomationUpdateManyWithoutInstagramAccountNestedInput
+  webhookEvents?: Prisma.WebhookEventUpdateManyWithoutInstagramAccountNestedInput
+}
+
+export type InstagramAccountUncheckedUpdateWithoutMessagingEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  instagramUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
+  webhookEvents?: Prisma.WebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountCreateManyUserInput = {
@@ -731,6 +834,7 @@ export type InstagramAccountUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUpdateManyWithoutInstagramAccountNestedInput
   webhookEvents?: Prisma.WebhookEventUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountUncheckedUpdateWithoutUserInput = {
@@ -744,6 +848,7 @@ export type InstagramAccountUncheckedUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
   webhookEvents?: Prisma.WebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
+  messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
 }
 
 export type InstagramAccountUncheckedUpdateManyWithoutUserInput = {
@@ -765,11 +870,13 @@ export type InstagramAccountUncheckedUpdateManyWithoutUserInput = {
 export type InstagramAccountCountOutputType = {
   automations: number
   webhookEvents: number
+  messagingEvents: number
 }
 
 export type InstagramAccountCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   automations?: boolean | InstagramAccountCountOutputTypeCountAutomationsArgs
   webhookEvents?: boolean | InstagramAccountCountOutputTypeCountWebhookEventsArgs
+  messagingEvents?: boolean | InstagramAccountCountOutputTypeCountMessagingEventsArgs
 }
 
 /**
@@ -796,6 +903,13 @@ export type InstagramAccountCountOutputTypeCountWebhookEventsArgs<ExtArgs extend
   where?: Prisma.WebhookEventWhereInput
 }
 
+/**
+ * InstagramAccountCountOutputType without action
+ */
+export type InstagramAccountCountOutputTypeCountMessagingEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessagingWebhookEventWhereInput
+}
+
 
 export type InstagramAccountSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -810,6 +924,7 @@ export type InstagramAccountSelect<ExtArgs extends runtime.Types.Extensions.Inte
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   automations?: boolean | Prisma.InstagramAccount$automationsArgs<ExtArgs>
   webhookEvents?: boolean | Prisma.InstagramAccount$webhookEventsArgs<ExtArgs>
+  messagingEvents?: boolean | Prisma.InstagramAccount$messagingEventsArgs<ExtArgs>
   _count?: boolean | Prisma.InstagramAccountCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["instagramAccount"]>
 
@@ -856,6 +971,7 @@ export type InstagramAccountInclude<ExtArgs extends runtime.Types.Extensions.Int
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   automations?: boolean | Prisma.InstagramAccount$automationsArgs<ExtArgs>
   webhookEvents?: boolean | Prisma.InstagramAccount$webhookEventsArgs<ExtArgs>
+  messagingEvents?: boolean | Prisma.InstagramAccount$messagingEventsArgs<ExtArgs>
   _count?: boolean | Prisma.InstagramAccountCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type InstagramAccountIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -871,6 +987,7 @@ export type $InstagramAccountPayload<ExtArgs extends runtime.Types.Extensions.In
     user: Prisma.$UserPayload<ExtArgs>
     automations: Prisma.$AutomationPayload<ExtArgs>[]
     webhookEvents: Prisma.$WebhookEventPayload<ExtArgs>[]
+    messagingEvents: Prisma.$MessagingWebhookEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1279,6 +1396,7 @@ export interface Prisma__InstagramAccountClient<T, Null = never, ExtArgs extends
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   automations<T extends Prisma.InstagramAccount$automationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.InstagramAccount$automationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   webhookEvents<T extends Prisma.InstagramAccount$webhookEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.InstagramAccount$webhookEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  messagingEvents<T extends Prisma.InstagramAccount$messagingEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.InstagramAccount$messagingEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagingWebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1763,6 +1881,30 @@ export type InstagramAccount$webhookEventsArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.WebhookEventScalarFieldEnum | Prisma.WebhookEventScalarFieldEnum[]
+}
+
+/**
+ * InstagramAccount.messagingEvents
+ */
+export type InstagramAccount$messagingEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MessagingWebhookEvent
+   */
+  select?: Prisma.MessagingWebhookEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MessagingWebhookEvent
+   */
+  omit?: Prisma.MessagingWebhookEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessagingWebhookEventInclude<ExtArgs> | null
+  where?: Prisma.MessagingWebhookEventWhereInput
+  orderBy?: Prisma.MessagingWebhookEventOrderByWithRelationInput | Prisma.MessagingWebhookEventOrderByWithRelationInput[]
+  cursor?: Prisma.MessagingWebhookEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessagingWebhookEventScalarFieldEnum | Prisma.MessagingWebhookEventScalarFieldEnum[]
 }
 
 /**

@@ -1,4 +1,5 @@
 
+import { createHash } from "node:crypto";
 import { prisma } from "@replyza/database";
 import { matchAndQueueAutomation } from "./automation-matcher.service";
 import { enqueueFollowCheck } from "../queues/follow-check.queue";
@@ -76,20 +77,81 @@ export async function persistInstagramCommentEvents(
           payloadString = rawMsg.postback.payload;
         }
 
+        // Derive durable providerEventId for messaging webhook deduplication
+        let providerEventId: string;
+        if (isRecord(rawMsg.message) && isNonEmptyString(rawMsg.message.mid)) {
+          providerEventId = rawMsg.message.mid;
+        } else if (isRecord(rawMsg.postback) && isNonEmptyString(rawMsg.postback.mid)) {
+          providerEventId = rawMsg.postback.mid;
+        } else {
+          providerEventId = createHash("sha256")
+            .update(JSON.stringify(rawMsg))
+            .digest("hex");
+        }
+
+        let executionId: string | null = null;
+        let validExecution = false;
+
         if (senderId && payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
-          const executionId = payloadString.slice("FOLLOW_CHECK:".length);
-          if (executionId) {
-            await enqueueFollowCheck({
-              executionId,
-              igsid: senderId,
-              instagramUserId: rawEntry.id,
+          const candidateExecutionId = payloadString.slice("FOLLOW_CHECK:".length);
+          if (candidateExecutionId) {
+            const execution = await prisma.automationExecution.findFirst({
+              where: {
+                id: candidateExecutionId,
+                automation: {
+                  instagramAccountId: instagramAccount.id,
+                },
+              },
+              select: { id: true },
             });
-            saved++;
-            continue;
+
+            if (execution) {
+              executionId = execution.id;
+              validExecution = true;
+            } else {
+              logger.warn(
+                { candidateExecutionId, accountId: instagramAccount.id },
+                "Follow check execution does not belong to this Instagram account or does not exist"
+              );
+            }
           }
         }
 
-        ignored++;
+        // Persist messaging webhook event for deduplication
+        try {
+          await prisma.messagingWebhookEvent.create({
+            data: {
+              instagramAccountId: instagramAccount.id,
+              providerEventId,
+              senderId: senderId ?? "UNKNOWN",
+              recipientId: rawEntry.id,
+              payload: payloadString,
+              executionId,
+              rawPayload: JSON.parse(JSON.stringify(rawMsg)),
+              status: "RECEIVED",
+            },
+          });
+          saved++;
+        } catch (error) {
+          if (isDuplicateError(error)) {
+            logger.info(
+              { providerEventId, accountId: instagramAccount.id },
+              "Duplicate messaging webhook event ignored"
+            );
+            duplicates++;
+            continue;
+          }
+          throw error;
+        }
+
+        if (validExecution && executionId && senderId) {
+          await enqueueFollowCheck({
+            executionId,
+            igsid: senderId,
+            instagramUserId: rawEntry.id,
+            providerEventId,
+          });
+        }
       }
     }
 

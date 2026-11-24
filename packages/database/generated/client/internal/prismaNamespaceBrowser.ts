@@ -57,6 +57,7 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  MessagingWebhookEvent: 'MessagingWebhookEvent',
   AutomationTemplate: 'AutomationTemplate'
 } as const
 
@@ -171,10 +172,32 @@ export const AutomationExecutionScalarFieldEnum = {
   leaseExpiresAt: 'leaseExpiresAt',
   leaseToken: 'leaseToken',
   completedAt: 'completedAt',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  followCheckStatus: 'followCheckStatus',
+  followCheckSentAt: 'followCheckSentAt',
+  followCheckVerifiedAt: 'followCheckVerifiedAt',
+  followCheckRetryCount: 'followCheckRetryCount',
+  metaFollowCheckReplyId: 'metaFollowCheckReplyId'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const MessagingWebhookEventScalarFieldEnum = {
+  id: 'id',
+  instagramAccountId: 'instagramAccountId',
+  providerEventId: 'providerEventId',
+  senderId: 'senderId',
+  recipientId: 'recipientId',
+  payload: 'payload',
+  executionId: 'executionId',
+  status: 'status',
+  rawPayload: 'rawPayload',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt'
+} as const
+
+export type MessagingWebhookEventScalarFieldEnum = (typeof MessagingWebhookEventScalarFieldEnum)[keyof typeof MessagingWebhookEventScalarFieldEnum]
 
 
 export const AutomationTemplateScalarFieldEnum = {
@@ -213,6 +236,14 @@ export const JsonNullValueInput = {
 } as const
 
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {

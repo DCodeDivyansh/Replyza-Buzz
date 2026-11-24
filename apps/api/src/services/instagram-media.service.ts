@@ -1,30 +1,15 @@
 import { prisma } from "@replyza/database";
 import { redisConnection } from "../queues/automation.queue";
 import { decryptToken } from "../utils/token-encryption";
-import { env } from "../config/env";
 import { logger } from "../utils/logger";
+import {
+  metaGraphService,
+  MetaGraphError,
+  type InstagramMediaItem,
+  type InstagramMediaResponse,
+} from "./meta-graph.service";
 
-export interface InstagramMediaItem {
-  id: string;
-  caption?: string;
-  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
-  media_product_type?: "FEED" | "REELS" | "STORY" | "AD";
-  thumbnail_url?: string;
-  media_url?: string;
-  permalink?: string;
-  timestamp: string;
-}
-
-export interface InstagramMediaResponse {
-  data: InstagramMediaItem[];
-  paging?: {
-    cursors?: {
-      before?: string;
-      after?: string;
-    };
-    next?: string;
-  };
-}
+export type { InstagramMediaItem, InstagramMediaResponse };
 
 export class InstagramMediaError extends Error {
   constructor(
@@ -81,53 +66,33 @@ export async function fetchInstagramAccountMedia(
     throw new InstagramMediaError("Failed to decrypt Instagram access token", 500);
   }
 
-  const baseUrl = process.env.META_GRAPH_BASE_URL || "https://graph.facebook.com";
-  const url = new URL(`${baseUrl}/${env.META_GRAPH_API_VERSION}/${account.instagramUserId}/media`);
-  url.searchParams.set(
-    "fields",
-    "id,caption,media_type,media_product_type,thumbnail_url,media_url,permalink,timestamp"
-  );
-  url.searchParams.set("limit", "24");
-  if (cursor) {
-    url.searchParams.set("after", cursor);
-  }
-  url.searchParams.set("access_token", accessToken);
+  let result: InstagramMediaResponse;
+  try {
+    result = await metaGraphService.getMedia(account.instagramUserId, accessToken, cursor);
+  } catch (err: unknown) {
+    if (err instanceof MetaGraphError) {
+      await metaGraphService.handleAccountError(account.id, err);
 
-  const res = await fetch(url.toString());
-  const json = await res.json();
+      if (err.category === "AUTH_EXPIRED") {
+        throw new InstagramMediaError(
+          "Instagram access token expired or invalid. Please reconnect your account.",
+          401,
+          190
+        );
+      }
 
-  if (!res.ok || json.error) {
-    const error = json.error || {};
-    const errorCode = error.code;
-
-    // Detect expired / invalidated OAuth token (Error Code 190)
-    if (errorCode === 190) {
-      logger.warn(
-        { accountId: account.id, errorCode },
-        "Instagram access token expired or invalid, updating status to NEEDS_RECONNECT"
-      );
-      await prisma.instagramAccount.update({
-        where: { id: account.id },
-        data: { status: "NEEDS_RECONNECT" },
-      });
       throw new InstagramMediaError(
-        "Instagram access token expired or invalid. Please reconnect your account.",
-        401,
-        190
+        err.message,
+        err.statusCode && err.statusCode >= 400 && err.statusCode < 500 ? err.statusCode : 502,
+        err.code
       );
     }
 
     throw new InstagramMediaError(
-      error.message || `Meta API request failed with status ${res.status}`,
-      res.status >= 400 && res.status < 500 ? res.status : 502,
-      errorCode
+      err instanceof Error ? err.message : "Failed to fetch Instagram media",
+      502
     );
   }
-
-  const result: InstagramMediaResponse = {
-    data: Array.isArray(json.data) ? json.data : [],
-    paging: json.paging,
-  };
 
   try {
     // Cache for 5 minutes (300 seconds)

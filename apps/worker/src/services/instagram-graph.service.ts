@@ -1,4 +1,8 @@
-import { workerEnv } from "../config/env";
+import {
+  defaultMetaGraphClient,
+  MetaGraphError,
+  type MetaGraphErrorDetails,
+} from "@replyza/shared";
 
 interface MetaApiSuccess {
   id?: string;
@@ -6,19 +10,11 @@ interface MetaApiSuccess {
   message_id?: string;
 }
 
-interface MetaApiErrorPayload {
-  message?: string;
-  type?: string;
-  code?: number;
-  error_subcode?: number;
-  fbtrace_id?: string;
-}
-
 export class MetaApiError extends Error {
   constructor(
     message: string,
     public readonly httpStatus: number,
-    public readonly metaError?: MetaApiErrorPayload
+    public readonly metaError?: MetaGraphErrorDetails
   ) {
     super(message);
     this.name = "MetaApiError";
@@ -38,58 +34,23 @@ async function graphPost(
   body: URLSearchParams,
   expectedResponseField: "id" | "message_id"
 ): Promise<string> {
-  const baseUrl = process.env.META_GRAPH_BASE_URL || "https://graph.facebook.com";
-  const url =
-    `${baseUrl}/${workerEnv.metaGraphApiVersion}/${path}`;
-
-  let response: Response;
-
+  let result: MetaApiSuccess;
   try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body,
-      signal: AbortSignal.timeout(15000),
-    });
-  } catch {
-    throw new MetaApiUnknownOutcomeError(
-      "No definitive response received from Meta."
-    );
-  }
-
-  let result: MetaApiSuccess | { error: MetaApiErrorPayload };
-
-  try {
-    result = await response.json();
-  } catch {
-    throw new MetaApiUnknownOutcomeError(
-      `Meta returned an unreadable response (HTTP ${response.status}).`
-    );
-  }
-
-  if (!response.ok) {
-    const error = "error" in result ? result.error : undefined;
-
-    if (response.status >= 500 || response.status === 429) {
-      throw new MetaApiUnknownOutcomeError(
-        `Meta returned HTTP ${response.status}; outcome requires reconciliation.`
-      );
+    result = await defaultMetaGraphClient.post<MetaApiSuccess>(path, body, token);
+  } catch (err: unknown) {
+    if (err instanceof MetaGraphError) {
+      if (err.category === "UNKNOWN_OUTCOME" || err.category === "UPSTREAM_TEMPORARY") {
+        throw new MetaApiUnknownOutcomeError(err.message);
+      }
+      throw new MetaApiError(err.message, err.statusCode || 500, {
+        message: err.message,
+        code: err.code,
+        error_subcode: err.subcode,
+        fbtrace_id: err.fbtraceId,
+      });
     }
-
-    throw new MetaApiError(
-      error?.message ??
-      `Meta API rejected the request (HTTP ${response.status}).`,
-      response.status,
-      error
-    );
-  }
-
-  if ("error" in result) {
     throw new MetaApiUnknownOutcomeError(
-      "Meta returned an unexpected error response."
+      err instanceof Error ? err.message : "No definitive response received from Meta."
     );
   }
 
@@ -209,30 +170,34 @@ export async function checkUserFollowsBusiness(
   igsid: string,
   token: string
 ): Promise<{ isFollowing: boolean; name?: string; username?: string }> {
-  const baseUrl = process.env.META_GRAPH_BASE_URL || "https://graph.facebook.com";
-  const url = new URL(`${baseUrl}/v27.0/${encodeURIComponent(igsid)}`);
-  url.searchParams.set("fields", "is_user_follow_business,name,username");
-  url.searchParams.set("access_token", token);
+  try {
+    const json = await defaultMetaGraphClient.get<{
+      is_user_follow_business?: boolean;
+      name?: string;
+      username?: string;
+    }>(
+      encodeURIComponent(igsid),
+      { fields: "is_user_follow_business,name,username" },
+      token
+    );
 
-  const res = await fetch(url.toString());
-  const json = (await res.json()) as {
-    is_user_follow_business?: boolean;
-    name?: string;
-    username?: string;
-    error?: { message?: string };
-  };
-
-  if (!res.ok || json.error) {
+    return {
+      isFollowing: Boolean(json.is_user_follow_business),
+      name: json.name,
+      username: json.username,
+    };
+  } catch (err: unknown) {
+    if (err instanceof MetaGraphError) {
+      throw new MetaApiError(err.message, err.statusCode || 500, {
+        message: err.message,
+        code: err.code,
+        error_subcode: err.subcode,
+        fbtrace_id: err.fbtraceId,
+      });
+    }
     throw new MetaApiError(
-      json.error?.message || `Failed to check follower status for ${igsid}`,
-      res.status,
-      json.error
+      err instanceof Error ? err.message : `Failed to check follower status for ${igsid}`,
+      500
     );
   }
-
-  return {
-    isFollowing: Boolean(json.is_user_follow_business),
-    name: json.name,
-    username: json.username,
-  };
 }

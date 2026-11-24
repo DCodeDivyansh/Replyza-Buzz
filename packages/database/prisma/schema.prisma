@@ -41,6 +41,7 @@ model InstagramAccount {
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   automations   Automation[]
   webhookEvents WebhookEvent[]
+  messagingEvents MessagingWebhookEvent[]
 
   @@index([userId])
   @@map("instagram_accounts")
@@ -180,12 +181,41 @@ model AutomationExecution {
   completedAt        DateTime?
   createdAt          DateTime        @default(now())
 
+  followCheckStatus      ActionStatus?   @default(PENDING)
+  followCheckSentAt      DateTime?
+  followCheckVerifiedAt  DateTime?
+  followCheckRetryCount  Int             @default(0)
+  metaFollowCheckReplyId String?
+
   automation         Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
   webhookEvent       WebhookEvent    @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
+  messagingEvents    MessagingWebhookEvent[]
 
   @@index([automationId, createdAt])
   @@index([status])
   @@map("automation_executions")
+}
+
+model MessagingWebhookEvent {
+  id                 String             @id @default(uuid()) @db.Uuid
+  instagramAccountId String             @db.Uuid
+  providerEventId    String
+  senderId           String
+  recipientId        String
+  payload            String?
+  executionId        String?            @db.Uuid
+  status             WebhookEventStatus @default(RECEIVED)
+  rawPayload         Json?
+  receivedAt         DateTime           @default(now())
+  processedAt        DateTime?
+
+  instagramAccount   InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  execution          AutomationExecution? @relation(fields: [executionId], references: [id], onDelete: SetNull)
+
+  @@unique([instagramAccountId, providerEventId])
+  @@index([executionId])
+  @@index([status, receivedAt])
+  @@map("messaging_webhook_events")
 }
 
 model AutomationTemplate {
