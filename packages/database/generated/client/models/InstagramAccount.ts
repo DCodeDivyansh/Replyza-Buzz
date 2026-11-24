@@ -31,6 +31,7 @@ export type InstagramAccountMinAggregateOutputType = {
   username: string | null
   encryptedAccessToken: string | null
   tokenExpiresAt: Date | null
+  status: $Enums.InstagramAccountStatus | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -42,6 +43,7 @@ export type InstagramAccountMaxAggregateOutputType = {
   username: string | null
   encryptedAccessToken: string | null
   tokenExpiresAt: Date | null
+  status: $Enums.InstagramAccountStatus | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -53,6 +55,7 @@ export type InstagramAccountCountAggregateOutputType = {
   username: number
   encryptedAccessToken: number
   tokenExpiresAt: number
+  status: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -66,6 +69,7 @@ export type InstagramAccountMinAggregateInputType = {
   username?: true
   encryptedAccessToken?: true
   tokenExpiresAt?: true
+  status?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -77,6 +81,7 @@ export type InstagramAccountMaxAggregateInputType = {
   username?: true
   encryptedAccessToken?: true
   tokenExpiresAt?: true
+  status?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -88,6 +93,7 @@ export type InstagramAccountCountAggregateInputType = {
   username?: true
   encryptedAccessToken?: true
   tokenExpiresAt?: true
+  status?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -172,6 +178,7 @@ export type InstagramAccountGroupByOutputType = {
   username: string | null
   encryptedAccessToken: string
   tokenExpiresAt: Date | null
+  status: $Enums.InstagramAccountStatus
   createdAt: Date
   updatedAt: Date
   _count: InstagramAccountCountAggregateOutputType | null
@@ -204,6 +211,7 @@ export type InstagramAccountWhereInput = {
   username?: Prisma.StringNullableFilter<"InstagramAccount"> | string | null
   encryptedAccessToken?: Prisma.StringFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -218,6 +226,7 @@ export type InstagramAccountOrderByWithRelationInput = {
   username?: Prisma.SortOrderInput | Prisma.SortOrder
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -235,6 +244,7 @@ export type InstagramAccountWhereUniqueInput = Prisma.AtLeast<{
   username?: Prisma.StringNullableFilter<"InstagramAccount"> | string | null
   encryptedAccessToken?: Prisma.StringFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -249,6 +259,7 @@ export type InstagramAccountOrderByWithAggregationInput = {
   username?: Prisma.SortOrderInput | Prisma.SortOrder
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InstagramAccountCountOrderByAggregateInput
@@ -266,6 +277,7 @@ export type InstagramAccountScalarWhereWithAggregatesInput = {
   username?: Prisma.StringNullableWithAggregatesFilter<"InstagramAccount"> | string | null
   encryptedAccessToken?: Prisma.StringWithAggregatesFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"InstagramAccount"> | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusWithAggregatesFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"InstagramAccount"> | Date | string
 }
@@ -276,6 +288,7 @@ export type InstagramAccountCreateInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -290,6 +303,7 @@ export type InstagramAccountUncheckedCreateInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -302,6 +316,7 @@ export type InstagramAccountUpdateInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -316,6 +331,7 @@ export type InstagramAccountUncheckedUpdateInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -329,6 +345,7 @@ export type InstagramAccountCreateManyInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -339,6 +356,7 @@ export type InstagramAccountUpdateManyMutationInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -350,6 +368,7 @@ export type InstagramAccountUncheckedUpdateManyInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -371,6 +390,7 @@ export type InstagramAccountCountOrderByAggregateInput = {
   username?: Prisma.SortOrder
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -382,6 +402,7 @@ export type InstagramAccountMaxOrderByAggregateInput = {
   username?: Prisma.SortOrder
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -393,6 +414,7 @@ export type InstagramAccountMinOrderByAggregateInput = {
   username?: Prisma.SortOrder
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -452,6 +474,10 @@ export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
+export type EnumInstagramAccountStatusFieldUpdateOperationsInput = {
+  set?: $Enums.InstagramAccountStatus
+}
+
 export type InstagramAccountCreateNestedOneWithoutAutomationsInput = {
   create?: Prisma.XOR<Prisma.InstagramAccountCreateWithoutAutomationsInput, Prisma.InstagramAccountUncheckedCreateWithoutAutomationsInput>
   connectOrCreate?: Prisma.InstagramAccountCreateOrConnectWithoutAutomationsInput
@@ -486,6 +512,7 @@ export type InstagramAccountCreateWithoutUserInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationCreateNestedManyWithoutInstagramAccountInput
@@ -498,6 +525,7 @@ export type InstagramAccountUncheckedCreateWithoutUserInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -540,6 +568,7 @@ export type InstagramAccountScalarWhereInput = {
   username?: Prisma.StringNullableFilter<"InstagramAccount"> | string | null
   encryptedAccessToken?: Prisma.StringFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
 }
@@ -550,6 +579,7 @@ export type InstagramAccountCreateWithoutAutomationsInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -563,6 +593,7 @@ export type InstagramAccountUncheckedCreateWithoutAutomationsInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   webhookEvents?: Prisma.WebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -590,6 +621,7 @@ export type InstagramAccountUpdateWithoutAutomationsInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -603,6 +635,7 @@ export type InstagramAccountUncheckedUpdateWithoutAutomationsInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhookEvents?: Prisma.WebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -614,6 +647,7 @@ export type InstagramAccountCreateWithoutWebhookEventsInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -627,6 +661,7 @@ export type InstagramAccountUncheckedCreateWithoutWebhookEventsInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -654,6 +689,7 @@ export type InstagramAccountUpdateWithoutWebhookEventsInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -667,6 +703,7 @@ export type InstagramAccountUncheckedUpdateWithoutWebhookEventsInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -678,6 +715,7 @@ export type InstagramAccountCreateManyUserInput = {
   username?: string | null
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
+  status?: $Enums.InstagramAccountStatus
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -688,6 +726,7 @@ export type InstagramAccountUpdateWithoutUserInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUpdateManyWithoutInstagramAccountNestedInput
@@ -700,6 +739,7 @@ export type InstagramAccountUncheckedUpdateWithoutUserInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -712,6 +752,7 @@ export type InstagramAccountUncheckedUpdateManyWithoutUserInput = {
   username?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -763,6 +804,7 @@ export type InstagramAccountSelect<ExtArgs extends runtime.Types.Extensions.Inte
   username?: boolean
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
+  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -778,6 +820,7 @@ export type InstagramAccountSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   username?: boolean
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
+  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -790,6 +833,7 @@ export type InstagramAccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   username?: boolean
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
+  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -802,11 +846,12 @@ export type InstagramAccountSelectScalar = {
   username?: boolean
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
+  status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type InstagramAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "instagramUserId" | "username" | "encryptedAccessToken" | "tokenExpiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["instagramAccount"]>
+export type InstagramAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "instagramUserId" | "username" | "encryptedAccessToken" | "tokenExpiresAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["instagramAccount"]>
 export type InstagramAccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   automations?: boolean | Prisma.InstagramAccount$automationsArgs<ExtArgs>
@@ -834,6 +879,7 @@ export type $InstagramAccountPayload<ExtArgs extends runtime.Types.Extensions.In
     username: string | null
     encryptedAccessToken: string
     tokenExpiresAt: Date | null
+    status: $Enums.InstagramAccountStatus
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["instagramAccount"]>
@@ -1268,6 +1314,7 @@ export interface InstagramAccountFieldRefs {
   readonly username: Prisma.FieldRef<"InstagramAccount", 'String'>
   readonly encryptedAccessToken: Prisma.FieldRef<"InstagramAccount", 'String'>
   readonly tokenExpiresAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
+  readonly status: Prisma.FieldRef<"InstagramAccount", 'InstagramAccountStatus'>
   readonly createdAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
 }

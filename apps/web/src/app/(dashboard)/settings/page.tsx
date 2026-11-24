@@ -15,11 +15,18 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
+  Trash2,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [healthStatus, setHealthStatus] = useState<string | null>(null);
 
   useEffect(() => {
@@ -40,6 +47,20 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await logout();
+  };
+
+  const handleDeleteAccount = async () => {
+    setIsDeletingAccount(true);
+    setDeleteError(null);
+    try {
+      await apiRequest("/auth/delete-account", {
+        method: "POST",
+      });
+      router.push("/login?deleted=1");
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete account");
+      setIsDeletingAccount(false);
+    }
   };
 
   return (
@@ -173,6 +194,69 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <div className="flex items-center gap-2.5 text-red-600">
+            <Trash2 className="h-4 w-4" />
+            <CardTitle className="text-red-700">Danger Zone</CardTitle>
+          </div>
+          <CardDescription>
+            Permanently delete your account and all associated workspace data
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-xs text-zinc-600">
+          <p className="leading-relaxed">
+            Deleting your account will immediately and permanently revoke and delete your connected Instagram accounts,
+            all configured automations, webhook event logs, and your user credentials. This action cannot be reversed.
+          </p>
+
+          {deleteError && (
+            <p className="text-red-600 font-medium">{deleteError}</p>
+          )}
+
+          <div className="pt-3 flex items-center justify-between">
+            {confirmDelete ? (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="danger"
+                  size="sm"
+                  isLoading={isDeletingAccount}
+                  onClick={handleDeleteAccount}
+                >
+                  Yes, Permanently Delete My Account
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmDelete(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDelete(true)}
+                className="text-red-600 hover:bg-red-50 hover:border-red-200"
+              >
+                Delete Account
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Legal & Compliance Footer Links */}
+      <div className="flex items-center justify-center gap-6 pt-4 text-[11px] text-zinc-400">
+        <Link href="/privacy" className="hover:text-zinc-600 transition-colors">Privacy Policy</Link>
+        <span>•</span>
+        <Link href="/terms" className="hover:text-zinc-600 transition-colors">Terms of Service</Link>
+        <span>•</span>
+        <Link href="/data-deletion" className="hover:text-zinc-600 transition-colors">User Data Deletion</Link>
+      </div>
     </div>
   );
 }

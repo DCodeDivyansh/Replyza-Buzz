@@ -1,6 +1,7 @@
 
 import { prisma } from "@replyza/database";
 import { matchAndQueueAutomation } from "./automation-matcher.service";
+import { logger } from "../utils/logger";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -43,6 +44,13 @@ export async function persistInstagramCommentEvents(
     });
 
     if (!instagramAccount) {
+      logger.warn(
+        {
+          entryId: rawEntry.id,
+          doc: "https://developers.facebook.com/documentation/instagram-platform/webhooks",
+        },
+        "Received webhook for unknown or disconnected Instagram account"
+      );
       ignored++;
       continue;
     }

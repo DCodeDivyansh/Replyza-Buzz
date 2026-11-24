@@ -30,11 +30,15 @@ export class ApiClientError extends Error {
 
 // In-memory access token storage
 let currentAccessToken: string | null = null;
+let lastRefreshTime = 0;
 let refreshPromise: Promise<string | null> | null = null;
 let onTokenExpiredCallback: (() => void) | null = null;
 
 export function setAccessToken(token: string | null) {
   currentAccessToken = token;
+  if (token) {
+    lastRefreshTime = Date.now();
+  }
 }
 
 export function getAccessToken(): string | null {
@@ -54,6 +58,11 @@ interface RequestOptions extends RequestInit {
  * Execute session refresh. Ensures single-flight execution to respect refresh-token rotation.
  */
 export async function refreshSession(): Promise<string | null> {
+  // If we refreshed within the last 2 seconds and already have a token, reuse it
+  if (currentAccessToken && Date.now() - lastRefreshTime < 2000) {
+    return currentAccessToken;
+  }
+
   if (refreshPromise) {
     return refreshPromise;
   }
@@ -78,6 +87,7 @@ export async function refreshSession(): Promise<string | null> {
       const json = (await response.json()) as ApiResponse<{ accessToken: string }>;
       if (json.success && json.data?.accessToken) {
         setAccessToken(json.data.accessToken);
+        lastRefreshTime = Date.now();
         return json.data.accessToken;
       }
 
@@ -93,6 +103,9 @@ export async function refreshSession(): Promise<string | null> {
 
   return refreshPromise;
 }
+
+const isPublicAuthRoute = (p: string): boolean =>
+  ["/auth/login", "/auth/register", "/auth/refresh"].some((route) => p.startsWith(route));
 
 /**
  * Primary HTTP request wrapper with centralized error handling and auto-refresh on 401.
@@ -117,9 +130,15 @@ export async function apiRequest<T = unknown>(
     headers.set("x-csrf-protection", "1");
   }
 
-  // Attach Bearer access token if available and not skipped
-  if (!skipAuth && currentAccessToken && !headers.has("Authorization")) {
-    headers.set("Authorization", `Bearer ${currentAccessToken}`);
+  // Attach Bearer access token if available and not skipped.
+  // If token is missing on an authenticated route, attempt to acquire via session refresh first.
+  if (!skipAuth && !headers.has("Authorization") && !isPublicAuthRoute(path)) {
+    if (!currentAccessToken) {
+      await refreshSession();
+    }
+    if (currentAccessToken) {
+      headers.set("Authorization", `Bearer ${currentAccessToken}`);
+    }
   }
 
   let res: Response;
@@ -134,7 +153,7 @@ export async function apiRequest<T = unknown>(
   }
 
   // Handle 401 Unauthorized: Attempt token refresh once if authenticated
-  if (res.status === 401 && !skipAuth && !skipRefreshOn401 && !path.includes("/auth/")) {
+  if (res.status === 401 && !skipAuth && !skipRefreshOn401 && !isPublicAuthRoute(path)) {
     const newToken = await refreshSession();
     if (newToken) {
       // Retry original request with new token

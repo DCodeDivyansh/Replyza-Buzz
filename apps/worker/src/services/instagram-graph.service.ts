@@ -1,4 +1,4 @@
-﻿import { workerEnv } from "../config/env";
+import { workerEnv } from "../config/env";
 
 interface MetaApiSuccess {
   id?: string;
@@ -38,8 +38,9 @@ async function graphPost(
   body: URLSearchParams,
   expectedResponseField: "id" | "message_id"
 ): Promise<string> {
+  const baseUrl = process.env.META_GRAPH_BASE_URL || "https://graph.facebook.com";
   const url =
-    `https://graph.facebook.com/${workerEnv.metaGraphApiVersion}/${path}`;
+    `${baseUrl}/${workerEnv.metaGraphApiVersion}/${path}`;
 
   let response: Response;
 

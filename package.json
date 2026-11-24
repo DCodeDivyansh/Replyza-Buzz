@@ -1,16 +1,30 @@
-
 {
   "name": "replyza",
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build:all": "pnpm --filter @replyza/shared build && pnpm --filter @replyza/database build && pnpm --filter @replyza/api build && pnpm --filter @replyza/worker build && pnpm --filter web build",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "vitest run",
+    "start:api": "pnpm --filter @replyza/api start",
+    "start:worker": "pnpm --filter @replyza/worker start",
     "dev:web": "pnpm --filter web dev",
     "dev:api": "pnpm --filter @replyza/api dev",
+    "dev:worker": "pnpm --filter @replyza/worker dev",
     "build:web": "pnpm --filter web build",
     "build:api": "pnpm --filter @replyza/api build",
-    "lint:web": "pnpm --filter web lint"
+    "build:worker": "pnpm --filter @replyza/worker build",
+    "lint:web": "pnpm --filter web lint",
+    "smoke": "tsx scripts/smoke-test.ts",
+    "smoke:web": "tsx scripts/smoke-web.ts"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.2",
+    "tsx": "^4.23.15",
+    "vitest": "^5.1.1"
   }
 }

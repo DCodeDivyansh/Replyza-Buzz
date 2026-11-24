@@ -1,0 +1,89 @@
+name: Replyza Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Build, Lint, Test & Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pass
+          POSTGRES_DB: replyza_test
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.21.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "pnpm"
+
+      - name: Install dependencies with frozen lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Check dependency vulnerabilities
+        run: pnpm audit
+
+      - name: Typecheck all workspace packages
+        run: pnpm -r run typecheck
+
+      - name: Lint web application
+        run: pnpm lint:web
+
+      - name: Build all packages in topological order
+        run: pnpm run build:all
+
+      - name: Run database migrations on test database
+        env:
+          DATABASE_URL: postgresql://postgres:pass@127.0.0.1:5433/replyza_test
+          DIRECT_URL: postgresql://postgres:pass@127.0.0.1:5433/replyza_test
+        run: npx tsx scripts/migrate.ts
+
+      - name: Run automated test suite (Vitest unit + integration)
+        env:
+          DATABASE_URL: postgresql://postgres:pass@127.0.0.1:5433/replyza_test
+          DIRECT_URL: postgresql://postgres:pass@127.0.0.1:5433/replyza_test
+          REDIS_URL: redis://127.0.0.1:6379
+        run: pnpm test
+
+      - name: Run backend & worker smoke test (all 12 gates)
+        env:
+          DATABASE_URL: postgresql://postgres:pass@127.0.0.1:5433/replyza_test
+          DIRECT_URL: postgresql://postgres:pass@127.0.0.1:5433/replyza_test
+          REDIS_URL: redis://127.0.0.1:6379
+        run: pnpm smoke

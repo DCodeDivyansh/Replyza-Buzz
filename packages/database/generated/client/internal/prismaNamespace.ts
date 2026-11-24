@@ -923,6 +923,7 @@ export const InstagramAccountScalarFieldEnum = {
   username: 'username',
   encryptedAccessToken: 'encryptedAccessToken',
   tokenExpiresAt: 'tokenExpiresAt',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1071,6 +1072,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'InstagramAccountStatus'
+ */
+export type EnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstagramAccountStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'InstagramAccountStatus[]'
+ */
+export type ListEnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstagramAccountStatus[]'>
     
 
 

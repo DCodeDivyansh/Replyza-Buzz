@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { apiRequest, ApiClientError } from "@/lib/api-client";
-import { Automation } from "@/types/automation";
+import { InstagramAccountInfo } from "@/types/automation";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ErrorAlert } from "@/components/feedback/error-alert";
@@ -16,39 +16,65 @@ import {
 import { InstagramIcon } from "@/components/ui/icons";
 
 interface OAuthStartResponse {
+  authUrl?: string;
   testPageUrl: string;
 }
 
 export default function InstagramPage() {
-  const [automations, setAutomations] = useState<Automation[]>([]);
+  const [knownAccounts, setKnownAccounts] = useState<InstagramAccountInfo[]>([]);
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
   const [isStartingOAuth, setIsStartingOAuth] = useState(false);
-  const [oauthError, setOauthError] = useState<string | null>(null);
+  const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("instagram") === "error") {
+        return params.get("message") || "Instagram connection failed.";
+      }
+    }
+    return null;
+  });
   const [oauthSessionUrl, setOauthSessionUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadConnectedAccountsFromAutomations() {
+    let ignore = false;
+
+    async function fetchAccounts() {
       try {
-        const res = await apiRequest<Automation[]>("/automations");
-        setAutomations(res.data || []);
+        const res = await apiRequest<InstagramAccountInfo[]>("/instagram/accounts");
+        if (!ignore && res.data) {
+          setKnownAccounts(res.data);
+        }
       } catch (err) {
-        console.warn("Could not retrieve automations for Instagram status:", err);
+        console.warn("Could not retrieve connected Instagram accounts:", err);
       } finally {
-        setIsLoadingAccounts(false);
+        if (!ignore) {
+          setIsLoadingAccounts(false);
+        }
       }
     }
 
-    loadConnectedAccountsFromAutomations();
+    fetchAccounts();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
-  // Extract unique accounts from automations
-  const knownAccounts = Array.from(
-    new Map(
-      automations
-        .filter((a) => a.instagramAccount)
-        .map((a) => [a.instagramAccount!.id, a.instagramAccount!])
-    ).values()
-  );
+  const handleDisconnect = async (accountId: string) => {
+    setDisconnectingId(accountId);
+    try {
+      await apiRequest(`/instagram/accounts/${accountId}`, { method: "DELETE" });
+      setKnownAccounts((prev) => prev.filter((a) => a.id !== accountId));
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setOauthError(err.message);
+      } else {
+        setOauthError("Failed to disconnect account.");
+      }
+    } finally {
+      setDisconnectingId(null);
+    }
+  };
 
   const handleStartOAuth = async () => {
     setIsStartingOAuth(true);
@@ -58,6 +84,13 @@ export default function InstagramPage() {
     try {
       // Backend OAuth initiation endpoint
       const res = await apiRequest<OAuthStartResponse>("/instagram/oauth/start");
+
+      if (res.data?.authUrl) {
+        // Full-page redirect to Meta; Meta returns to the API callback,
+        // which sends the browser back to /instagram.
+        window.location.href = res.data.authUrl;
+        return;
+      }
 
       if (res.data?.testPageUrl) {
         setOauthSessionUrl(res.data.testPageUrl);
@@ -134,23 +167,61 @@ export default function InstagramPage() {
             {knownAccounts.length > 0 && (
               <div className="mt-3 pt-3 border-t border-zinc-200/80 space-y-2">
                 <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
-                  Discovered Active Accounts
+                  Connected Instagram Accounts
                 </p>
                 {knownAccounts.map((account) => (
                   <div
                     key={account.id}
-                    className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-zinc-200 text-xs"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-white rounded-lg border border-zinc-200 text-xs gap-3"
                   >
-                    <div className="flex items-center gap-2">
-                      <InstagramIcon className="h-4 w-4 text-pink-600" />
-                      <span className="font-semibold text-zinc-800">
-                        {account.username ? `@${account.username}` : "Instagram Account"}
-                      </span>
+                    <div className="flex items-center gap-2.5">
+                      <InstagramIcon className="h-4 w-4 text-pink-600 shrink-0" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-zinc-800">
+                            {account.username ? `@${account.username}` : "Instagram Account"}
+                          </span>
+                          {account.status === "NEEDS_RECONNECT" ? (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                              Needs Reconnect
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-zinc-400 mt-0.5">
+                          <span className="font-mono">ID: {account.instagramUserId}</span>
+                          {account.tokenExpiresAt && (
+                            <span>
+                              Token valid until: {new Date(account.tokenExpiresAt).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="font-mono text-[11px] text-zinc-500">
-                        ID: {account.id}
-                      </span>
+
+                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                      {account.status === "NEEDS_RECONNECT" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleStartOAuth}
+                          className="text-amber-700 hover:bg-amber-50 border-amber-200 h-7 text-xs"
+                        >
+                          Reconnect
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        isLoading={disconnectingId === account.id}
+                        onClick={() => handleDisconnect(account.id)}
+                        className="text-red-600 hover:bg-red-50 hover:text-red-700 h-7 text-xs"
+                      >
+                        Disconnect
+                      </Button>
                     </div>
                   </div>
                 ))}

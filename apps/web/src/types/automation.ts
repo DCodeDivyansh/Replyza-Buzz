@@ -6,6 +6,8 @@ export interface InstagramAccountInfo {
   id: string;
   username: string | null;
   instagramUserId: string;
+  status?: "ACTIVE" | "NEEDS_RECONNECT";
+  tokenExpiresAt?: string | null;
 }
 
 export interface Automation {

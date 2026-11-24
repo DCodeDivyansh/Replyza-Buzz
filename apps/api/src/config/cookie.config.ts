@@ -3,7 +3,7 @@ import { env } from "./env";
 
 export const refreshCookieOptions = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
+  secure: env.NODE_ENV === "production" && !env.FRONTEND_URL.startsWith("http://"),
   sameSite: "lax" as const,
   path: "/api/v1/auth",
   maxAge: 30 * 24 * 60 * 60 * 1000

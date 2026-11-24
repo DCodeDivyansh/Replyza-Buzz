@@ -20,25 +20,21 @@ export default function NewAutomationPage() {
   const [discoveredAccounts, setDiscoveredAccounts] = useState<
     InstagramAccountInfo[]
   >([]);
+  const [hasLoadedAccounts, setHasLoadedAccounts] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadAccounts() {
       try {
-        const res = await apiRequest<Automation[]>("/automations");
+        const res = await apiRequest<InstagramAccountInfo[]>("/instagram/accounts");
         if (res.data) {
-          const accounts = Array.from(
-            new Map(
-              res.data
-                .filter((a) => a.instagramAccount)
-                .map((a) => [a.instagramAccount!.id, a.instagramAccount!])
-            ).values()
-          );
-          setDiscoveredAccounts(accounts);
+          setDiscoveredAccounts(res.data);
         }
       } catch (err) {
         console.warn("Could not pre-load accounts:", err);
+      } finally {
+        setHasLoadedAccounts(true);
       }
     }
 
@@ -89,6 +85,22 @@ export default function NewAutomationPage() {
         message={pageError || ""}
         onDismiss={() => setPageError(null)}
       />
+
+      {hasLoadedAccounts && discoveredAccounts.length === 0 && (
+        <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/70 text-xs text-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-amber-900">No Instagram Account Connected</p>
+            <p className="text-amber-700 mt-0.5">
+              You must connect an Instagram Professional or Creator account before you can activate comment triggers.
+            </p>
+          </div>
+          <Link href="/instagram">
+            <Button size="sm" variant="outline" className="border-amber-300 text-amber-900 hover:bg-amber-100/70 shrink-0">
+              Connect Instagram
+            </Button>
+          </Link>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

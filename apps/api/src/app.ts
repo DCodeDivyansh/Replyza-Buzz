@@ -15,11 +15,15 @@ import authRoutes from "./routes/auth.routes";
 import automationRoutes from "./routes/automation.routes";
 import instagramWebhookRoutes from "./routes/instagram-webhook.routes";
 import instagramOAuthRoutes from "./routes/instagram-oauth.routes";
+import instagramAccountRoutes from "./routes/instagram-account.routes";
+import metaRoutes from "./routes/meta.routes";
 
 import { notFoundHandler } from "./middleware/not-found.middleware";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
+
+app.set("trust proxy", 1);
 
 app.disable("x-powered-by");
 
@@ -84,6 +88,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/automations", automationRoutes);
 app.use("/api/v1/webhooks", instagramWebhookRoutes);
 app.use("/api/v1/instagram/oauth", instagramOAuthRoutes);
+app.use("/api/v1/instagram", instagramAccountRoutes);
+app.use("/api/v1/meta", metaRoutes);
 
 // Error handling must come after all routes.
 app.use(notFoundHandler);

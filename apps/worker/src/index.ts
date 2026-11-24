@@ -1,8 +1,9 @@
 
-import { Worker } from "bullmq";
+import { Worker, Queue } from "bullmq";
 import { prisma } from "@replyza/database";
 import { redisConnection } from "./config/redis";
 import { processAutomationJob } from "./processors/automation.processor";
+import { checkTokenExpirations } from "./processors/token-expiry.processor";
 
 const worker = new Worker(
   "automation-processing",
@@ -12,6 +13,47 @@ const worker = new Worker(
     concurrency: 5,
   }
 );
+
+// Token expiry checker queue & repeatable job
+const tokenExpiryQueue = new Queue("token-expiry-checker", {
+  connection: redisConnection,
+});
+
+const tokenExpiryWorker = new Worker(
+  "token-expiry-checker",
+  async () => {
+    console.log("[Token Expiry Checker] Scanning for expiring or expired tokens...");
+    const stats = await checkTokenExpirations();
+    console.log("[Token Expiry Checker] Scan complete:", stats);
+  },
+  {
+    connection: redisConnection,
+    concurrency: 1,
+  }
+);
+
+// Schedule daily check (every 24 hours) and run once on start
+async function initTokenExpirySchedule() {
+  try {
+    await tokenExpiryQueue.add(
+      "daily-token-check",
+      {},
+      {
+        repeat: {
+          every: 24 * 60 * 60 * 1000,
+        },
+        removeOnComplete: true,
+        removeOnFail: 10,
+      }
+    );
+    // Initial run
+    await checkTokenExpirations();
+  } catch (err) {
+    console.warn("[Worker] Could not register token expiry repeatable job:", err);
+  }
+}
+
+initTokenExpirySchedule();
 
 worker.on("ready", () => {
   console.log("[Worker] Ready and waiting for jobs");
@@ -36,6 +78,8 @@ async function shutdown(signal: string) {
   console.log(`[Worker] Received ${signal}; shutting down`);
 
   await worker.close();
+  await tokenExpiryWorker.close();
+  await tokenExpiryQueue.close();
   await redisConnection.quit();
   await prisma.$disconnect();
 

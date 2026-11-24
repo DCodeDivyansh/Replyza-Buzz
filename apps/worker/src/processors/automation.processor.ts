@@ -112,11 +112,35 @@ async function executeAction(
     return "SUCCESS";
   } catch (error) {
     if (error instanceof MetaApiError) {
+      // Meta error code 190 indicates expired or invalidated OAuth token:
+      // https://developers.facebook.com/documentation/instagram-platform/support/error-handling
+      if (error.metaError?.code === 190) {
+        console.error(
+          `[Worker] Meta returned Error 190 (access token invalid/expired) for execution ${executionId}. Marking Instagram account as NEEDS_RECONNECT.`
+        );
+        try {
+          const exec = await prisma.automationExecution.findUnique({
+            where: { id: executionId },
+            select: { automation: { select: { instagramAccountId: true } } },
+          });
+          if (exec?.automation.instagramAccountId) {
+            await prisma.instagramAccount.update({
+              where: { id: exec.automation.instagramAccountId },
+              data: { status: "NEEDS_RECONNECT" },
+            });
+          }
+        } catch (dbErr) {
+          console.error("[Worker] Failed to set account status to NEEDS_RECONNECT:", dbErr);
+        }
+      }
+
       await markActionFailed(
         executionId,
         action,
         leaseToken,
-        error.message
+        error.metaError?.code === 190
+          ? "Instagram access token expired or revoked by Meta (Error 190). Please reconnect your account."
+          : error.message
       );
 
       console.error(

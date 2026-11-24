@@ -3,18 +3,27 @@ import type { RequestHandler } from "express";
 import { prisma } from "@replyza/database";
 import {
     exchangeInstagramCode,
-    getAssignedInstagramAccounts
+    getAssignedInstagramAccounts,
+    subscribeInstagramAccount
 } from "../services/instagram-oauth.service";
 import { verifyInstagramOAuthState } from "../utils/instagram-oauth-state";
 import { encryptToken } from "../utils/token-encryption";
 import { logger } from "../utils/logger";
+import { env } from "../config/env";
 
 export const instagramOAuthCallback: RequestHandler = async (
     req,
     res
 ) => {
-    const code = req.body?.code;
-    const state = req.body?.state;
+    const code =
+        req.method === "GET"
+            ? req.query.code
+            : req.body?.code;
+
+    const state =
+        req.method === "GET"
+            ? req.query.state
+            : req.body?.state;
     const metaError = req.query.error;
 
     if (typeof metaError === "string") {
@@ -47,7 +56,7 @@ export const instagramOAuthCallback: RequestHandler = async (
     }
 
     try {
-        const tokenResponse = await exchangeInstagramCode(code);
+        const tokenResponse = await exchangeInstagramCode(code, env.META_REDIRECT_URI);
         const accessToken = tokenResponse.access_token;
 
         if (!accessToken) {
@@ -91,6 +100,7 @@ export const instagramOAuthCallback: RequestHandler = async (
                 instagramUserId: instagramAccount.id,
                 username: instagramAccount.username ?? null,
                 encryptedAccessToken,
+                status: "ACTIVE",
                 tokenExpiresAt: tokenResponse.expires_in
                     ? new Date(Date.now() + tokenResponse.expires_in * 1000)
                     : null
@@ -98,10 +108,17 @@ export const instagramOAuthCallback: RequestHandler = async (
             update: {
                 username: instagramAccount.username ?? null,
                 encryptedAccessToken,
+                status: "ACTIVE",
                 tokenExpiresAt: tokenResponse.expires_in
                     ? new Date(Date.now() + tokenResponse.expires_in * 1000)
                     : null
             }
+        });
+
+        // Automatically subscribe linked Page / Instagram account to webhooks
+        // Meta Doc: https://developers.facebook.com/documentation/instagram-platform/webhooks
+        await subscribeInstagramAccount(instagramAccount.id, accessToken).catch((subErr) => {
+            logger.warn({ subErr, instagramUserId: instagramAccount.id }, "Automatic webhook subscription failed during OAuth callback");
         });
 
         logger.info(

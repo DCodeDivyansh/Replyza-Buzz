@@ -4,7 +4,10 @@ const BACKEND_URL =
   "http://localhost:4000";
 
 const FRONTEND_ORIGIN =
-  process.env.FRONTEND_URL || "https://replyza.buzz";
+  process.env.FRONTEND_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://replyza.buzz"
+    : "http://localhost:3000");
 
 async function forwardRequest(
   req: Request,
@@ -39,6 +42,15 @@ async function forwardRequest(
     forwardHeaders.set("x-csrf-protection", csrf);
   } else if (pathString.startsWith("auth/refresh") || pathString.startsWith("auth/logout")) {
     forwardHeaders.set("x-csrf-protection", "1");
+  }
+
+  // Forward client IP and proxy shared secret for secure rate limiting
+  const proxySecret = process.env.PROXY_SHARED_SECRET || "replyza_default_proxy_secret_for_local_dev_123456789";
+  forwardHeaders.set("x-replyza-proxy-secret", proxySecret);
+
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip");
+  if (clientIp) {
+    forwardHeaders.set("x-forwarded-for", clientIp);
   }
 
   forwardHeaders.set("origin", FRONTEND_ORIGIN);

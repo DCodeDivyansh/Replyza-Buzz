@@ -1,0 +1,26 @@
+[Unit]
+Description=Replyza API Express Backend Service
+After=network.target redis-server.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+User=replyza
+Group=replyza
+WorkingDirectory=/var/www/replyza
+EnvironmentFile=/etc/replyza.env
+ExecStart=/usr/bin/node apps/api/dist/server.js
+Restart=always
+RestartSec=5s
+KillMode=mixed
+TimeoutStopSec=30s
+LimitNOFILE=65535
+
+# Security hardening sandbox
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

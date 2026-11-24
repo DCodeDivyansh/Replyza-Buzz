@@ -93,6 +93,7 @@ export const InstagramAccountScalarFieldEnum = {
   username: 'username',
   encryptedAccessToken: 'encryptedAccessToken',
   tokenExpiresAt: 'tokenExpiresAt',
+  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

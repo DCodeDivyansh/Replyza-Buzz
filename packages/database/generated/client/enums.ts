@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const InstagramAccountStatus = {
+  ACTIVE: 'ACTIVE',
+  NEEDS_RECONNECT: 'NEEDS_RECONNECT'
+} as const
+
+export type InstagramAccountStatus = (typeof InstagramAccountStatus)[keyof typeof InstagramAccountStatus]
+
+
 export const AutomationTrigger = {
   ANY_COMMENT: 'ANY_COMMENT',
   KEYWORD: 'KEYWORD'

@@ -12,6 +12,7 @@ import { User, LoginResponseData, RegisterResponseData } from "@/types/auth";
 import {
   apiRequest,
   setAccessToken as setClientAccessToken,
+  getAccessToken,
   refreshSession,
   setOnTokenExpired,
   ApiClientError,
@@ -49,9 +50,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Fetch current user from /auth/me
-  const fetchCurrentUser = useCallback(async (): Promise<User | null> => {
+  const fetchCurrentUser = useCallback(async (tokenOverride?: string | null): Promise<User | null> => {
     try {
-      const res = await apiRequest<{ user: User }>("/auth/me");
+      const token = tokenOverride ?? getAccessToken();
+      const res = await apiRequest<{ user: User }>("/auth/me", {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
       if (res.data?.user) {
         setUser(res.data.user);
         return res.data.user;
@@ -73,7 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await refreshSession();
         if (token) {
           updateToken(token);
-          await fetchCurrentUser();
+          await fetchCurrentUser(token);
         } else {
           updateToken(null);
           setUser(null);

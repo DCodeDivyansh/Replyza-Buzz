@@ -1,0 +1,27 @@
+api.replyza.buzz {
+    # Reverse proxy to Express API server on localhost:4000
+    reverse_proxy 127.0.0.1:4000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Strict transport security & common headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Structured JSON Logging
+    log {
+        output file /var/log/caddy/replyza-api.log {
+            roll_size 50mb
+            roll_keep 5
+        }
+        format json
+    }
+}

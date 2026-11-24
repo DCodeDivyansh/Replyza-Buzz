@@ -219,3 +219,31 @@ export async function logout(
     next(error);
   }
 }
+
+export async function deleteAccount(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const userId = req.user!.id;
+
+    // Cascade delete user and all associated tokens, accounts, automations, and logs
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    // Clear session cookie
+    res.clearCookie("replyza_refresh", {
+      ...refreshCookieOptions,
+      maxAge: undefined,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Account and associated data deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+}
