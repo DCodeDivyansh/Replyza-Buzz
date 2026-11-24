@@ -59,6 +59,11 @@ jobs:
       - name: Check dependency vulnerabilities
         run: pnpm audit
 
+      - name: Build shared workspace packages
+        run: |
+          pnpm --filter @replyza/shared build
+          pnpm --filter @replyza/database build
+
       - name: Typecheck all workspace packages
         run: pnpm -r run typecheck
 
