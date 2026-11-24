@@ -105,7 +105,8 @@ All checks ran against the local test stack (`127.0.0.1:5433/replyza_test`, Redi
 - `pnpm lint:web`: **PASSED** (exit code 0)
 - `pnpm test` (Vitest): **PASSED** — **18/18 test files**, **94/94 tests** passed
 - `pnpm smoke` (API + Worker + Mock Meta): **PASSED** — all **12 verification gates** passed
-- `pnpm smoke:web` (Playwright E2E): **PASSED** — **1/1 passed** (`10.7s`)
+- `pnpm smoke:web` (Playwright E2E): **PASSED** — **1/1 passed** (`6.3s`)
+- Also caught and fixed a `templateId` foreign-key 500 error in `apps/api/src/services/automation.service.ts` when creating automations from non-persisted system template IDs (`smoke:web` regression guard).
 
 ---
 

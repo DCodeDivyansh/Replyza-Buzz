@@ -62,6 +62,19 @@ export async function createAutomation(
     ? "BUTTON"
     : (input.deliveryMode ?? "DIRECT");
 
+  let resolvedTemplateId: string | null = null;
+  if (input.templateId) {
+    try {
+      const existingTemplate = await prisma.automationTemplate.findUnique({
+        where: { id: input.templateId },
+        select: { id: true },
+      });
+      resolvedTemplateId = existingTemplate ? existingTemplate.id : null;
+    } catch {
+      resolvedTemplateId = null;
+    }
+  }
+
   try {
     return await prisma.automation.create({
       data: {
@@ -85,7 +98,7 @@ export async function createAutomation(
         followInstructionText: input.followInstructionText,
         followSuccessText: input.followSuccessText,
         followFallbackText: input.followFallbackText,
-        templateId: input.templateId,
+        templateId: resolvedTemplateId,
         status: "DRAFT"
       }
     });
