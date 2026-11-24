@@ -57,6 +57,7 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  DeliveryAction: 'DeliveryAction',
   OutboxEvent: 'OutboxEvent',
   MessagingWebhookEvent: 'MessagingWebhookEvent',
   AutomationTemplate: 'AutomationTemplate'
@@ -128,10 +129,16 @@ export const AutomationScalarFieldEnum = {
   mediaPermalink: 'mediaPermalink',
   mediaType: 'mediaType',
   triggerType: 'triggerType',
+  keywordMatchMode: 'keywordMatchMode',
   keywords: 'keywords',
   publicReplyText: 'publicReplyText',
+  publicReplyVariations: 'publicReplyVariations',
   dmMessageText: 'dmMessageText',
   dmLink: 'dmLink',
+  deliveryMode: 'deliveryMode',
+  buttonLabel: 'buttonLabel',
+  cooldownSeconds: 'cooldownSeconds',
+  dmMeFallbackEnabled: 'dmMeFallbackEnabled',
   followRequired: 'followRequired',
   followInstructionText: 'followInstructionText',
   followSuccessText: 'followSuccessText',
@@ -185,10 +192,30 @@ export const AutomationExecutionScalarFieldEnum = {
   followCheckRetryCount: 'followCheckRetryCount',
   metaFollowCheckReplyId: 'metaFollowCheckReplyId',
   followVerificationOutcome: 'followVerificationOutcome',
-  followCheckError: 'followCheckError'
+  followCheckError: 'followCheckError',
+  conversationState: 'conversationState',
+  commenterIgsid: 'commenterIgsid',
+  tapEventMid: 'tapEventMid'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const DeliveryActionScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  actionType: 'actionType',
+  status: 'status',
+  metaId: 'metaId',
+  attempts: 'attempts',
+  lastErrorCode: 'lastErrorCode',
+  lastErrorMessage: 'lastErrorMessage',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeliveryActionScalarFieldEnum = (typeof DeliveryActionScalarFieldEnum)[keyof typeof DeliveryActionScalarFieldEnum]
 
 
 export const OutboxEventScalarFieldEnum = {
