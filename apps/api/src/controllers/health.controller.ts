@@ -2,7 +2,8 @@
 import type { Request, Response } from "express";
 import { env } from "../config/env";
 import { prisma } from "@replyza/database";
-import { redisConnection } from "../queues/automation.queue";
+import { automationQueue, redisConnection } from "../queues/automation.queue";
+import { followCheckQueue } from "../queues/follow-check.queue";
 
 export async function getReadiness(
   _req: Request,
@@ -10,10 +11,16 @@ export async function getReadiness(
 ): Promise<void> {
   let dbOk = false;
   let redisOk = false;
+  let outboxPending = 0;
+  let automationQueueCounts: Record<string, number> | null = null;
+  let followCheckQueueCounts: Record<string, number> | null = null;
 
   try {
     await prisma.$queryRaw`SELECT 1`;
     dbOk = true;
+    outboxPending = await prisma.outboxEvent.count({
+      where: { status: "PENDING" },
+    });
   } catch {
     dbOk = false;
   }
@@ -21,6 +28,12 @@ export async function getReadiness(
   try {
     const pong = await redisConnection.ping();
     redisOk = pong === "PONG";
+    if (redisOk) {
+      [automationQueueCounts, followCheckQueueCounts] = await Promise.all([
+        automationQueue.getJobCounts("waiting", "active", "failed", "delayed"),
+        followCheckQueue.getJobCounts("waiting", "active", "failed", "delayed"),
+      ]);
+    }
   } catch {
     redisOk = false;
   }
@@ -30,12 +43,18 @@ export async function getReadiness(
       status: "ready",
       db: "ok",
       redis: "ok",
+      outboxPending,
+      queues: {
+        automation: automationQueueCounts,
+        followCheck: followCheckQueueCounts,
+      },
     });
   } else {
     res.status(503).json({
       status: "unready",
       db: dbOk ? "ok" : "disconnected",
       redis: redisOk ? "ok" : "disconnected",
+      outboxPending: dbOk ? outboxPending : null,
     });
   }
 }

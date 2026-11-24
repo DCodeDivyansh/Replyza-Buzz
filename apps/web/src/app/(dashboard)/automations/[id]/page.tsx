@@ -4,7 +4,7 @@ import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiRequest, ApiClientError } from "@/lib/api-client";
-import { Automation } from "@/types/automation";
+import { Automation, ExecutionListResponse, ExecutionRecord } from "@/types/automation";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +36,7 @@ export default function AutomationDetailsPage({
   const router = useRouter();
 
   const [automation, setAutomation] = useState<Automation | null>(null);
+  const [recentExecutions, setRecentExecutions] = useState<ExecutionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -45,8 +46,14 @@ export default function AutomationDetailsPage({
   useEffect(() => {
     async function loadAutomation() {
       try {
-        const res = await apiRequest<Automation>(`/automations/${id}`);
-        setAutomation(res.data || null);
+        const [autoRes, execRes] = await Promise.all([
+          apiRequest<Automation>(`/automations/${id}`),
+          apiRequest<ExecutionListResponse>(`/automations/${id}/executions?limit=5`).catch(() => null),
+        ]);
+        setAutomation(autoRes.data || null);
+        if (execRes?.data?.items) {
+          setRecentExecutions(execRes.data.items);
+        }
       } catch (err) {
         if (err instanceof ApiClientError) {
           setError(err.message);
@@ -356,6 +363,56 @@ export default function AutomationDetailsPage({
               <Clock className="h-3 w-3" />
               <span>Last updated: {formatDateTime(automation.updatedAt)}</span>
             </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm">Recent Executions</CardTitle>
+              <Link href="/activity" className="text-xs font-medium text-indigo-600 hover:underline">
+                View All
+              </Link>
+            </CardHeader>
+            <CardContent className="space-y-2.5">
+              {recentExecutions.length === 0 ? (
+                <p className="text-xs text-zinc-500">
+                  No comment executions recorded yet for this automation.
+                </p>
+              ) : (
+                recentExecutions.map((exec) => (
+                  <div
+                    key={exec.id}
+                    className="p-2.5 rounded-lg border border-zinc-200/80 bg-zinc-50/60 text-xs space-y-1"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-zinc-800 truncate">
+                        {exec.webhookEvent.commenterUsername
+                          ? `@${exec.webhookEvent.commenterUsername}`
+                          : "Instagram User"}
+                      </span>
+                      <Badge
+                        variant={
+                          exec.status === "COMPLETED"
+                            ? "green"
+                            : exec.status === "FAILED"
+                              ? "danger"
+                              : "paused"
+                        }
+                      >
+                        {exec.status}
+                      </Badge>
+                    </div>
+                    <p className="text-[11px] text-zinc-500 truncate">
+                      &ldquo;{exec.webhookEvent.commentText}&rdquo;
+                    </p>
+                    {(exec.errorMessage || exec.followCheckError) && (
+                      <p className="text-[11px] text-red-600">
+                        {exec.followCheckError || exec.errorMessage}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
+            </CardContent>
           </Card>
         </div>
       </div>

@@ -188,6 +188,9 @@ export class MetaGraphClient {
     options: RequestInit,
     attempt = 1
   ): Promise<T> {
+    const method = (options.method || "GET").toUpperCase();
+    const isIdempotentMethod = method === "GET" || method === "HEAD";
+
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
 
@@ -202,12 +205,17 @@ export class MetaGraphClient {
 
       const isTimeout =
         (err instanceof Error && err.name === "AbortError") ||
-        (err instanceof Error && err.message.includes("abort"));
+        (err instanceof Error && err.message.toLowerCase().includes("abort"));
+      const rawMessage =
+        err instanceof Error ? err.message : "Meta Graph API network failure";
 
-      // For network timeout during non-GET requests, outcome is UNKNOWN
-      if (options.method !== "GET" && isTimeout) {
+      // Non-idempotent requests (e.g. POST) must NEVER be retried automatically on
+      // timeout or connection reset/drop because Meta may have already executed the mutation.
+      if (!isIdempotentMethod) {
         throw new MetaGraphError(
-          "Network timeout while communicating with Meta Graph API. Action outcome unknown.",
+          isTimeout
+            ? "Network timeout while communicating with Meta Graph API. Action outcome unknown."
+            : `Connection failure while communicating with Meta Graph API (${rawMessage}). Action outcome unknown.`,
           "UNKNOWN_OUTCOME",
           undefined,
           undefined,
@@ -216,15 +224,15 @@ export class MetaGraphClient {
         );
       }
 
-      if (attempt <= this.maxRetries && (options.method === "GET" || !isTimeout)) {
+      if (attempt <= this.maxRetries) {
         const backoff = Math.min(200 * Math.pow(2, attempt - 1), 2000) + Math.random() * 100;
         await new Promise((r) => setTimeout(r, backoff));
         return this.executeWithRetry<T>(url, options, attempt + 1);
       }
 
       throw new MetaGraphError(
-        err instanceof Error ? err.message : "Meta Graph API network failure",
-        isTimeout ? "NETWORK_OR_TIMEOUT" : "NETWORK_OR_TIMEOUT",
+        rawMessage,
+        "NETWORK_OR_TIMEOUT",
         undefined,
         undefined,
         undefined,
@@ -238,23 +246,54 @@ export class MetaGraphClient {
     try {
       json = (await res.json()) as Record<string, unknown>;
     } catch {
-      if (!res.ok) {
+      const isUpstream5xx = res.status >= 500;
+      if (isIdempotentMethod && isUpstream5xx && attempt <= this.maxRetries) {
+        const backoff = Math.min(300 * Math.pow(2, attempt - 1), 2000) + Math.random() * 100;
+        await new Promise((r) => setTimeout(r, backoff));
+        return this.executeWithRetry<T>(url, options, attempt + 1);
+      }
+
+      if (!isIdempotentMethod && (res.ok || isUpstream5xx)) {
         throw new MetaGraphError(
-          `Meta Graph API returned HTTP ${res.status} with non-JSON response`,
-          res.status >= 500 ? "UPSTREAM_TEMPORARY" : "UNKNOWN",
+          `Meta Graph API returned HTTP ${res.status} with non-JSON response; POST outcome unknown`,
+          "UNKNOWN_OUTCOME",
           res.status,
           undefined,
           undefined,
-          res.status >= 500
+          false
         );
       }
+
+      throw new MetaGraphError(
+        `Meta Graph API returned HTTP ${res.status} with non-JSON response`,
+        isUpstream5xx ? "UPSTREAM_TEMPORARY" : "UNKNOWN",
+        res.status,
+        undefined,
+        undefined,
+        isIdempotentMethod && isUpstream5xx
+      );
     }
 
     if (!res.ok || json.error) {
       const errorData = (json.error || {}) as MetaGraphErrorDetails;
-      const { category, isTransient } = classifyMetaError(res.status, errorData);
+      const { category: rawCategory, isTransient: rawTransient } = classifyMetaError(
+        res.status,
+        errorData
+      );
 
-      if (isTransient && attempt <= this.maxRetries) {
+      // For non-idempotent POST requests, HTTP 5xx (500, 502, 503, 504) is ambiguous:
+      // an upstream gateway or Meta backend may have committed the write before failing.
+      // Classify as UNKNOWN_OUTCOME with isTransient=false so no layer blindly retries it,
+      // while preserving Meta's original statusCode, code, subcode, message, and fbtraceId.
+      const isAmbiguousPost5xx = !isIdempotentMethod && res.status >= 500;
+      const category: MetaErrorCategory = isAmbiguousPost5xx
+        ? "UNKNOWN_OUTCOME"
+        : rawCategory;
+      const isTransient = isAmbiguousPost5xx ? false : rawTransient;
+
+      // Only retry transient errors automatically for idempotent GET/HEAD requests.
+      // POST mutations are never retried automatically here to prevent duplicate actions.
+      if (isIdempotentMethod && isTransient && attempt <= this.maxRetries) {
         const backoff = Math.min(300 * Math.pow(2, attempt - 1), 2000) + Math.random() * 100;
         await new Promise((r) => setTimeout(r, backoff));
         return this.executeWithRetry<T>(url, options, attempt + 1);

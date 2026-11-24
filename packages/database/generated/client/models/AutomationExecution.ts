@@ -27,10 +27,12 @@ export type AggregateAutomationExecution = {
 }
 
 export type AutomationExecutionAvgAggregateOutputType = {
+  retryCount: number | null
   followCheckRetryCount: number | null
 }
 
 export type AutomationExecutionSumAggregateOutputType = {
+  retryCount: number | null
   followCheckRetryCount: number | null
 }
 
@@ -49,11 +51,15 @@ export type AutomationExecutionMinAggregateOutputType = {
   leaseToken: string | null
   completedAt: Date | null
   createdAt: Date | null
+  retryCount: number | null
+  lastAttemptAt: Date | null
   followCheckStatus: $Enums.ActionStatus | null
   followCheckSentAt: Date | null
   followCheckVerifiedAt: Date | null
   followCheckRetryCount: number | null
   metaFollowCheckReplyId: string | null
+  followVerificationOutcome: string | null
+  followCheckError: string | null
 }
 
 export type AutomationExecutionMaxAggregateOutputType = {
@@ -71,11 +77,15 @@ export type AutomationExecutionMaxAggregateOutputType = {
   leaseToken: string | null
   completedAt: Date | null
   createdAt: Date | null
+  retryCount: number | null
+  lastAttemptAt: Date | null
   followCheckStatus: $Enums.ActionStatus | null
   followCheckSentAt: Date | null
   followCheckVerifiedAt: Date | null
   followCheckRetryCount: number | null
   metaFollowCheckReplyId: string | null
+  followVerificationOutcome: string | null
+  followCheckError: string | null
 }
 
 export type AutomationExecutionCountAggregateOutputType = {
@@ -93,20 +103,26 @@ export type AutomationExecutionCountAggregateOutputType = {
   leaseToken: number
   completedAt: number
   createdAt: number
+  retryCount: number
+  lastAttemptAt: number
   followCheckStatus: number
   followCheckSentAt: number
   followCheckVerifiedAt: number
   followCheckRetryCount: number
   metaFollowCheckReplyId: number
+  followVerificationOutcome: number
+  followCheckError: number
   _all: number
 }
 
 
 export type AutomationExecutionAvgAggregateInputType = {
+  retryCount?: true
   followCheckRetryCount?: true
 }
 
 export type AutomationExecutionSumAggregateInputType = {
+  retryCount?: true
   followCheckRetryCount?: true
 }
 
@@ -125,11 +141,15 @@ export type AutomationExecutionMinAggregateInputType = {
   leaseToken?: true
   completedAt?: true
   createdAt?: true
+  retryCount?: true
+  lastAttemptAt?: true
   followCheckStatus?: true
   followCheckSentAt?: true
   followCheckVerifiedAt?: true
   followCheckRetryCount?: true
   metaFollowCheckReplyId?: true
+  followVerificationOutcome?: true
+  followCheckError?: true
 }
 
 export type AutomationExecutionMaxAggregateInputType = {
@@ -147,11 +167,15 @@ export type AutomationExecutionMaxAggregateInputType = {
   leaseToken?: true
   completedAt?: true
   createdAt?: true
+  retryCount?: true
+  lastAttemptAt?: true
   followCheckStatus?: true
   followCheckSentAt?: true
   followCheckVerifiedAt?: true
   followCheckRetryCount?: true
   metaFollowCheckReplyId?: true
+  followVerificationOutcome?: true
+  followCheckError?: true
 }
 
 export type AutomationExecutionCountAggregateInputType = {
@@ -169,11 +193,15 @@ export type AutomationExecutionCountAggregateInputType = {
   leaseToken?: true
   completedAt?: true
   createdAt?: true
+  retryCount?: true
+  lastAttemptAt?: true
   followCheckStatus?: true
   followCheckSentAt?: true
   followCheckVerifiedAt?: true
   followCheckRetryCount?: true
   metaFollowCheckReplyId?: true
+  followVerificationOutcome?: true
+  followCheckError?: true
   _all?: true
 }
 
@@ -278,11 +306,15 @@ export type AutomationExecutionGroupByOutputType = {
   leaseToken: string | null
   completedAt: Date | null
   createdAt: Date
+  retryCount: number
+  lastAttemptAt: Date | null
   followCheckStatus: $Enums.ActionStatus | null
   followCheckSentAt: Date | null
   followCheckVerifiedAt: Date | null
   followCheckRetryCount: number
   metaFollowCheckReplyId: string | null
+  followVerificationOutcome: string | null
+  followCheckError: string | null
   _count: AutomationExecutionCountAggregateOutputType | null
   _avg: AutomationExecutionAvgAggregateOutputType | null
   _sum: AutomationExecutionSumAggregateOutputType | null
@@ -323,11 +355,15 @@ export type AutomationExecutionWhereInput = {
   leaseToken?: Prisma.UuidNullableFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationExecution"> | Date | string
+  retryCount?: Prisma.IntFilter<"AutomationExecution"> | number
+  lastAttemptAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckStatus?: Prisma.EnumActionStatusNullableFilter<"AutomationExecution"> | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckVerifiedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckRetryCount?: Prisma.IntFilter<"AutomationExecution"> | number
   metaFollowCheckReplyId?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
+  followVerificationOutcome?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
+  followCheckError?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   automation?: Prisma.XOR<Prisma.AutomationScalarRelationFilter, Prisma.AutomationWhereInput>
   webhookEvent?: Prisma.XOR<Prisma.WebhookEventScalarRelationFilter, Prisma.WebhookEventWhereInput>
   messagingEvents?: Prisma.MessagingWebhookEventListRelationFilter
@@ -348,11 +384,15 @@ export type AutomationExecutionOrderByWithRelationInput = {
   leaseToken?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  retryCount?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
   metaFollowCheckReplyId?: Prisma.SortOrderInput | Prisma.SortOrder
+  followVerificationOutcome?: Prisma.SortOrderInput | Prisma.SortOrder
+  followCheckError?: Prisma.SortOrderInput | Prisma.SortOrder
   automation?: Prisma.AutomationOrderByWithRelationInput
   webhookEvent?: Prisma.WebhookEventOrderByWithRelationInput
   messagingEvents?: Prisma.MessagingWebhookEventOrderByRelationAggregateInput
@@ -376,11 +416,15 @@ export type AutomationExecutionWhereUniqueInput = Prisma.AtLeast<{
   leaseToken?: Prisma.UuidNullableFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationExecution"> | Date | string
+  retryCount?: Prisma.IntFilter<"AutomationExecution"> | number
+  lastAttemptAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckStatus?: Prisma.EnumActionStatusNullableFilter<"AutomationExecution"> | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckVerifiedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckRetryCount?: Prisma.IntFilter<"AutomationExecution"> | number
   metaFollowCheckReplyId?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
+  followVerificationOutcome?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
+  followCheckError?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
   automation?: Prisma.XOR<Prisma.AutomationScalarRelationFilter, Prisma.AutomationWhereInput>
   webhookEvent?: Prisma.XOR<Prisma.WebhookEventScalarRelationFilter, Prisma.WebhookEventWhereInput>
   messagingEvents?: Prisma.MessagingWebhookEventListRelationFilter
@@ -401,11 +445,15 @@ export type AutomationExecutionOrderByWithAggregationInput = {
   leaseToken?: Prisma.SortOrderInput | Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  retryCount?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckSentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
   metaFollowCheckReplyId?: Prisma.SortOrderInput | Prisma.SortOrder
+  followVerificationOutcome?: Prisma.SortOrderInput | Prisma.SortOrder
+  followCheckError?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AutomationExecutionCountOrderByAggregateInput
   _avg?: Prisma.AutomationExecutionAvgOrderByAggregateInput
   _max?: Prisma.AutomationExecutionMaxOrderByAggregateInput
@@ -431,11 +479,15 @@ export type AutomationExecutionScalarWhereWithAggregatesInput = {
   leaseToken?: Prisma.UuidNullableWithAggregatesFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AutomationExecution"> | Date | string
+  retryCount?: Prisma.IntWithAggregatesFilter<"AutomationExecution"> | number
+  lastAttemptAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
   followCheckStatus?: Prisma.EnumActionStatusNullableWithAggregatesFilter<"AutomationExecution"> | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
   followCheckVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AutomationExecution"> | Date | string | null
   followCheckRetryCount?: Prisma.IntWithAggregatesFilter<"AutomationExecution"> | number
   metaFollowCheckReplyId?: Prisma.StringNullableWithAggregatesFilter<"AutomationExecution"> | string | null
+  followVerificationOutcome?: Prisma.StringNullableWithAggregatesFilter<"AutomationExecution"> | string | null
+  followCheckError?: Prisma.StringNullableWithAggregatesFilter<"AutomationExecution"> | string | null
 }
 
 export type AutomationExecutionCreateInput = {
@@ -451,11 +503,15 @@ export type AutomationExecutionCreateInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   automation: Prisma.AutomationCreateNestedOneWithoutExecutionsInput
   webhookEvent: Prisma.WebhookEventCreateNestedOneWithoutExecutionInput
   messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutExecutionInput
@@ -476,11 +532,15 @@ export type AutomationExecutionUncheckedCreateInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutExecutionInput
 }
 
@@ -497,11 +557,15 @@ export type AutomationExecutionUpdateInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   automation?: Prisma.AutomationUpdateOneRequiredWithoutExecutionsNestedInput
   webhookEvent?: Prisma.WebhookEventUpdateOneRequiredWithoutExecutionNestedInput
   messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutExecutionNestedInput
@@ -522,11 +586,15 @@ export type AutomationExecutionUncheckedUpdateInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutExecutionNestedInput
 }
 
@@ -545,11 +613,15 @@ export type AutomationExecutionCreateManyInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
 }
 
 export type AutomationExecutionUpdateManyMutationInput = {
@@ -565,11 +637,15 @@ export type AutomationExecutionUpdateManyMutationInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AutomationExecutionUncheckedUpdateManyInput = {
@@ -587,11 +663,15 @@ export type AutomationExecutionUncheckedUpdateManyInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AutomationExecutionListRelationFilter = {
@@ -624,14 +704,19 @@ export type AutomationExecutionCountOrderByAggregateInput = {
   leaseToken?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  retryCount?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrder
   followCheckStatus?: Prisma.SortOrder
   followCheckSentAt?: Prisma.SortOrder
   followCheckVerifiedAt?: Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
   metaFollowCheckReplyId?: Prisma.SortOrder
+  followVerificationOutcome?: Prisma.SortOrder
+  followCheckError?: Prisma.SortOrder
 }
 
 export type AutomationExecutionAvgOrderByAggregateInput = {
+  retryCount?: Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
 }
 
@@ -650,11 +735,15 @@ export type AutomationExecutionMaxOrderByAggregateInput = {
   leaseToken?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  retryCount?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrder
   followCheckStatus?: Prisma.SortOrder
   followCheckSentAt?: Prisma.SortOrder
   followCheckVerifiedAt?: Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
   metaFollowCheckReplyId?: Prisma.SortOrder
+  followVerificationOutcome?: Prisma.SortOrder
+  followCheckError?: Prisma.SortOrder
 }
 
 export type AutomationExecutionMinOrderByAggregateInput = {
@@ -672,14 +761,19 @@ export type AutomationExecutionMinOrderByAggregateInput = {
   leaseToken?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  retryCount?: Prisma.SortOrder
+  lastAttemptAt?: Prisma.SortOrder
   followCheckStatus?: Prisma.SortOrder
   followCheckSentAt?: Prisma.SortOrder
   followCheckVerifiedAt?: Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
   metaFollowCheckReplyId?: Prisma.SortOrder
+  followVerificationOutcome?: Prisma.SortOrder
+  followCheckError?: Prisma.SortOrder
 }
 
 export type AutomationExecutionSumOrderByAggregateInput = {
+  retryCount?: Prisma.SortOrder
   followCheckRetryCount?: Prisma.SortOrder
 }
 
@@ -765,16 +859,16 @@ export type EnumActionStatusFieldUpdateOperationsInput = {
   set?: $Enums.ActionStatus
 }
 
-export type NullableEnumActionStatusFieldUpdateOperationsInput = {
-  set?: $Enums.ActionStatus | null
-}
-
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type NullableEnumActionStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ActionStatus | null
 }
 
 export type AutomationExecutionCreateNestedOneWithoutMessagingEventsInput = {
@@ -806,11 +900,15 @@ export type AutomationExecutionCreateWithoutAutomationInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   webhookEvent: Prisma.WebhookEventCreateNestedOneWithoutExecutionInput
   messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutExecutionInput
 }
@@ -829,11 +927,15 @@ export type AutomationExecutionUncheckedCreateWithoutAutomationInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutExecutionInput
 }
 
@@ -881,11 +983,15 @@ export type AutomationExecutionScalarWhereInput = {
   leaseToken?: Prisma.UuidNullableFilter<"AutomationExecution"> | string | null
   completedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"AutomationExecution"> | Date | string
+  retryCount?: Prisma.IntFilter<"AutomationExecution"> | number
+  lastAttemptAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckStatus?: Prisma.EnumActionStatusNullableFilter<"AutomationExecution"> | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckVerifiedAt?: Prisma.DateTimeNullableFilter<"AutomationExecution"> | Date | string | null
   followCheckRetryCount?: Prisma.IntFilter<"AutomationExecution"> | number
   metaFollowCheckReplyId?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
+  followVerificationOutcome?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
+  followCheckError?: Prisma.StringNullableFilter<"AutomationExecution"> | string | null
 }
 
 export type AutomationExecutionCreateWithoutWebhookEventInput = {
@@ -901,11 +1007,15 @@ export type AutomationExecutionCreateWithoutWebhookEventInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   automation: Prisma.AutomationCreateNestedOneWithoutExecutionsInput
   messagingEvents?: Prisma.MessagingWebhookEventCreateNestedManyWithoutExecutionInput
 }
@@ -924,11 +1034,15 @@ export type AutomationExecutionUncheckedCreateWithoutWebhookEventInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   messagingEvents?: Prisma.MessagingWebhookEventUncheckedCreateNestedManyWithoutExecutionInput
 }
 
@@ -961,11 +1075,15 @@ export type AutomationExecutionUpdateWithoutWebhookEventInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   automation?: Prisma.AutomationUpdateOneRequiredWithoutExecutionsNestedInput
   messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutExecutionNestedInput
 }
@@ -984,11 +1102,15 @@ export type AutomationExecutionUncheckedUpdateWithoutWebhookEventInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutExecutionNestedInput
 }
 
@@ -1005,11 +1127,15 @@ export type AutomationExecutionCreateWithoutMessagingEventsInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
   automation: Prisma.AutomationCreateNestedOneWithoutExecutionsInput
   webhookEvent: Prisma.WebhookEventCreateNestedOneWithoutExecutionInput
 }
@@ -1029,11 +1155,15 @@ export type AutomationExecutionUncheckedCreateWithoutMessagingEventsInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
 }
 
 export type AutomationExecutionCreateOrConnectWithoutMessagingEventsInput = {
@@ -1065,11 +1195,15 @@ export type AutomationExecutionUpdateWithoutMessagingEventsInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   automation?: Prisma.AutomationUpdateOneRequiredWithoutExecutionsNestedInput
   webhookEvent?: Prisma.WebhookEventUpdateOneRequiredWithoutExecutionNestedInput
 }
@@ -1089,11 +1223,15 @@ export type AutomationExecutionUncheckedUpdateWithoutMessagingEventsInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type AutomationExecutionCreateManyAutomationInput = {
@@ -1110,11 +1248,15 @@ export type AutomationExecutionCreateManyAutomationInput = {
   leaseToken?: string | null
   completedAt?: Date | string | null
   createdAt?: Date | string
+  retryCount?: number
+  lastAttemptAt?: Date | string | null
   followCheckStatus?: $Enums.ActionStatus | null
   followCheckSentAt?: Date | string | null
   followCheckVerifiedAt?: Date | string | null
   followCheckRetryCount?: number
   metaFollowCheckReplyId?: string | null
+  followVerificationOutcome?: string | null
+  followCheckError?: string | null
 }
 
 export type AutomationExecutionUpdateWithoutAutomationInput = {
@@ -1130,11 +1272,15 @@ export type AutomationExecutionUpdateWithoutAutomationInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   webhookEvent?: Prisma.WebhookEventUpdateOneRequiredWithoutExecutionNestedInput
   messagingEvents?: Prisma.MessagingWebhookEventUpdateManyWithoutExecutionNestedInput
 }
@@ -1153,11 +1299,15 @@ export type AutomationExecutionUncheckedUpdateWithoutAutomationInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   messagingEvents?: Prisma.MessagingWebhookEventUncheckedUpdateManyWithoutExecutionNestedInput
 }
 
@@ -1175,11 +1325,15 @@ export type AutomationExecutionUncheckedUpdateManyWithoutAutomationInput = {
   leaseToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastAttemptAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckStatus?: Prisma.NullableEnumActionStatusFieldUpdateOperationsInput | $Enums.ActionStatus | null
   followCheckSentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   followCheckRetryCount?: Prisma.IntFieldUpdateOperationsInput | number
   metaFollowCheckReplyId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followVerificationOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followCheckError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1228,11 +1382,15 @@ export type AutomationExecutionSelect<ExtArgs extends runtime.Types.Extensions.I
   leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
+  retryCount?: boolean
+  lastAttemptAt?: boolean
   followCheckStatus?: boolean
   followCheckSentAt?: boolean
   followCheckVerifiedAt?: boolean
   followCheckRetryCount?: boolean
   metaFollowCheckReplyId?: boolean
+  followVerificationOutcome?: boolean
+  followCheckError?: boolean
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
   webhookEvent?: boolean | Prisma.WebhookEventDefaultArgs<ExtArgs>
   messagingEvents?: boolean | Prisma.AutomationExecution$messagingEventsArgs<ExtArgs>
@@ -1254,11 +1412,15 @@ export type AutomationExecutionSelectCreateManyAndReturn<ExtArgs extends runtime
   leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
+  retryCount?: boolean
+  lastAttemptAt?: boolean
   followCheckStatus?: boolean
   followCheckSentAt?: boolean
   followCheckVerifiedAt?: boolean
   followCheckRetryCount?: boolean
   metaFollowCheckReplyId?: boolean
+  followVerificationOutcome?: boolean
+  followCheckError?: boolean
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
   webhookEvent?: boolean | Prisma.WebhookEventDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["automationExecution"]>
@@ -1278,11 +1440,15 @@ export type AutomationExecutionSelectUpdateManyAndReturn<ExtArgs extends runtime
   leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
+  retryCount?: boolean
+  lastAttemptAt?: boolean
   followCheckStatus?: boolean
   followCheckSentAt?: boolean
   followCheckVerifiedAt?: boolean
   followCheckRetryCount?: boolean
   metaFollowCheckReplyId?: boolean
+  followVerificationOutcome?: boolean
+  followCheckError?: boolean
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
   webhookEvent?: boolean | Prisma.WebhookEventDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["automationExecution"]>
@@ -1302,14 +1468,18 @@ export type AutomationExecutionSelectScalar = {
   leaseToken?: boolean
   completedAt?: boolean
   createdAt?: boolean
+  retryCount?: boolean
+  lastAttemptAt?: boolean
   followCheckStatus?: boolean
   followCheckSentAt?: boolean
   followCheckVerifiedAt?: boolean
   followCheckRetryCount?: boolean
   metaFollowCheckReplyId?: boolean
+  followVerificationOutcome?: boolean
+  followCheckError?: boolean
 }
 
-export type AutomationExecutionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "automationId" | "webhookEventId" | "status" | "publicReplyStatus" | "privateReplyStatus" | "metaReplyId" | "metaPrivateReplyId" | "errorMessage" | "startedAt" | "leaseExpiresAt" | "leaseToken" | "completedAt" | "createdAt" | "followCheckStatus" | "followCheckSentAt" | "followCheckVerifiedAt" | "followCheckRetryCount" | "metaFollowCheckReplyId", ExtArgs["result"]["automationExecution"]>
+export type AutomationExecutionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "automationId" | "webhookEventId" | "status" | "publicReplyStatus" | "privateReplyStatus" | "metaReplyId" | "metaPrivateReplyId" | "errorMessage" | "startedAt" | "leaseExpiresAt" | "leaseToken" | "completedAt" | "createdAt" | "retryCount" | "lastAttemptAt" | "followCheckStatus" | "followCheckSentAt" | "followCheckVerifiedAt" | "followCheckRetryCount" | "metaFollowCheckReplyId" | "followVerificationOutcome" | "followCheckError", ExtArgs["result"]["automationExecution"]>
 export type AutomationExecutionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   automation?: boolean | Prisma.AutomationDefaultArgs<ExtArgs>
   webhookEvent?: boolean | Prisma.WebhookEventDefaultArgs<ExtArgs>
@@ -1347,11 +1517,15 @@ export type $AutomationExecutionPayload<ExtArgs extends runtime.Types.Extensions
     leaseToken: string | null
     completedAt: Date | null
     createdAt: Date
+    retryCount: number
+    lastAttemptAt: Date | null
     followCheckStatus: $Enums.ActionStatus | null
     followCheckSentAt: Date | null
     followCheckVerifiedAt: Date | null
     followCheckRetryCount: number
     metaFollowCheckReplyId: string | null
+    followVerificationOutcome: string | null
+    followCheckError: string | null
   }, ExtArgs["result"]["automationExecution"]>
   composites: {}
 }
@@ -1792,11 +1966,15 @@ export interface AutomationExecutionFieldRefs {
   readonly leaseToken: Prisma.FieldRef<"AutomationExecution", 'String'>
   readonly completedAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
+  readonly retryCount: Prisma.FieldRef<"AutomationExecution", 'Int'>
+  readonly lastAttemptAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
   readonly followCheckStatus: Prisma.FieldRef<"AutomationExecution", 'ActionStatus'>
   readonly followCheckSentAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
   readonly followCheckVerifiedAt: Prisma.FieldRef<"AutomationExecution", 'DateTime'>
   readonly followCheckRetryCount: Prisma.FieldRef<"AutomationExecution", 'Int'>
   readonly metaFollowCheckReplyId: Prisma.FieldRef<"AutomationExecution", 'String'>
+  readonly followVerificationOutcome: Prisma.FieldRef<"AutomationExecution", 'String'>
+  readonly followCheckError: Prisma.FieldRef<"AutomationExecution", 'String'>
 }
     
 

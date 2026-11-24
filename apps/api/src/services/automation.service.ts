@@ -225,3 +225,216 @@ export async function deleteAutomation(
     deleted: true
   };
 }
+
+export interface ListExecutionsFilter {
+  automationId?: string;
+  instagramAccountId?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+const VALID_EXECUTION_STATUSES = new Set([
+  "PENDING",
+  "PROCESSING",
+  "RETRY_PENDING",
+  "COMPLETED",
+  "PARTIAL",
+  "FAILED",
+  "CANCELLED",
+]);
+
+export async function listUserExecutions(
+  userId: string,
+  filter: ListExecutionsFilter = {}
+) {
+  const page = Math.max(1, filter.page ?? 1);
+  const limit = Math.min(100, Math.max(1, filter.limit ?? 25));
+  const skip = (page - 1) * limit;
+
+  const statusFilter =
+    filter.status && VALID_EXECUTION_STATUSES.has(filter.status)
+      ? (filter.status as
+          | "PENDING"
+          | "PROCESSING"
+          | "RETRY_PENDING"
+          | "COMPLETED"
+          | "PARTIAL"
+          | "FAILED"
+          | "CANCELLED")
+      : undefined;
+
+  const where = {
+    automation: {
+      ...(filter.automationId ? { id: filter.automationId } : {}),
+      instagramAccount: {
+        userId,
+        ...(filter.instagramAccountId ? { id: filter.instagramAccountId } : {}),
+      },
+    },
+    ...(statusFilter ? { status: statusFilter } : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    prisma.automationExecution.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        automationId: true,
+        status: true,
+        publicReplyStatus: true,
+        privateReplyStatus: true,
+        metaReplyId: true,
+        metaPrivateReplyId: true,
+        errorMessage: true,
+        retryCount: true,
+        lastAttemptAt: true,
+        startedAt: true,
+        completedAt: true,
+        createdAt: true,
+        followCheckStatus: true,
+        followCheckSentAt: true,
+        followCheckVerifiedAt: true,
+        followCheckRetryCount: true,
+        metaFollowCheckReplyId: true,
+        followVerificationOutcome: true,
+        followCheckError: true,
+        automation: {
+          select: {
+            id: true,
+            name: true,
+            mediaId: true,
+            triggerType: true,
+            followRequired: true,
+            instagramAccount: {
+              select: {
+                id: true,
+                username: true,
+                instagramUserId: true,
+              },
+            },
+          },
+        },
+        webhookEvent: {
+          select: {
+            id: true,
+            commentId: true,
+            mediaId: true,
+            commenterUsername: true,
+            commentText: true,
+            status: true,
+            receivedAt: true,
+            processedAt: true,
+          },
+        },
+        messagingEvents: {
+          orderBy: { receivedAt: "desc" },
+          take: 5,
+          select: {
+            id: true,
+            providerEventId: true,
+            status: true,
+            receivedAt: true,
+            processedAt: true,
+          },
+        },
+      },
+    }),
+    prisma.automationExecution.count({ where }),
+  ]);
+
+  return {
+    items,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+    },
+  };
+}
+
+export async function getUserExecutionById(
+  userId: string,
+  executionId: string
+) {
+  const execution = await prisma.automationExecution.findFirst({
+    where: {
+      id: executionId,
+      automation: {
+        instagramAccount: {
+          userId,
+        },
+      },
+    },
+    select: {
+      id: true,
+      automationId: true,
+      status: true,
+      publicReplyStatus: true,
+      privateReplyStatus: true,
+      metaReplyId: true,
+      metaPrivateReplyId: true,
+      errorMessage: true,
+      retryCount: true,
+      lastAttemptAt: true,
+      startedAt: true,
+      completedAt: true,
+      createdAt: true,
+      followCheckStatus: true,
+      followCheckSentAt: true,
+      followCheckVerifiedAt: true,
+      followCheckRetryCount: true,
+      metaFollowCheckReplyId: true,
+      followVerificationOutcome: true,
+      followCheckError: true,
+      automation: {
+        select: {
+          id: true,
+          name: true,
+          mediaId: true,
+          triggerType: true,
+          followRequired: true,
+          instagramAccount: {
+            select: {
+              id: true,
+              username: true,
+              instagramUserId: true,
+            },
+          },
+        },
+      },
+      webhookEvent: {
+        select: {
+          id: true,
+          commentId: true,
+          mediaId: true,
+          commenterUsername: true,
+          commentText: true,
+          status: true,
+          receivedAt: true,
+          processedAt: true,
+        },
+      },
+      messagingEvents: {
+        orderBy: { receivedAt: "desc" },
+        select: {
+          id: true,
+          providerEventId: true,
+          status: true,
+          receivedAt: true,
+          processedAt: true,
+        },
+      },
+    },
+  });
+
+  if (!execution) {
+    throw new AutomationError("Execution not found", 404);
+  }
+
+  return execution;
+}

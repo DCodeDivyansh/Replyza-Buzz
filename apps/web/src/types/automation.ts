@@ -7,6 +7,9 @@ export interface InstagramAccountInfo {
   username: string | null;
   instagramUserId: string;
   status?: "ACTIVE" | "NEEDS_RECONNECT";
+  webhookSubscribed?: boolean;
+  webhookSubscribedAt?: string | null;
+  webhookSubscriptionError?: string | null;
   tokenExpiresAt?: string | null;
 }
 
@@ -91,4 +94,85 @@ export interface InstagramMedia {
   media_url?: string;
   permalink?: string;
   timestamp: string;
+}
+
+export type ExecutionStatusType =
+  | "PENDING"
+  | "PROCESSING"
+  | "RETRY_PENDING"
+  | "COMPLETED"
+  | "PARTIAL"
+  | "FAILED"
+  | "CANCELLED";
+
+export type ActionStatusType =
+  | "PENDING"
+  | "PROCESSING"
+  | "RETRY_PENDING"
+  | "SUCCESS"
+  | "FAILED"
+  | "UNKNOWN"
+  | "SKIPPED"
+  | "CANCELLED";
+
+export interface ExecutionRecord {
+  id: string;
+  automationId: string;
+  status: ExecutionStatusType;
+  publicReplyStatus: ActionStatusType;
+  privateReplyStatus: ActionStatusType;
+  metaReplyId: string | null;
+  metaPrivateReplyId: string | null;
+  errorMessage: string | null;
+  retryCount: number;
+  lastAttemptAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  followCheckStatus: ActionStatusType | null;
+  followCheckSentAt: string | null;
+  followCheckVerifiedAt: string | null;
+  followCheckRetryCount: number;
+  metaFollowCheckReplyId: string | null;
+  followVerificationOutcome: string | null;
+  followCheckError: string | null;
+  automation: {
+    id: string;
+    name: string;
+    mediaId: string;
+    triggerType: AutomationTrigger;
+    followRequired: boolean;
+    instagramAccount: {
+      id: string;
+      username: string | null;
+      instagramUserId: string;
+    };
+  };
+  webhookEvent: {
+    id: string;
+    commentId: string;
+    mediaId: string;
+    commenterUsername: string | null;
+    commentText: string;
+    status: string;
+    receivedAt: string;
+    processedAt: string | null;
+  };
+  messagingEvents?: Array<{
+    id: string;
+    providerEventId: string;
+    status: string;
+    receivedAt: string;
+    processedAt: string | null;
+  }>;
+}
+
+export interface ExecutionListResponse {
+  items: ExecutionRecord[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

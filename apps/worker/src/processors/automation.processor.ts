@@ -14,12 +14,15 @@ import {
   completePrivateReply,
   markActionFailed,
   markActionUnknown,
+  markActionRetryPending,
+  reconcileActionSuccess,
 } from "../services/action-state.service";
 
 import {
   claimExecution,
   renewExecutionLease,
   releaseExecutionLease,
+  releaseExecutionForRetry,
   recoverExpiredExecution,
   assertExecutionOwnership,
 } from "../services/execution-lease.service";
@@ -28,6 +31,7 @@ import {
   publishCommentReply,
   sendPrivateReply,
   sendPrivateReplyWithQuickReply,
+  reconcileCommentReply,
   MetaApiError,
   MetaApiUnknownOutcomeError,
 } from "../services/instagram-graph.service";
@@ -37,7 +41,8 @@ type ActionResult =
   | "FAILED"
   | "UNKNOWN"
   | "SKIPPED"
-  | "BLOCKED";
+  | "BLOCKED"
+  | "RETRY_PENDING";
 
 
 async function executeAction(
@@ -46,7 +51,8 @@ async function executeAction(
   action: "public" | "private",
   isLeaseLost: () => boolean,
   send: () => Promise<string>,
-  save: (resultId: string) => Promise<void>
+  save: (resultId: string) => Promise<void>,
+  reconcile?: () => Promise<string | null>
 ): Promise<ActionResult> {
   await assertExecutionOwnership(executionId, leaseToken);
 
@@ -79,15 +85,43 @@ async function executeAction(
         : current.privateReplyStatus;
 
     console.log(
-      `[Worker] ${action} action was not claimed. State: ${currentStatus}`
+      `[Worker] ${action} action was not claimed. State: ${currentStatus} | executionId=${executionId}`
     );
+
+    if (currentStatus === "UNKNOWN") {
+      if (reconcile) {
+        const reconciledId = await reconcile();
+        if (reconciledId) {
+          const reconciled = await reconcileActionSuccess(
+            executionId,
+            action,
+            leaseToken,
+            reconciledId
+          );
+          if (reconciled) {
+            console.log(
+              `[Worker] Reconciled UNKNOWN ${action} action as SUCCESS (${reconciledId}) | executionId=${executionId}`
+            );
+            return "SUCCESS";
+          }
+        }
+      }
+      console.warn(
+        `[Worker] ${action} action remains UNKNOWN. Automatic resend prevented to avoid duplicates | executionId=${executionId}`
+      );
+      return "UNKNOWN";
+    }
 
     if (currentStatus === "PROCESSING" || currentStatus === "PENDING") {
       console.warn(
-        `[Worker] ${action} action is unresolved. Automatic resend prevented.`
+        `[Worker] ${action} action is unresolved (${currentStatus}). Automatic resend prevented | executionId=${executionId}`
       );
 
       return "BLOCKED";
+    }
+
+    if (currentStatus === "CANCELLED") {
+      return "SKIPPED";
     }
 
     return currentStatus;
@@ -107,7 +141,7 @@ async function executeAction(
     await save(resultId);
 
     console.log(
-      `[Worker] ${action} action completed: ${executionId}`
+      `[Worker] ${action} action completed (${resultId}) | executionId=${executionId}`
     );
 
     return "SUCCESS";
@@ -115,7 +149,7 @@ async function executeAction(
     if (error instanceof MetaApiError) {
       // Meta error code 190 indicates expired or invalidated OAuth token:
       // https://developers.facebook.com/documentation/instagram-platform/support/error-handling
-      if (error.metaError?.code === 190) {
+      if (error.metaError?.code === 190 || error.category === "AUTH_EXPIRED") {
         console.error(
           `[Worker] Meta returned Error 190 (access token invalid/expired) for execution ${executionId}. Marking Instagram account as NEEDS_RECONNECT.`
         );
@@ -133,19 +167,38 @@ async function executeAction(
         } catch (dbErr) {
           console.error("[Worker] Failed to set account status to NEEDS_RECONNECT:", dbErr);
         }
+
+        await markActionFailed(
+          executionId,
+          action,
+          leaseToken,
+          "Instagram access token expired or revoked by Meta (Error 190). Please reconnect your account."
+        );
+        return "FAILED";
+      }
+
+      if (error.isTransient) {
+        await markActionRetryPending(
+          executionId,
+          action,
+          leaseToken,
+          error.message
+        );
+        console.warn(
+          `[Worker] ${action} action transient failure (${error.category}); marked RETRY_PENDING | executionId=${executionId}: ${error.message}`
+        );
+        return "RETRY_PENDING";
       }
 
       await markActionFailed(
         executionId,
         action,
         leaseToken,
-        error.metaError?.code === 190
-          ? "Instagram access token expired or revoked by Meta (Error 190). Please reconnect your account."
-          : error.message
+        error.message
       );
 
       console.error(
-        `[Worker] ${action} action rejected by Meta:`,
+        `[Worker] ${action} action permanently rejected by Meta (${error.category}) | executionId=${executionId}:`,
         error.message
       );
 
@@ -167,7 +220,7 @@ async function executeAction(
     );
 
     console.error(
-      `[Worker] ${action} action outcome unknown:`,
+      `[Worker] ${action} action outcome UNKNOWN | executionId=${executionId}:`,
       reason
     );
 
@@ -207,9 +260,14 @@ async function finalizeExecution(
     const publicStatus = execution.publicReplyStatus;
     const privateStatus = execution.privateReplyStatus;
 
-    let finalStatus: "COMPLETED" | "PARTIAL" | "FAILED";
+    let finalStatus: "COMPLETED" | "PARTIAL" | "FAILED" | "RETRY_PENDING";
 
     if (
+      publicStatus === "RETRY_PENDING" ||
+      privateStatus === "RETRY_PENDING"
+    ) {
+      finalStatus = "RETRY_PENDING";
+    } else if (
       publicStatus === "SUCCESS" &&
       privateStatus === "SUCCESS"
     ) {
@@ -229,6 +287,9 @@ async function finalizeExecution(
       finalStatus = "FAILED";
     }
 
+    const hasUncertainOutcome =
+      publicStatus === "UNKNOWN" || privateStatus === "UNKNOWN";
+
     const updated = await tx.automationExecution.updateMany({
       where: {
         id: executionId,
@@ -240,7 +301,10 @@ async function finalizeExecution(
       },
       data: {
         status: finalStatus,
-        completedAt: new Date(),
+        completedAt:
+          finalStatus === "RETRY_PENDING" || hasUncertainOutcome
+            ? null
+            : new Date(),
         leaseToken: null,
         leaseExpiresAt: null,
       },
@@ -252,16 +316,18 @@ async function finalizeExecution(
       );
     }
 
-    await tx.webhookEvent.update({
-      where: { id: webhookEventId },
-      data: {
-        status: "PROCESSED",
-        processedAt: new Date(),
-      },
-    });
+    if (finalStatus !== "RETRY_PENDING") {
+      await tx.webhookEvent.update({
+        where: { id: webhookEventId },
+        data: {
+          status: finalStatus === "FAILED" ? "FAILED" : "PROCESSED",
+          processedAt: new Date(),
+        },
+      });
+    }
 
     console.log(
-      `[Worker] Execution finalized: ${executionId} | ` +
+      `[Worker] Execution finalized: executionId=${executionId} webhookEventId=${webhookEventId} | ` +
       `Public: ${publicStatus} | ` +
       `Private: ${privateStatus} | ` +
       `Final: ${finalStatus}`
@@ -307,10 +373,11 @@ export async function processAutomationJob(
 
   if (
     execution.status === "COMPLETED" ||
-    execution.status === "FAILED"
+    execution.status === "FAILED" ||
+    execution.status === "CANCELLED"
   ) {
     console.log(
-      `[Worker] Execution already terminal: ${execution.status}`
+      `[Worker] Execution already terminal: ${execution.status} | executionId=${executionId}`
     );
     return;
   }
@@ -548,6 +615,13 @@ export async function processAutomationJob(
           executionId,
           leaseToken,
           replyId
+        ),
+      () =>
+        reconcileCommentReply(
+          webhookEvent.commentId,
+          interpolatedPublicReply,
+          account.instagramUserId,
+          accessToken
         )
     );
 
@@ -555,15 +629,6 @@ export async function processAutomationJob(
       throw new Error(
         `Execution lease lost after public action: ${executionId}`
       );
-    }
-
-    if (publicResult === "BLOCKED") {
-      await finalizeExecution(
-        executionId,
-        webhookEventId,
-        leaseToken
-      );
-      return;
     }
 
     // Action 2: Private Instagram reply.
@@ -646,6 +711,17 @@ export async function processAutomationJob(
           followCheckSentAt: new Date(),
         },
       });
+    }
+
+    if (publicResult === "RETRY_PENDING" || privateResult === "RETRY_PENDING") {
+      await releaseExecutionForRetry(
+        executionId,
+        leaseToken,
+        "Transient Meta API error; execution scheduled for BullMQ retry"
+      );
+      throw new Error(
+        `Transient Meta API failure during execution ${executionId}; retrying via BullMQ`
+      );
     }
 
     await finalizeExecution(

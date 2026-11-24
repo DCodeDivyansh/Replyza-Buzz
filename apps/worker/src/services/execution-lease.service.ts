@@ -14,7 +14,7 @@ export async function claimExecution(
     where: {
       id: executionId,
       status: {
-        in: ["PENDING", "PARTIAL"],
+        in: ["PENDING", "PARTIAL", "RETRY_PENDING"],
       },
     },
     data: {
@@ -22,6 +22,7 @@ export async function claimExecution(
       leaseToken,
       leaseExpiresAt: new Date(now.getTime() + LEASE_DURATION_MS),
       startedAt: startedAt ?? now,
+      lastAttemptAt: now,
       errorMessage: null,
     },
   });
@@ -145,4 +146,26 @@ export async function assertExecutionOwnership(
   if (!execution) {
     throw new Error(`Execution ownership lost: ${executionId}`);
   }
+}
+
+export async function releaseExecutionForRetry(
+  executionId: string,
+  leaseToken: string,
+  reason: string
+): Promise<void> {
+  await prisma.automationExecution.updateMany({
+    where: {
+      id: executionId,
+      status: "PROCESSING",
+      leaseToken,
+    },
+    data: {
+      status: "RETRY_PENDING",
+      retryCount: { increment: 1 },
+      lastAttemptAt: new Date(),
+      leaseToken: null,
+      leaseExpiresAt: null,
+      errorMessage: reason,
+    },
+  });
 }

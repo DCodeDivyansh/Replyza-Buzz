@@ -115,27 +115,55 @@ export const instagramOAuthCallback: RequestHandler = async (
             }
         });
 
-        // Automatically subscribe linked Page / Instagram account to webhooks
+        // Automatically subscribe linked Page / Instagram account to webhooks and persist exact status
         // Meta Doc: https://developers.facebook.com/documentation/instagram-platform/webhooks
-        await subscribeInstagramAccount(instagramAccount.id, accessToken).catch((subErr) => {
-            logger.warn({ subErr, instagramUserId: instagramAccount.id }, "Automatic webhook subscription failed during OAuth callback");
+        let webhookSubscribed = false;
+        let webhookSubscriptionError: string | null = null;
+        try {
+            const subResult = await subscribeInstagramAccount(instagramAccount.id, accessToken);
+            webhookSubscribed = subResult.success;
+            webhookSubscriptionError = subResult.success ? null : (subResult.error || "Webhook subscription failed");
+        } catch (subErr) {
+            webhookSubscribed = false;
+            webhookSubscriptionError = subErr instanceof Error ? subErr.message : "Webhook subscription failed";
+        }
+
+        await prisma.instagramAccount.update({
+            where: { instagramUserId: instagramAccount.id },
+            data: {
+                webhookSubscribed,
+                webhookSubscribedAt: webhookSubscribed ? new Date() : null,
+                webhookSubscriptionError,
+            },
         });
+
+        if (!webhookSubscribed) {
+            logger.warn(
+                { instagramUserId: instagramAccount.id, webhookSubscriptionError },
+                "Webhook subscription failed during OAuth callback; account persisted with webhookSubscribed=false"
+            );
+        }
 
         logger.info(
             {
                 userId: statePayload.userId,
                 instagramUserId: instagramAccount.id,
-                username: instagramAccount.username
+                username: instagramAccount.username,
+                webhookSubscribed,
             },
             "Instagram account connected"
         );
 
         res.status(200).json({
             success: true,
-            message: "Instagram account connected successfully",
+            message: webhookSubscribed
+                ? "Instagram account connected and subscribed to webhooks"
+                : "Instagram account connected, but webhook subscription failed",
             data: {
                 instagramUserId: instagramAccount.id,
-                username: instagramAccount.username ?? null
+                username: instagramAccount.username ?? null,
+                webhookSubscribed,
+                webhookSubscriptionError,
             }
         });
     } catch (error) {

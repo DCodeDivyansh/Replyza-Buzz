@@ -1,4 +1,4 @@
-﻿
+
 import { prisma } from "@replyza/database";
 
 export type AutomationAction = "public" | "private";
@@ -31,7 +31,9 @@ export async function claimAction(
   const result = await prisma.automationExecution.updateMany({
     where: {
       ...getLeaseWhere(executionId, leaseToken),
-      [statusField]: "PENDING",
+      [statusField]: {
+        in: ["PENDING", "RETRY_PENDING"],
+      },
     },
     data: {
       [statusField]: "PROCESSING",
@@ -137,4 +139,54 @@ export async function markActionUnknown(
       `Could not persist ${action} action unknown state: execution ownership lost or action state changed`
     );
   }
+}
+
+export async function markActionRetryPending(
+  executionId: string,
+  action: AutomationAction,
+  leaseToken: string,
+  reason: string
+): Promise<void> {
+  const statusField = getStatusField(action);
+
+  const result = await prisma.automationExecution.updateMany({
+    where: {
+      ...getLeaseWhere(executionId, leaseToken),
+      [statusField]: "PROCESSING",
+    },
+    data: {
+      [statusField]: "RETRY_PENDING",
+      errorMessage: reason,
+    },
+  });
+
+  if (result.count !== 1) {
+    throw new Error(
+      `Could not persist ${action} action retry_pending state: execution ownership lost or action state changed`
+    );
+  }
+}
+
+export async function reconcileActionSuccess(
+  executionId: string,
+  action: AutomationAction,
+  leaseToken: string,
+  metaId: string
+): Promise<boolean> {
+  const statusField = getStatusField(action);
+  const idField = action === "public" ? "metaReplyId" : "metaPrivateReplyId";
+
+  const result = await prisma.automationExecution.updateMany({
+    where: {
+      ...getLeaseWhere(executionId, leaseToken),
+      [statusField]: "UNKNOWN",
+    },
+    data: {
+      [statusField]: "SUCCESS",
+      [idField]: metaId,
+      errorMessage: null,
+    },
+  });
+
+  return result.count === 1;
 }

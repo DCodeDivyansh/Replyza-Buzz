@@ -5,6 +5,10 @@ import { redisConnection } from "./config/redis";
 import { processAutomationJob } from "./processors/automation.processor";
 import { checkTokenExpirations } from "./processors/token-expiry.processor";
 import { processFollowCheckJob } from "./processors/follow-check.processor";
+import {
+  dispatchPendingOutboxEvents,
+  recoverOrphanedRecords,
+} from "./services/outbox-dispatcher.service";
 
 const worker = new Worker(
   "automation-processing",
@@ -28,11 +32,30 @@ followCheckWorker.on("completed", (job) => {
   console.log(`[FollowCheckWorker] Job completed: ${job.id}`);
 });
 
-followCheckWorker.on("failed", (job, error) => {
+followCheckWorker.on("failed", async (job, error) => {
   console.error(
     `[FollowCheckWorker] Job failed: ${job?.id ?? "unknown"}`,
     error.message
   );
+
+  const maxAttempts = job?.opts?.attempts ?? 1;
+  if (job?.data?.executionId && job.attemptsMade >= maxAttempts) {
+    await prisma.automationExecution
+      .updateMany({
+        where: {
+          id: job.data.executionId,
+          followCheckStatus: { in: ["PROCESSING", "RETRY_PENDING", "PENDING"] },
+        },
+        data: {
+          followCheckStatus: "FAILED",
+          followCheckError: `Exhausted retry attempts: ${error.message}`,
+          errorMessage: `Follow verification failed after retries: ${error.message}`,
+        },
+      })
+      .catch((dbErr) => {
+        console.error("[FollowCheckWorker] Failed to persist exhausted failure:", dbErr);
+      });
+  }
 });
 
 // Token expiry checker queue & repeatable job
@@ -84,19 +107,90 @@ worker.on("completed", (job) => {
   console.log(`[Worker] Job completed: ${job.id}`);
 });
 
-worker.on("failed", (job, error) => {
+worker.on("failed", async (job, error) => {
   console.error(
     `[Worker] Job failed: ${job?.id ?? "unknown"}`,
     error.message
   );
+
+  const maxAttempts = job?.opts?.attempts ?? 1;
+  if (job?.data?.executionId && job.attemptsMade >= maxAttempts) {
+    try {
+      await prisma.$transaction(async (tx) => {
+        const exec = await tx.automationExecution.findUnique({
+          where: { id: job.data.executionId },
+          select: {
+            id: true,
+            webhookEventId: true,
+            publicReplyStatus: true,
+            privateReplyStatus: true,
+            status: true,
+          },
+        });
+        if (!exec || exec.status === "COMPLETED" || exec.status === "FAILED") {
+          return;
+        }
+        await tx.automationExecution.update({
+          where: { id: exec.id },
+          data: {
+            status:
+              exec.publicReplyStatus === "SUCCESS" ||
+              exec.privateReplyStatus === "SUCCESS"
+                ? "PARTIAL"
+                : "FAILED",
+            publicReplyStatus:
+              exec.publicReplyStatus === "RETRY_PENDING"
+                ? "FAILED"
+                : exec.publicReplyStatus,
+            privateReplyStatus:
+              exec.privateReplyStatus === "RETRY_PENDING"
+                ? "FAILED"
+                : exec.privateReplyStatus,
+            errorMessage: `Exhausted all retry attempts: ${error.message}`,
+            completedAt: new Date(),
+            leaseToken: null,
+            leaseExpiresAt: null,
+          },
+        });
+        await tx.webhookEvent.update({
+          where: { id: exec.webhookEventId },
+          data: { status: "FAILED", processedAt: new Date() },
+        });
+      });
+    } catch (dbErr) {
+      console.error("[Worker] Failed to persist dead-letter execution state:", dbErr);
+    }
+  }
 });
 
 worker.on("error", (error) => {
   console.error("[Worker] Error:", error.message);
 });
 
+const outboxTimer = setInterval(() => {
+  void dispatchPendingOutboxEvents().catch((err) => {
+    console.error("[OutboxDispatcher] Error:", err);
+  });
+}, 5_000);
+
+const recoveryTimer = setInterval(() => {
+  void recoverOrphanedRecords().catch((err) => {
+    console.error("[OrphanRecovery] Error:", err);
+  });
+}, 30_000);
+
+// Run initial outbox dispatch & recovery on startup
+void recoverOrphanedRecords()
+  .then(() => dispatchPendingOutboxEvents())
+  .catch((err) => {
+    console.error("[Worker] Startup outbox/recovery error:", err);
+  });
+
 async function shutdown(signal: string) {
   console.log(`[Worker] Received ${signal}; shutting down`);
+
+  clearInterval(outboxTimer);
+  clearInterval(recoveryTimer);
 
   await worker.close();
   await followCheckWorker.close();

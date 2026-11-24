@@ -20,6 +20,9 @@ export const listInstagramAccounts: RequestHandler = async (req, res, next) => {
         instagramUserId: true,
         username: true,
         status: true,
+        webhookSubscribed: true,
+        webhookSubscribedAt: true,
+        webhookSubscriptionError: true,
         tokenExpiresAt: true,
         createdAt: true,
         updatedAt: true,
@@ -66,16 +69,47 @@ export const subscribeAccount: RequestHandler = async (req, res, next) => {
     );
 
     if (!subResult.success) {
+      const errorMsg = subResult.error || "Failed to subscribe account to webhooks";
+      const isTokenError = errorMsg.toLowerCase().includes("access token") || errorMsg.includes("190");
+
+      await prisma.instagramAccount.update({
+        where: { id: accountId },
+        data: {
+          webhookSubscribed: false,
+          webhookSubscriptionError: errorMsg,
+          ...(isTokenError ? { status: "NEEDS_RECONNECT" } : {}),
+        },
+      });
+
       res.status(502).json({
         success: false,
-        message: subResult.error || "Failed to subscribe account to webhooks",
+        message: errorMsg,
       });
       return;
     }
 
+    const updated = await prisma.instagramAccount.update({
+      where: { id: accountId },
+      data: {
+        webhookSubscribed: true,
+        webhookSubscribedAt: new Date(),
+        webhookSubscriptionError: null,
+      },
+      select: {
+        id: true,
+        instagramUserId: true,
+        username: true,
+        status: true,
+        webhookSubscribed: true,
+        webhookSubscribedAt: true,
+        webhookSubscriptionError: true,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Successfully subscribed to Instagram webhooks",
+      data: updated,
     });
   } catch (error) {
     next(error);

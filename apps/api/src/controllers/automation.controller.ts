@@ -7,7 +7,9 @@ import {
   getAutomationById,
   updateAutomation,
   updateAutomationStatus,
-  deleteAutomation
+  deleteAutomation,
+  listUserExecutions,
+  getUserExecutionById,
 } from "../services/automation.service";
 
 import {
@@ -214,6 +216,73 @@ export const deleteAutomationController: RequestHandler = async (
       return;
     }
 
+    next(error);
+  }
+};
+
+export const listExecutionsController: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const automationId =
+      typeof req.query.automationId === "string"
+        ? req.query.automationId
+        : typeof req.params.id === "string"
+          ? req.params.id
+          : undefined;
+    const instagramAccountId =
+      typeof req.query.instagramAccountId === "string"
+        ? req.query.instagramAccountId
+        : undefined;
+    const status =
+      typeof req.query.status === "string" ? req.query.status : undefined;
+    const page =
+      typeof req.query.page === "string" ? Number.parseInt(req.query.page, 10) : 1;
+    const limit =
+      typeof req.query.limit === "string" ? Number.parseInt(req.query.limit, 10) : 25;
+
+    const result = await listUserExecutions(req.user!.id, {
+      automationId,
+      instagramAccountId,
+      status,
+      page: Number.isFinite(page) ? page : 1,
+      limit: Number.isFinite(limit) ? limit : 25,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getExecutionController: RequestHandler = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const execution = await getUserExecutionById(
+      req.user!.id,
+      req.params.executionId as string
+    );
+
+    res.status(200).json({
+      success: true,
+      data: execution,
+    });
+  } catch (error) {
+    if (error instanceof AutomationError) {
+      res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+      });
+      return;
+    }
     next(error);
   }
 };

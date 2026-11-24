@@ -47,9 +47,11 @@ export type WebhookEventStatus = (typeof WebhookEventStatus)[keyof typeof Webhoo
 export const ExecutionStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
+  RETRY_PENDING: 'RETRY_PENDING',
   COMPLETED: 'COMPLETED',
   PARTIAL: 'PARTIAL',
-  FAILED: 'FAILED'
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type ExecutionStatus = (typeof ExecutionStatus)[keyof typeof ExecutionStatus]
@@ -58,10 +60,21 @@ export type ExecutionStatus = (typeof ExecutionStatus)[keyof typeof ExecutionSta
 export const ActionStatus = {
   PENDING: 'PENDING',
   PROCESSING: 'PROCESSING',
+  RETRY_PENDING: 'RETRY_PENDING',
   SUCCESS: 'SUCCESS',
   FAILED: 'FAILED',
   UNKNOWN: 'UNKNOWN',
-  SKIPPED: 'SKIPPED'
+  SKIPPED: 'SKIPPED',
+  CANCELLED: 'CANCELLED'
 } as const
 
 export type ActionStatus = (typeof ActionStatus)[keyof typeof ActionStatus]
+
+
+export const OutboxStatus = {
+  PENDING: 'PENDING',
+  DISPATCHED: 'DISPATCHED',
+  FAILED: 'FAILED'
+} as const
+
+export type OutboxStatus = (typeof OutboxStatus)[keyof typeof OutboxStatus]

@@ -25,6 +25,7 @@ export default function InstagramPage() {
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
   const [isStartingOAuth, setIsStartingOAuth] = useState(false);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
+  const [subscribingId, setSubscribingId] = useState<string | null>(null);
   const [oauthError, setOauthError] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -59,6 +60,30 @@ export default function InstagramPage() {
       ignore = true;
     };
   }, []);
+
+  const handleResubscribe = async (accountId: string) => {
+    setSubscribingId(accountId);
+    setOauthError(null);
+    try {
+      const res = await apiRequest<InstagramAccountInfo>(
+        `/instagram/accounts/${accountId}/subscribe`,
+        { method: "POST" }
+      );
+      if (res.data) {
+        setKnownAccounts((prev) =>
+          prev.map((a) => (a.id === accountId ? { ...a, ...res.data } : a))
+        );
+      }
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        setOauthError(err.message);
+      } else {
+        setOauthError("Failed to verify webhook subscription.");
+      }
+    } finally {
+      setSubscribingId(null);
+    }
+  };
 
   const handleDisconnect = async (accountId: string) => {
     setDisconnectingId(accountId);
@@ -177,7 +202,7 @@ export default function InstagramPage() {
                     <div className="flex items-center gap-2.5">
                       <InstagramIcon className="h-4 w-4 text-pink-600 shrink-0" />
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-semibold text-zinc-800">
                             {account.username ? `@${account.username}` : "Instagram Account"}
                           </span>
@@ -190,6 +215,15 @@ export default function InstagramPage() {
                               Active
                             </span>
                           )}
+                          {account.webhookSubscribed ? (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full">
+                              Webhooks Subscribed
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 text-[10px] font-semibold bg-red-50 text-red-700 border border-red-200 rounded-full">
+                              Webhook Subscription Missing
+                            </span>
+                          )}
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-zinc-400 mt-0.5">
                           <span className="font-mono">ID: {account.instagramUserId}</span>
@@ -199,10 +233,26 @@ export default function InstagramPage() {
                             </span>
                           )}
                         </div>
+                        {account.webhookSubscriptionError && !account.webhookSubscribed && (
+                          <p className="text-[11px] text-red-600 mt-1">
+                            Subscription error: {account.webhookSubscriptionError}
+                          </p>
+                        )}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 self-end sm:self-auto">
+                      {!account.webhookSubscribed && account.status !== "NEEDS_RECONNECT" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          isLoading={subscribingId === account.id}
+                          onClick={() => handleResubscribe(account.id)}
+                          className="text-indigo-700 hover:bg-indigo-50 border-indigo-200 h-7 text-xs"
+                        >
+                          Retry Subscription
+                        </Button>
+                      )}
                       {account.status === "NEEDS_RECONNECT" && (
                         <Button
                           variant="outline"

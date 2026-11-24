@@ -41,6 +41,8 @@ export async function cleanDatabase() {
   const { prisma } = await import("@replyza/database");
   await prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      outbox_events,
+      messaging_webhook_events,
       automation_executions,
       webhook_events,
       automations,

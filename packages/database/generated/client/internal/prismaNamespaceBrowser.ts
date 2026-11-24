@@ -57,6 +57,7 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  OutboxEvent: 'OutboxEvent',
   MessagingWebhookEvent: 'MessagingWebhookEvent',
   AutomationTemplate: 'AutomationTemplate'
 } as const
@@ -96,6 +97,9 @@ export const InstagramAccountScalarFieldEnum = {
   encryptedAccessToken: 'encryptedAccessToken',
   tokenExpiresAt: 'tokenExpiresAt',
   status: 'status',
+  webhookSubscribed: 'webhookSubscribed',
+  webhookSubscribedAt: 'webhookSubscribedAt',
+  webhookSubscriptionError: 'webhookSubscriptionError',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -173,14 +177,35 @@ export const AutomationExecutionScalarFieldEnum = {
   leaseToken: 'leaseToken',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
+  retryCount: 'retryCount',
+  lastAttemptAt: 'lastAttemptAt',
   followCheckStatus: 'followCheckStatus',
   followCheckSentAt: 'followCheckSentAt',
   followCheckVerifiedAt: 'followCheckVerifiedAt',
   followCheckRetryCount: 'followCheckRetryCount',
-  metaFollowCheckReplyId: 'metaFollowCheckReplyId'
+  metaFollowCheckReplyId: 'metaFollowCheckReplyId',
+  followVerificationOutcome: 'followVerificationOutcome',
+  followCheckError: 'followCheckError'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const OutboxEventScalarFieldEnum = {
+  id: 'id',
+  eventType: 'eventType',
+  aggregateId: 'aggregateId',
+  payload: 'payload',
+  status: 'status',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  dispatchedAt: 'dispatchedAt',
+  lastError: 'lastError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OutboxEventScalarFieldEnum = (typeof OutboxEventScalarFieldEnum)[keyof typeof OutboxEventScalarFieldEnum]
 
 
 export const MessagingWebhookEventScalarFieldEnum = {

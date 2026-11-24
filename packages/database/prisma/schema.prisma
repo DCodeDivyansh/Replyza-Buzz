@@ -28,15 +28,18 @@ enum InstagramAccountStatus {
 }
 
 model InstagramAccount {
-  id                   String                  @id @default(uuid()) @db.Uuid
-  userId               String                  @db.Uuid
-  instagramUserId      String                  @unique
-  username             String?
-  encryptedAccessToken String
-  tokenExpiresAt       DateTime?
-  status               InstagramAccountStatus  @default(ACTIVE)
-  createdAt            DateTime                @default(now())
-  updatedAt            DateTime                @updatedAt
+  id                       String                  @id @default(uuid()) @db.Uuid
+  userId                   String                  @db.Uuid
+  instagramUserId          String                  @unique
+  username                 String?
+  encryptedAccessToken     String
+  tokenExpiresAt           DateTime?
+  status                   InstagramAccountStatus  @default(ACTIVE)
+  webhookSubscribed        Boolean                 @default(false)
+  webhookSubscribedAt      DateTime?
+  webhookSubscriptionError String?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   automations   Automation[]
@@ -86,18 +89,28 @@ enum WebhookEventStatus {
 enum ExecutionStatus {
   PENDING
   PROCESSING
+  RETRY_PENDING
   COMPLETED
   PARTIAL
   FAILED
+  CANCELLED
 }
 
 enum ActionStatus {
   PENDING
   PROCESSING
+  RETRY_PENDING
   SUCCESS
   FAILED
   UNKNOWN
   SKIPPED
+  CANCELLED
+}
+
+enum OutboxStatus {
+  PENDING
+  DISPATCHED
+  FAILED
 }
 
 model Automation {
@@ -181,11 +194,16 @@ model AutomationExecution {
   completedAt        DateTime?
   createdAt          DateTime        @default(now())
 
-  followCheckStatus      ActionStatus?   @default(PENDING)
-  followCheckSentAt      DateTime?
-  followCheckVerifiedAt  DateTime?
-  followCheckRetryCount  Int             @default(0)
-  metaFollowCheckReplyId String?
+  retryCount                Int             @default(0)
+  lastAttemptAt             DateTime?
+
+  followCheckStatus         ActionStatus?   @default(PENDING)
+  followCheckSentAt         DateTime?
+  followCheckVerifiedAt     DateTime?
+  followCheckRetryCount     Int             @default(0)
+  metaFollowCheckReplyId    String?
+  followVerificationOutcome String?
+  followCheckError          String?
 
   automation         Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
   webhookEvent       WebhookEvent    @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
@@ -194,6 +212,24 @@ model AutomationExecution {
   @@index([automationId, createdAt])
   @@index([status])
   @@map("automation_executions")
+}
+
+model OutboxEvent {
+  id            String       @id @default(uuid()) @db.Uuid
+  eventType     String
+  aggregateId   String
+  payload       Json
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  nextAttemptAt DateTime     @default(now())
+  dispatchedAt  DateTime?
+  lastError     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([eventType, aggregateId])
+  @@index([status, nextAttemptAt])
+  @@map("outbox_events")
 }
 
 model MessagingWebhookEvent {

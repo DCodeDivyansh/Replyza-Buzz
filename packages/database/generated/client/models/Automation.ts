@@ -700,10 +700,6 @@ export type AutomationUpdatekeywordsInput = {
   push?: string | string[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type EnumAutomationStatusFieldUpdateOperationsInput = {
   set?: $Enums.AutomationStatus
 }

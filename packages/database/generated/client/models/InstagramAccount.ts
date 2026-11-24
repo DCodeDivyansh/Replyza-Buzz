@@ -32,6 +32,9 @@ export type InstagramAccountMinAggregateOutputType = {
   encryptedAccessToken: string | null
   tokenExpiresAt: Date | null
   status: $Enums.InstagramAccountStatus | null
+  webhookSubscribed: boolean | null
+  webhookSubscribedAt: Date | null
+  webhookSubscriptionError: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -44,6 +47,9 @@ export type InstagramAccountMaxAggregateOutputType = {
   encryptedAccessToken: string | null
   tokenExpiresAt: Date | null
   status: $Enums.InstagramAccountStatus | null
+  webhookSubscribed: boolean | null
+  webhookSubscribedAt: Date | null
+  webhookSubscriptionError: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -56,6 +62,9 @@ export type InstagramAccountCountAggregateOutputType = {
   encryptedAccessToken: number
   tokenExpiresAt: number
   status: number
+  webhookSubscribed: number
+  webhookSubscribedAt: number
+  webhookSubscriptionError: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -70,6 +79,9 @@ export type InstagramAccountMinAggregateInputType = {
   encryptedAccessToken?: true
   tokenExpiresAt?: true
   status?: true
+  webhookSubscribed?: true
+  webhookSubscribedAt?: true
+  webhookSubscriptionError?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +94,9 @@ export type InstagramAccountMaxAggregateInputType = {
   encryptedAccessToken?: true
   tokenExpiresAt?: true
   status?: true
+  webhookSubscribed?: true
+  webhookSubscribedAt?: true
+  webhookSubscriptionError?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -94,6 +109,9 @@ export type InstagramAccountCountAggregateInputType = {
   encryptedAccessToken?: true
   tokenExpiresAt?: true
   status?: true
+  webhookSubscribed?: true
+  webhookSubscribedAt?: true
+  webhookSubscriptionError?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -179,6 +197,9 @@ export type InstagramAccountGroupByOutputType = {
   encryptedAccessToken: string
   tokenExpiresAt: Date | null
   status: $Enums.InstagramAccountStatus
+  webhookSubscribed: boolean
+  webhookSubscribedAt: Date | null
+  webhookSubscriptionError: string | null
   createdAt: Date
   updatedAt: Date
   _count: InstagramAccountCountAggregateOutputType | null
@@ -212,6 +233,9 @@ export type InstagramAccountWhereInput = {
   encryptedAccessToken?: Prisma.StringFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFilter<"InstagramAccount"> | boolean
+  webhookSubscribedAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
+  webhookSubscriptionError?: Prisma.StringNullableFilter<"InstagramAccount"> | string | null
   createdAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -228,6 +252,9 @@ export type InstagramAccountOrderByWithRelationInput = {
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  webhookSubscribed?: Prisma.SortOrder
+  webhookSubscribedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  webhookSubscriptionError?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -247,6 +274,9 @@ export type InstagramAccountWhereUniqueInput = Prisma.AtLeast<{
   encryptedAccessToken?: Prisma.StringFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFilter<"InstagramAccount"> | boolean
+  webhookSubscribedAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
+  webhookSubscriptionError?: Prisma.StringNullableFilter<"InstagramAccount"> | string | null
   createdAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -263,6 +293,9 @@ export type InstagramAccountOrderByWithAggregationInput = {
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  webhookSubscribed?: Prisma.SortOrder
+  webhookSubscribedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  webhookSubscriptionError?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.InstagramAccountCountOrderByAggregateInput
@@ -281,6 +314,9 @@ export type InstagramAccountScalarWhereWithAggregatesInput = {
   encryptedAccessToken?: Prisma.StringWithAggregatesFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableWithAggregatesFilter<"InstagramAccount"> | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusWithAggregatesFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolWithAggregatesFilter<"InstagramAccount"> | boolean
+  webhookSubscribedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"InstagramAccount"> | Date | string | null
+  webhookSubscriptionError?: Prisma.StringNullableWithAggregatesFilter<"InstagramAccount"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"InstagramAccount"> | Date | string
 }
@@ -292,6 +328,9 @@ export type InstagramAccountCreateInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -308,6 +347,9 @@ export type InstagramAccountUncheckedCreateInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -322,6 +364,9 @@ export type InstagramAccountUpdateInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -338,6 +383,9 @@ export type InstagramAccountUncheckedUpdateInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -353,6 +401,9 @@ export type InstagramAccountCreateManyInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -364,6 +415,9 @@ export type InstagramAccountUpdateManyMutationInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -376,6 +430,9 @@ export type InstagramAccountUncheckedUpdateManyInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -398,6 +455,9 @@ export type InstagramAccountCountOrderByAggregateInput = {
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  webhookSubscribed?: Prisma.SortOrder
+  webhookSubscribedAt?: Prisma.SortOrder
+  webhookSubscriptionError?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -410,6 +470,9 @@ export type InstagramAccountMaxOrderByAggregateInput = {
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  webhookSubscribed?: Prisma.SortOrder
+  webhookSubscribedAt?: Prisma.SortOrder
+  webhookSubscriptionError?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -422,6 +485,9 @@ export type InstagramAccountMinOrderByAggregateInput = {
   encryptedAccessToken?: Prisma.SortOrder
   tokenExpiresAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  webhookSubscribed?: Prisma.SortOrder
+  webhookSubscribedAt?: Prisma.SortOrder
+  webhookSubscriptionError?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -485,6 +551,10 @@ export type EnumInstagramAccountStatusFieldUpdateOperationsInput = {
   set?: $Enums.InstagramAccountStatus
 }
 
+export type BoolFieldUpdateOperationsInput = {
+  set?: boolean
+}
+
 export type InstagramAccountCreateNestedOneWithoutAutomationsInput = {
   create?: Prisma.XOR<Prisma.InstagramAccountCreateWithoutAutomationsInput, Prisma.InstagramAccountUncheckedCreateWithoutAutomationsInput>
   connectOrCreate?: Prisma.InstagramAccountCreateOrConnectWithoutAutomationsInput
@@ -534,6 +604,9 @@ export type InstagramAccountCreateWithoutUserInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationCreateNestedManyWithoutInstagramAccountInput
@@ -548,6 +621,9 @@ export type InstagramAccountUncheckedCreateWithoutUserInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -592,6 +668,9 @@ export type InstagramAccountScalarWhereInput = {
   encryptedAccessToken?: Prisma.StringFilter<"InstagramAccount"> | string
   tokenExpiresAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFilter<"InstagramAccount"> | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFilter<"InstagramAccount"> | boolean
+  webhookSubscribedAt?: Prisma.DateTimeNullableFilter<"InstagramAccount"> | Date | string | null
+  webhookSubscriptionError?: Prisma.StringNullableFilter<"InstagramAccount"> | string | null
   createdAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"InstagramAccount"> | Date | string
 }
@@ -603,6 +682,9 @@ export type InstagramAccountCreateWithoutAutomationsInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -618,6 +700,9 @@ export type InstagramAccountUncheckedCreateWithoutAutomationsInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   webhookEvents?: Prisma.WebhookEventUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -647,6 +732,9 @@ export type InstagramAccountUpdateWithoutAutomationsInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -662,6 +750,9 @@ export type InstagramAccountUncheckedUpdateWithoutAutomationsInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   webhookEvents?: Prisma.WebhookEventUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -675,6 +766,9 @@ export type InstagramAccountCreateWithoutWebhookEventsInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -690,6 +784,9 @@ export type InstagramAccountUncheckedCreateWithoutWebhookEventsInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -719,6 +816,9 @@ export type InstagramAccountUpdateWithoutWebhookEventsInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -734,6 +834,9 @@ export type InstagramAccountUncheckedUpdateWithoutWebhookEventsInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -747,6 +850,9 @@ export type InstagramAccountCreateWithoutMessagingEventsInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutInstagramAccountsInput
@@ -762,6 +868,9 @@ export type InstagramAccountUncheckedCreateWithoutMessagingEventsInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   automations?: Prisma.AutomationUncheckedCreateNestedManyWithoutInstagramAccountInput
@@ -791,6 +900,9 @@ export type InstagramAccountUpdateWithoutMessagingEventsInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutInstagramAccountsNestedInput
@@ -806,6 +918,9 @@ export type InstagramAccountUncheckedUpdateWithoutMessagingEventsInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -819,6 +934,9 @@ export type InstagramAccountCreateManyUserInput = {
   encryptedAccessToken: string
   tokenExpiresAt?: Date | string | null
   status?: $Enums.InstagramAccountStatus
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: Date | string | null
+  webhookSubscriptionError?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -830,6 +948,9 @@ export type InstagramAccountUpdateWithoutUserInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUpdateManyWithoutInstagramAccountNestedInput
@@ -844,6 +965,9 @@ export type InstagramAccountUncheckedUpdateWithoutUserInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   automations?: Prisma.AutomationUncheckedUpdateManyWithoutInstagramAccountNestedInput
@@ -858,6 +982,9 @@ export type InstagramAccountUncheckedUpdateManyWithoutUserInput = {
   encryptedAccessToken?: Prisma.StringFieldUpdateOperationsInput | string
   tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumInstagramAccountStatusFieldUpdateOperationsInput | $Enums.InstagramAccountStatus
+  webhookSubscribed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  webhookSubscribedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  webhookSubscriptionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -919,6 +1046,9 @@ export type InstagramAccountSelect<ExtArgs extends runtime.Types.Extensions.Inte
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
   status?: boolean
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: boolean
+  webhookSubscriptionError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -936,6 +1066,9 @@ export type InstagramAccountSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
   status?: boolean
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: boolean
+  webhookSubscriptionError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -949,6 +1082,9 @@ export type InstagramAccountSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
   status?: boolean
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: boolean
+  webhookSubscriptionError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -962,11 +1098,14 @@ export type InstagramAccountSelectScalar = {
   encryptedAccessToken?: boolean
   tokenExpiresAt?: boolean
   status?: boolean
+  webhookSubscribed?: boolean
+  webhookSubscribedAt?: boolean
+  webhookSubscriptionError?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type InstagramAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "instagramUserId" | "username" | "encryptedAccessToken" | "tokenExpiresAt" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["instagramAccount"]>
+export type InstagramAccountOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "instagramUserId" | "username" | "encryptedAccessToken" | "tokenExpiresAt" | "status" | "webhookSubscribed" | "webhookSubscribedAt" | "webhookSubscriptionError" | "createdAt" | "updatedAt", ExtArgs["result"]["instagramAccount"]>
 export type InstagramAccountInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   automations?: boolean | Prisma.InstagramAccount$automationsArgs<ExtArgs>
@@ -997,6 +1136,9 @@ export type $InstagramAccountPayload<ExtArgs extends runtime.Types.Extensions.In
     encryptedAccessToken: string
     tokenExpiresAt: Date | null
     status: $Enums.InstagramAccountStatus
+    webhookSubscribed: boolean
+    webhookSubscribedAt: Date | null
+    webhookSubscriptionError: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["instagramAccount"]>
@@ -1433,6 +1575,9 @@ export interface InstagramAccountFieldRefs {
   readonly encryptedAccessToken: Prisma.FieldRef<"InstagramAccount", 'String'>
   readonly tokenExpiresAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
   readonly status: Prisma.FieldRef<"InstagramAccount", 'InstagramAccountStatus'>
+  readonly webhookSubscribed: Prisma.FieldRef<"InstagramAccount", 'Boolean'>
+  readonly webhookSubscribedAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
+  readonly webhookSubscriptionError: Prisma.FieldRef<"InstagramAccount", 'String'>
   readonly createdAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"InstagramAccount", 'DateTime'>
 }

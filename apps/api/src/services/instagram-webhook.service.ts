@@ -40,8 +40,10 @@ export async function persistInstagramCommentEvents(
       continue;
     }
 
+    const entryInstagramUserId = rawEntry.id;
+
     const instagramAccount = await prisma.instagramAccount.findUnique({
-      where: { instagramUserId: rawEntry.id },
+      where: { instagramUserId: entryInstagramUserId },
       select: { id: true },
     });
 
@@ -117,40 +119,148 @@ export async function persistInstagramCommentEvents(
           }
         }
 
-        // Persist messaging webhook event for deduplication
+        // Persist messaging webhook event and outbox record atomically for deduplication & Redis-outage safety
+        let messagingEventId: string | null = null;
+        let outboxId: string | null = null;
+        let outboxPending = false;
+
         try {
-          await prisma.messagingWebhookEvent.create({
-            data: {
-              instagramAccountId: instagramAccount.id,
-              providerEventId,
-              senderId: senderId ?? "UNKNOWN",
-              recipientId: rawEntry.id,
-              payload: payloadString,
-              executionId,
-              rawPayload: JSON.parse(JSON.stringify(rawMsg)),
-              status: "RECEIVED",
-            },
+          const created = await prisma.$transaction(async (tx) => {
+            const msgEvent = await tx.messagingWebhookEvent.create({
+              data: {
+                instagramAccountId: instagramAccount.id,
+                providerEventId,
+                senderId: senderId ?? "UNKNOWN",
+                recipientId: entryInstagramUserId,
+                payload: payloadString,
+                executionId,
+                rawPayload: JSON.parse(JSON.stringify(rawMsg)),
+                status: "RECEIVED",
+              },
+              select: { id: true },
+            });
+
+            let obId: string | null = null;
+            if (validExecution && executionId && senderId) {
+              const ob = await tx.outboxEvent.upsert({
+                where: {
+                  eventType_aggregateId: {
+                    eventType: "FOLLOW_CHECK",
+                    aggregateId: msgEvent.id,
+                  },
+                },
+                create: {
+                  eventType: "FOLLOW_CHECK",
+                  aggregateId: msgEvent.id,
+                  payload: {
+                    executionId,
+                    igsid: senderId,
+                    instagramUserId: entryInstagramUserId,
+                    providerEventId,
+                    messagingEventId: msgEvent.id,
+                  },
+                  status: "PENDING",
+                },
+                update: {},
+                select: { id: true },
+              });
+              obId = ob.id;
+            }
+
+            return { msgEventId: msgEvent.id, obId };
           });
+
+          messagingEventId = created.msgEventId;
+          outboxId = created.obId;
+          outboxPending = Boolean(outboxId);
           saved++;
         } catch (error) {
           if (isDuplicateError(error)) {
             logger.info(
               { providerEventId, accountId: instagramAccount.id },
-              "Duplicate messaging webhook event ignored"
+              "Duplicate messaging webhook event received"
             );
             duplicates++;
-            continue;
+
+            // Recover only if an outbox record is still PENDING (e.g. Redis was down on first attempt)
+            const existingMsg = await prisma.messagingWebhookEvent.findUnique({
+              where: {
+                instagramAccountId_providerEventId: {
+                  instagramAccountId: instagramAccount.id,
+                  providerEventId,
+                },
+              },
+              select: { id: true, executionId: true, senderId: true },
+            });
+
+            if (existingMsg && existingMsg.executionId) {
+              const pendingOutbox = await prisma.outboxEvent.findUnique({
+                where: {
+                  eventType_aggregateId: {
+                    eventType: "FOLLOW_CHECK",
+                    aggregateId: existingMsg.id,
+                  },
+                },
+                select: { id: true, status: true },
+              });
+
+              if (pendingOutbox && pendingOutbox.status === "PENDING") {
+                messagingEventId = existingMsg.id;
+                outboxId = pendingOutbox.id;
+                outboxPending = true;
+                executionId = existingMsg.executionId;
+              }
+            }
+
+            if (!outboxPending) {
+              continue;
+            }
+          } else {
+            throw error;
           }
-          throw error;
         }
 
-        if (validExecution && executionId && senderId) {
-          await enqueueFollowCheck({
-            executionId,
-            igsid: senderId,
-            instagramUserId: rawEntry.id,
-            providerEventId,
-          });
+        if (outboxPending && outboxId && executionId && senderId) {
+          try {
+            await enqueueFollowCheck({
+              executionId,
+              igsid: senderId,
+              instagramUserId: entryInstagramUserId,
+              providerEventId,
+            });
+
+            await prisma.outboxEvent.updateMany({
+              where: { id: outboxId, status: "PENDING" },
+              data: {
+                status: "DISPATCHED",
+                dispatchedAt: new Date(),
+                lastError: null,
+              },
+            });
+
+            if (messagingEventId) {
+              await prisma.messagingWebhookEvent.updateMany({
+                where: { id: messagingEventId, status: "RECEIVED" },
+                data: { status: "PROCESSING" },
+              });
+            }
+          } catch (err) {
+            const errMsg = err instanceof Error ? err.message : "Redis enqueue failed";
+            logger.warn(
+              { executionId, outboxId, err: errMsg },
+              "Immediate follow-check BullMQ dispatch failed; OutboxEvent preserved for recovery"
+            );
+            await prisma.outboxEvent
+              .updateMany({
+                where: { id: outboxId, status: "PENDING" },
+                data: {
+                  attempts: { increment: 1 },
+                  lastError: errMsg,
+                  nextAttemptAt: new Date(Date.now() + 5_000),
+                },
+              })
+              .catch(() => {});
+          }
         }
       }
     }

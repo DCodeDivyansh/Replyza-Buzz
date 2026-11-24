@@ -48,6 +48,11 @@ export type WebhookEvent = Prisma.WebhookEventModel
  */
 export type AutomationExecution = Prisma.AutomationExecutionModel
 /**
+ * Model OutboxEvent
+ * 
+ */
+export type OutboxEvent = Prisma.OutboxEventModel
+/**
  * Model MessagingWebhookEvent
  * 
  */

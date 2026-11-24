@@ -402,4 +402,165 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
     // Fetch should never be called because job exits early
     expect(fetchSpy).not.toHaveBeenCalled();
   });
+
+  it("8. Omitted is_user_follow_business field is classified as UNSUPPORTED (not NOT_FOLLOWING or VERIFIED)", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: "igsid_messaging_user_888",
+        name: "Jessica Fan",
+        // is_user_follow_business omitted by Meta
+      }),
+    } as Response);
+    global.fetch = fetchSpy;
+
+    const mockJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await processFollowCheckJob(mockJob);
+
+    // Only 1 GET call (no DM sent, no false verification)
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    const updated = await prisma.automationExecution.findUnique({ where: { id: executionId } });
+    expect(updated?.followCheckStatus).toBe("FAILED");
+    expect(updated?.followVerificationOutcome).toBe("UNSUPPORTED");
+    expect(updated?.followCheckError).toContain("is_user_follow_business");
+  });
+
+  it("9. Meta permission error (#10) is classified as PERMISSION_DENIED (not NOT_FOLLOWING)", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({
+        error: {
+          message: "(#10) Application does not have permission for this action",
+          code: 10,
+        },
+      }),
+    } as Response);
+    global.fetch = fetchSpy;
+
+    const mockJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await processFollowCheckJob(mockJob);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const updated = await prisma.automationExecution.findUnique({ where: { id: executionId } });
+    expect(updated?.followCheckStatus).toBe("FAILED");
+    expect(updated?.followVerificationOutcome).toBe("PERMISSION_DENIED");
+    expect(updated?.followCheckError).toContain("permission");
+  });
+
+  it("10. Transient verification error (429) sets RETRY_PENDING and rethrows for BullMQ retry", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      json: async () => ({
+        error: { message: "Rate limit reached", code: 4 },
+      }),
+    } as Response);
+
+    const mockJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await expect(processFollowCheckJob(mockJob)).rejects.toThrow(/Rate limit/);
+
+    const updated = await prisma.automationExecution.findUnique({ where: { id: executionId } });
+    expect(updated?.followCheckStatus).toBe("RETRY_PENDING");
+    expect(updated?.followVerificationOutcome).toBe("TRANSIENT_ERROR");
+  });
+
+  it("11. Messaging window expired (551) persists permanent FAILED state instead of staying PROCESSING", async () => {
+    global.fetch = vi.fn().mockImplementation(async (url: string | URL, init?: RequestInit) => {
+      if (url.toString().includes("fields=is_user_follow_business")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ id: "igsid_messaging_user_888", is_user_follow_business: true }),
+        } as Response;
+      }
+      if (url.toString().includes("/messages") && init?.method === "POST") {
+        return {
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: { message: "This message is sent outside the allowed window", code: 551 },
+          }),
+        } as Response;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as Response;
+    });
+
+    const mockJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await processFollowCheckJob(mockJob);
+
+    const updated = await prisma.automationExecution.findUnique({ where: { id: executionId } });
+    expect(updated?.followCheckStatus).toBe("FAILED");
+    expect(updated?.followCheckError).toContain("allowed window");
+  });
+
+  it("12. Ambiguous POST 504 during success DM marks followCheckStatus UNKNOWN and blocks repeated resend", async () => {
+    let dmCalls = 0;
+    global.fetch = vi.fn().mockImplementation(async (url: string | URL, init?: RequestInit) => {
+      if (url.toString().includes("fields=is_user_follow_business")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ id: "igsid_messaging_user_888", is_user_follow_business: true }),
+        } as Response;
+      }
+      if (url.toString().includes("/messages") && init?.method === "POST") {
+        dmCalls++;
+        return {
+          ok: false,
+          status: 504,
+          json: async () => ({ error: { message: "Gateway Timeout" } }),
+        } as Response;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as Response;
+    });
+
+    const mockJob: any = {
+      data: {
+        executionId,
+        igsid: "igsid_messaging_user_888",
+        instagramUserId: "ig_biz_user_555",
+      },
+    };
+
+    await processFollowCheckJob(mockJob);
+    expect(dmCalls).toBe(1);
+
+    const after1 = await prisma.automationExecution.findUnique({ where: { id: executionId } });
+    expect(after1?.followCheckStatus).toBe("UNKNOWN");
+
+    // Repeated button click must NOT blindly resend DM when followCheckStatus is UNKNOWN
+    await processFollowCheckJob(mockJob);
+    expect(dmCalls).toBe(1);
+  });
 });

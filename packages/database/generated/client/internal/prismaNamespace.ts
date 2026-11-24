@@ -403,6 +403,7 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  OutboxEvent: 'OutboxEvent',
   MessagingWebhookEvent: 'MessagingWebhookEvent',
   AutomationTemplate: 'AutomationTemplate'
 } as const
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "messagingWebhookEvent" | "automationTemplate"
+    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -868,6 +869,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    OutboxEvent: {
+      payload: Prisma.$OutboxEventPayload<ExtArgs>
+      fields: Prisma.OutboxEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.OutboxEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.OutboxEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>
+        }
+        findFirst: {
+          args: Prisma.OutboxEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.OutboxEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>
+        }
+        findMany: {
+          args: Prisma.OutboxEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>[]
+        }
+        create: {
+          args: Prisma.OutboxEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>
+        }
+        createMany: {
+          args: Prisma.OutboxEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.OutboxEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>[]
+        }
+        delete: {
+          args: Prisma.OutboxEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>
+        }
+        update: {
+          args: Prisma.OutboxEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.OutboxEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.OutboxEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.OutboxEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.OutboxEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$OutboxEventPayload>
+        }
+        aggregate: {
+          args: Prisma.OutboxEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateOutboxEvent>
+        }
+        groupBy: {
+          args: Prisma.OutboxEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutboxEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.OutboxEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.OutboxEventCountAggregateOutputType> | number
+        }
+      }
+    }
     MessagingWebhookEvent: {
       payload: Prisma.$MessagingWebhookEventPayload<ExtArgs>
       fields: Prisma.MessagingWebhookEventFieldRefs
@@ -1074,6 +1149,9 @@ export const InstagramAccountScalarFieldEnum = {
   encryptedAccessToken: 'encryptedAccessToken',
   tokenExpiresAt: 'tokenExpiresAt',
   status: 'status',
+  webhookSubscribed: 'webhookSubscribed',
+  webhookSubscribedAt: 'webhookSubscribedAt',
+  webhookSubscriptionError: 'webhookSubscriptionError',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1151,14 +1229,35 @@ export const AutomationExecutionScalarFieldEnum = {
   leaseToken: 'leaseToken',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
+  retryCount: 'retryCount',
+  lastAttemptAt: 'lastAttemptAt',
   followCheckStatus: 'followCheckStatus',
   followCheckSentAt: 'followCheckSentAt',
   followCheckVerifiedAt: 'followCheckVerifiedAt',
   followCheckRetryCount: 'followCheckRetryCount',
-  metaFollowCheckReplyId: 'metaFollowCheckReplyId'
+  metaFollowCheckReplyId: 'metaFollowCheckReplyId',
+  followVerificationOutcome: 'followVerificationOutcome',
+  followCheckError: 'followCheckError'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const OutboxEventScalarFieldEnum = {
+  id: 'id',
+  eventType: 'eventType',
+  aggregateId: 'aggregateId',
+  payload: 'payload',
+  status: 'status',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  dispatchedAt: 'dispatchedAt',
+  lastError: 'lastError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OutboxEventScalarFieldEnum = (typeof OutboxEventScalarFieldEnum)[keyof typeof OutboxEventScalarFieldEnum]
 
 
 export const MessagingWebhookEventScalarFieldEnum = {
@@ -1298,6 +1397,13 @@ export type ListEnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRef
 
 
 /**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'AutomationTrigger'
  */
 export type EnumAutomationTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AutomationTrigger'>
@@ -1308,13 +1414,6 @@ export type EnumAutomationTriggerFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'AutomationTrigger[]'
  */
 export type ListEnumAutomationTriggerFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AutomationTrigger[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1399,6 +1498,20 @@ export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'In
  * Reference to a field of type 'Int[]'
  */
 export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
+ * Reference to a field of type 'OutboxStatus'
+ */
+export type EnumOutboxStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OutboxStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'OutboxStatus[]'
+ */
+export type ListEnumOutboxStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OutboxStatus[]'>
     
 
 
@@ -1572,6 +1685,7 @@ export type GlobalOmitConfig = {
   automation?: Prisma.AutomationOmit
   webhookEvent?: Prisma.WebhookEventOmit
   automationExecution?: Prisma.AutomationExecutionOmit
+  outboxEvent?: Prisma.OutboxEventOmit
   messagingWebhookEvent?: Prisma.MessagingWebhookEventOmit
   automationTemplate?: Prisma.AutomationTemplateOmit
 }
