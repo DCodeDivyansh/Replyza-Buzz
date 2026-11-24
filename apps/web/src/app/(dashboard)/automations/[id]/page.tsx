@@ -26,6 +26,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { InstagramIcon } from "@/components/ui/icons";
+import { WorkflowDiagram } from "@/components/automations/workflow-diagram";
 
 export default function AutomationDetailsPage({
   params,
@@ -363,6 +364,23 @@ export default function AutomationDetailsPage({
               <Clock className="h-3 w-3" />
               <span>Last updated: {formatDateTime(automation.updatedAt)}</span>
             </CardFooter>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Workflow Pipeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <WorkflowDiagram
+                triggerType={automation.triggerType}
+                keywords={automation.keywords}
+                publicReplyText={automation.publicReplyText}
+                dmMessageText={automation.dmMessageText}
+                dmLink={automation.dmLink}
+                followRequired={automation.followRequired}
+                followSuccessText={automation.followSuccessText}
+              />
+            </CardContent>
           </Card>
 
           <Card>

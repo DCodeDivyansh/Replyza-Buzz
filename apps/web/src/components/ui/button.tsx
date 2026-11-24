@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "danger" | "ghost" | "outline";
+  variant?: "primary" | "gradient" | "secondary" | "danger" | "ghost" | "outline";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -23,25 +23,27 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none";
+      "inline-flex items-center justify-center font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
 
     const variantStyles = {
       primary:
-        "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500/20 active:bg-indigo-800 shadow-sm",
+        "bg-[#17131D] text-[#FFFDFB] hover:bg-[#2A2334] focus:ring-[#17131D]/20 shadow-xs",
+      gradient:
+        "ig-gradient text-white hover:opacity-95 focus:ring-[#E1306C]/30 shadow-sm",
       secondary:
-        "bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900 focus:ring-zinc-400/20 shadow-xs",
+        "bg-[#FFFDFB] text-[#17131D] border border-[#17131D]/12 hover:bg-[#F8F5F8] focus:ring-[#17131D]/15 shadow-2xs",
       outline:
-        "border border-zinc-300 text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 focus:ring-zinc-400/20",
+        "border border-[#17131D]/15 text-[#17131D] hover:bg-[#F8F5F8] focus:ring-[#17131D]/15",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 active:bg-red-800 shadow-sm",
+        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 shadow-xs",
       ghost:
-        "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 focus:ring-zinc-400/20",
+        "text-[#827D87] hover:text-[#17131D] hover:bg-[#F8F5F8] focus:ring-[#17131D]/15",
     };
 
     const sizeStyles = {
-      sm: "text-xs px-2.5 py-1.5 gap-1.5",
-      md: "text-sm px-3.5 py-2 gap-2",
-      lg: "text-base px-4 py-2.5 gap-2.5",
+      sm: "text-xs px-3.5 py-1.5 gap-1.5",
+      md: "text-sm px-4.5 py-2.5 gap-2",
+      lg: "text-sm sm:text-base px-6 py-3 gap-2",
     };
 
     return (

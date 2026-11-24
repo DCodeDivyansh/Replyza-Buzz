@@ -11,6 +11,7 @@ import type {
 } from "@/types/automation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorAlert } from "@/components/feedback/error-alert";
 import { Spinner } from "@/components/ui/spinner";
@@ -178,6 +179,7 @@ export default function ActivityPage() {
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedExec, setSelectedExec] = useState<ExecutionRecord | null>(null);
 
   const fetchExecutionsData = useCallback(async () => {
     const params = new URLSearchParams({
@@ -394,6 +396,14 @@ export default function ActivityPage() {
                         Retries: {exec.retryCount}
                       </span>
                     )}
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedExec(exec)}
+                      className="ml-auto text-[11px] font-semibold text-[#E1306C] hover:underline cursor-pointer"
+                    >
+                      Inspect Timeline →
+                    </button>
                   </div>
 
                   {/* Explicit failure or unknown delivery notice */}
@@ -450,6 +460,71 @@ export default function ActivityPage() {
           )}
         </div>
       )}
+
+      {/* Execution Timeline Modal */}
+      <Modal
+        isOpen={Boolean(selectedExec)}
+        onClose={() => setSelectedExec(null)}
+        title={selectedExec ? `Execution Timeline — ${selectedExec.automation.name}` : "Execution Timeline"}
+        description={selectedExec ? `Execution ID: ${selectedExec.id}` : undefined}
+      >
+        {selectedExec && (
+          <div className="space-y-4 pt-2 text-xs">
+            <div className="p-3.5 rounded-xl bg-[#F8F5F8] space-y-1">
+              <p className="font-semibold text-[#17131D]">
+                1. Webhook Event Received ({formatDateTime(selectedExec.webhookEvent.receivedAt)})
+              </p>
+              <p className="text-[#827D87]">
+                Comment ID: <span className="font-mono">{selectedExec.webhookEvent.commentId}</span>
+              </p>
+              <p className="text-[#17131D]">
+                “{selectedExec.webhookEvent.commentText}”
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#F8F5F8] space-y-1">
+              <p className="font-semibold text-[#17131D]">
+                2. Public Comment Reply — {selectedExec.publicReplyStatus}
+              </p>
+              <p className="text-[#827D87] font-mono">
+                Meta Reply ID: {selectedExec.metaReplyId || "Not confirmed"}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-[#F8F5F8] space-y-1">
+              <p className="font-semibold text-[#17131D]">
+                3. Private DM — {selectedExec.privateReplyStatus}
+              </p>
+              <p className="text-[#827D87] font-mono">
+                Meta DM ID: {selectedExec.metaPrivateReplyId || "Not confirmed"}
+              </p>
+            </div>
+
+            {selectedExec.automation.followRequired && (
+              <div className="p-3.5 rounded-xl bg-[#F8F5F8] space-y-1">
+                <p className="font-semibold text-[#17131D]">
+                  4. Follow Verification — {selectedExec.followCheckStatus || "PENDING"}
+                </p>
+                <p className="text-[#827D87]">
+                  Outcome: {selectedExec.followVerificationOutcome || "Awaiting button tap"}
+                </p>
+                {selectedExec.metaFollowCheckReplyId && (
+                  <p className="text-[#827D87] font-mono">
+                    Success DM ID: {selectedExec.metaFollowCheckReplyId}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {(selectedExec.errorMessage || selectedExec.followCheckError) && (
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800">
+                <p className="font-semibold">Recorded Diagnostic</p>
+                <p className="mt-0.5">{selectedExec.followCheckError || selectedExec.errorMessage}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

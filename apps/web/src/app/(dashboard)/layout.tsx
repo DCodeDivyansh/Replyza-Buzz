@@ -23,7 +23,7 @@ export default function DashboardLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#FFFDFB]">
         <Spinner size="md" label="Loading Replyza..." />
       </div>
     );
@@ -34,7 +34,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex bg-zinc-50/50">
+    <div className="min-h-screen flex bg-[#F8F5F8]">
       {/* Desktop Sidebar */}
       <Sidebar className="hidden md:flex shrink-0 min-h-screen sticky top-0 h-screen" />
 

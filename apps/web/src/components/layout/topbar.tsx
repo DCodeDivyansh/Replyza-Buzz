@@ -3,24 +3,32 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, Menu, X, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
-import { cn } from "@/lib/utils";
 import {
+  Plus,
+  Menu,
+  X,
   LayoutDashboard,
   Bot,
+  Images,
+  LayoutTemplate,
   Activity,
   Settings,
   LogOut,
+  ChevronRight,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ReplyzaLogo } from "@/components/brand/replyza-logo";
+import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 import { InstagramIcon } from "@/components/ui/icons";
 
 const NAV_ITEMS = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "Automations", href: "/automations", icon: Bot },
-  { name: "Instagram", href: "/instagram", icon: InstagramIcon },
+  { name: "Media Library", href: "/media", icon: Images },
+  { name: "Templates", href: "/templates", icon: LayoutTemplate },
   { name: "Activity", href: "/activity", icon: Activity },
+  { name: "Instagram Accounts", href: "/instagram", icon: InstagramIcon },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -31,34 +39,48 @@ export function Topbar() {
 
   const getSectionTitle = () => {
     if (pathname.startsWith("/automations/new")) return "Create Automation";
-    if (pathname.startsWith("/automations/") && pathname.endsWith("/edit")) return "Edit Automation";
+    if (pathname.startsWith("/automations/") && pathname.endsWith("/edit"))
+      return "Edit Automation";
     if (pathname.startsWith("/automations/")) return "Automation Details";
     if (pathname.startsWith("/automations")) return "Automations";
-    if (pathname.startsWith("/instagram")) return "Instagram Connection";
-    if (pathname.startsWith("/activity")) return "Activity Logs";
+    if (pathname.startsWith("/media")) return "Media Library";
+    if (pathname.startsWith("/templates")) return "Templates";
+    if (pathname.startsWith("/instagram")) return "Instagram Accounts";
+    if (pathname.startsWith("/activity")) return "Activity Center";
     if (pathname.startsWith("/settings")) return "Settings";
-    return "Dashboard";
+    return "Overview";
   };
 
   return (
     <>
-      <header className="h-16 border-b border-zinc-200/80 bg-white/95 backdrop-blur-xs px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-3">
+      <header className="h-16 border-b border-[#17131D]/8 bg-[#FFFDFB]/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+        <div className="flex items-center gap-3 min-w-0">
           <button
+            type="button"
             onClick={() => setMobileOpen(true)}
-            className="md:hidden p-2 text-zinc-600 hover:text-zinc-900 rounded-lg hover:bg-zinc-100"
+            className="md:hidden p-2 text-[#17131D] rounded-xl hover:bg-[#F8F5F8] cursor-pointer"
             aria-label="Open navigation menu"
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="text-sm sm:text-base font-semibold text-zinc-900">
-            {getSectionTitle()}
-          </h1>
+
+          <div className="flex items-center gap-2 text-xs text-[#827D87] min-w-0">
+            <Link
+              href="/dashboard"
+              className="hidden sm:inline hover:text-[#17131D] transition-colors"
+            >
+              Replyza
+            </Link>
+            <ChevronRight className="hidden sm:inline h-3.5 w-3.5 shrink-0" />
+            <h1 className="font-display text-sm sm:text-base font-semibold text-[#17131D] truncate">
+              {getSectionTitle()}
+            </h1>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
           <Link href="/automations/new">
-            <Button size="sm" className="gap-1.5 shadow-xs">
+            <Button size="sm" variant="gradient" className="gap-1.5">
               <Plus className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">New Automation</span>
             </Button>
@@ -66,24 +88,21 @@ export function Topbar() {
         </div>
       </header>
 
-      {/* Mobile drawer */}
+      {/* Mobile navigation drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex">
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+            className="fixed inset-0 bg-[#17131D]/40 backdrop-blur-xs"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="relative w-72 max-w-[80%] bg-white flex flex-col h-full shadow-2xl z-10 animate-in slide-in-from-left duration-200">
-            <div className="h-16 flex items-center justify-between px-6 border-b border-zinc-100">
-              <div className="flex items-center gap-2">
-                <div className="h-7 w-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </div>
-                <span className="font-bold text-sm text-zinc-900">Replyza</span>
-              </div>
+          <div className="relative w-72 max-w-[82%] bg-[#FFFDFB] flex flex-col h-full shadow-2xl z-10">
+            <div className="h-16 flex items-center justify-between px-5 border-b border-[#17131D]/6">
+              <ReplyzaLogo size="sm" />
               <button
+                type="button"
                 onClick={() => setMobileOpen(false)}
-                className="p-1.5 text-zinc-400 hover:text-zinc-600 rounded-lg"
+                className="p-1.5 text-[#827D87] hover:text-[#17131D] rounded-lg"
+                aria-label="Close navigation menu"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -102,16 +121,16 @@ export function Topbar() {
                     href={item.href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors",
+                      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-colors",
                       isActive
-                        ? "bg-indigo-50 text-indigo-700 font-semibold"
-                        : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+                        ? "bg-[#17131D] text-[#FFFDFB] font-semibold"
+                        : "text-[#827D87] hover:text-[#17131D] hover:bg-[#F8F5F8]"
                     )}
                   >
                     <Icon
                       className={cn(
                         "h-4 w-4 shrink-0",
-                        isActive ? "text-indigo-600" : "text-zinc-400"
+                        isActive ? "text-[#FCAF45]" : "text-[#827D87]"
                       )}
                     />
                     {item.name}
@@ -120,20 +139,16 @@ export function Topbar() {
               })}
             </nav>
 
-            <div className="p-4 border-t border-zinc-100">
-              <div className="flex items-center justify-between p-2 rounded-lg bg-zinc-50 border border-zinc-100">
-                <div className="min-w-0 flex-1 mr-2">
-                  <p className="text-xs font-semibold text-zinc-800 truncate">
-                    {user?.email || "User"}
-                  </p>
-                </div>
+            <div className="p-3 border-t border-[#17131D]/6">
+              <div className="flex items-center justify-between p-2.5 rounded-2xl bg-[#F8F5F8]">
+                <span className="text-xs font-medium text-[#17131D] truncate mr-2">
+                  {user?.email || "User"}
+                </span>
                 <button
-                  onClick={() => {
-                    setMobileOpen(false);
-                    logout();
-                  }}
-                  className="p-1.5 text-zinc-400 hover:text-red-600 rounded-md"
-                  title="Sign out"
+                  type="button"
+                  onClick={() => logout()}
+                  className="p-1.5 text-[#827D87] hover:text-red-600 rounded-lg"
+                  aria-label="Sign out"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>

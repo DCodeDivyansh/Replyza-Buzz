@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { Sparkles } from "lucide-react";
+import { ReplyzaLogo } from "@/components/brand/replyza-logo";
 import { Spinner } from "@/components/ui/spinner";
 
 export default function AuthLayout({
@@ -23,27 +23,22 @@ export default function AuthLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#FFFDFB]">
         <Spinner size="md" label="Checking session..." />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-zinc-50">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link href="/" className="flex items-center justify-center gap-2 group">
-          <div className="h-9 w-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs group-hover:bg-indigo-700 transition-colors">
-            <Sparkles className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-zinc-900">
-            Replyza
-          </span>
+    <div className="min-h-screen hero-ambient flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md flex justify-center">
+        <Link href="/">
+          <ReplyzaLogo size="lg" />
         </Link>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xs border border-zinc-200/90 rounded-2xl">
+        <div className="bg-[#FFFDFB] py-8 px-6 sm:px-10 shadow-[0_20px_50px_rgba(23,19,29,0.06)] border border-[#17131D]/10 rounded-3xl">
           {children}
         </div>
       </div>

@@ -63,10 +63,10 @@ function LoginForm() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-lg font-bold tracking-tight text-zinc-900">
+        <h2 className="font-display text-xl font-bold tracking-tight text-[#17131D]">
           Sign in to your account
         </h2>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="mt-1 text-xs text-[#827D87]">
           Enter your credentials to access your automations
         </p>
       </div>
@@ -138,7 +138,8 @@ function LoginForm() {
 
         <Button
           type="submit"
-          className="w-full shadow-xs"
+          variant="gradient"
+          className="w-full"
           size="md"
           isLoading={isLoading}
         >
@@ -147,11 +148,11 @@ function LoginForm() {
       </form>
 
       <div className="text-center pt-2">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[#827D87]">
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
-            className="font-medium text-indigo-600 hover:text-indigo-700 underline underline-offset-2"
+            className="font-semibold text-[#E1306C] hover:text-[#833AB4] underline underline-offset-2"
           >
             Create an account
           </Link>

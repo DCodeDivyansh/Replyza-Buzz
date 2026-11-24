@@ -57,10 +57,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           maxLength={maxLength}
           value={value}
           className={cn(
-            "w-full rounded-lg border bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:bg-zinc-50 disabled:text-zinc-500 disabled:cursor-not-allowed resize-y",
+            "w-full rounded-xl border bg-[#FFFDFB] px-3.5 py-2.5 text-sm text-[#17131D] placeholder:text-[#827D87]/70 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:bg-[#F8F5F8] disabled:text-[#827D87] disabled:cursor-not-allowed resize-y",
             error
               ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-              : "border-zinc-200 focus:border-indigo-500 focus:ring-indigo-500/20",
+              : "border-[#17131D]/12 focus:border-[#E1306C] focus:ring-[#E1306C]/15",
             className
           )}
           {...props}

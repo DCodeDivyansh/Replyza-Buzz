@@ -1,22 +1,28 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Space_Grotesk, Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Replyza — Instagram Comment & DM Automation",
+  title: "Replyza — Your Instagram. On autopilot.",
   description:
-    "Automate professional comment replies and instant direct messages for Instagram posts and reels.",
+    "Turn every Instagram comment into a conversation. Automate public replies, private DMs, and follow-to-DM workflows with official Meta APIs.",
 };
 
 export default function RootLayout({
@@ -27,9 +33,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 font-sans text-zinc-900 selection:bg-indigo-500/10 selection:text-indigo-900">
+      <body className="min-h-full flex flex-col bg-[#FFFDFB] font-sans text-[#17131D] selection:bg-[#E1306C]/15 selection:text-[#17131D]">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

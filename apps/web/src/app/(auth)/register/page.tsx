@@ -87,10 +87,10 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h2 className="text-lg font-bold tracking-tight text-zinc-900">
+        <h2 className="font-display text-xl font-bold tracking-tight text-[#17131D]">
           Create your account
         </h2>
-        <p className="mt-1 text-xs text-zinc-500">
+        <p className="mt-1 text-xs text-[#827D87]">
           Get started with automated Instagram comment replies and DMs
         </p>
       </div>
@@ -171,7 +171,8 @@ export default function RegisterPage() {
 
         <Button
           type="submit"
-          className="w-full shadow-xs mt-2"
+          variant="gradient"
+          className="w-full mt-2"
           size="md"
           isLoading={isLoading}
         >
@@ -180,11 +181,11 @@ export default function RegisterPage() {
       </form>
 
       <div className="text-center pt-2">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-[#827D87]">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-indigo-600 hover:text-indigo-700 underline underline-offset-2"
+            className="font-semibold text-[#E1306C] hover:text-[#833AB4] underline underline-offset-2"
           >
             Sign in
           </Link>
