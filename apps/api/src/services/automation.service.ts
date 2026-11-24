@@ -331,6 +331,20 @@ export async function listUserExecutions(
         metaFollowCheckReplyId: true,
         followVerificationOutcome: true,
         followCheckError: true,
+        conversationState: true,
+        deliveryActions: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            actionType: true,
+            status: true,
+            attempts: true,
+            metaId: true,
+            lastErrorCode: true,
+            lastErrorMessage: true,
+            sentAt: true,
+          },
+        },
         automation: {
           select: {
             id: true,
@@ -420,6 +434,20 @@ export async function getUserExecutionById(
       metaFollowCheckReplyId: true,
       followVerificationOutcome: true,
       followCheckError: true,
+      conversationState: true,
+      deliveryActions: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          actionType: true,
+          status: true,
+          attempts: true,
+          metaId: true,
+          lastErrorCode: true,
+          lastErrorMessage: true,
+          sentAt: true,
+        },
+      },
       automation: {
         select: {
           id: true,

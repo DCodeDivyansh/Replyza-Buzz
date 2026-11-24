@@ -13,18 +13,27 @@ export interface InstagramAccountInfo {
   tokenExpiresAt?: string | null;
 }
 
+export type KeywordMatchMode = "CONTAINS" | "EXACT" | "ANY";
+export type DeliveryMode = "DIRECT" | "BUTTON";
+
 export interface Automation {
   id: string;
   instagramAccountId: string;
   name: string;
-  mediaId: string;
+  mediaId: string | null;
   mediaPermalink: string | null;
   mediaType: MediaType | null;
   triggerType: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
   keywords: string[];
   publicReplyText: string;
+  publicReplyVariations?: string[];
   dmMessageText: string;
   dmLink: string | null;
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
   followRequired: boolean;
   followInstructionText: string | null;
   followSuccessText: string | null;
@@ -39,14 +48,20 @@ export interface Automation {
 export interface CreateAutomationPayload {
   instagramAccountId: string;
   name: string;
-  mediaId: string;
-  mediaPermalink?: string;
-  mediaType?: MediaType;
+  mediaId?: string | null;
+  mediaPermalink?: string | null;
+  mediaType?: MediaType | null;
   triggerType: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
   keywords: string[];
   publicReplyText: string;
+  publicReplyVariations?: string[];
   dmMessageText: string;
-  dmLink?: string;
+  dmLink?: string | null;
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
   followRequired?: boolean;
   followInstructionText?: string;
   followSuccessText?: string;
@@ -56,11 +71,18 @@ export interface CreateAutomationPayload {
 
 export interface UpdateAutomationPayload {
   name?: string;
+  mediaId?: string | null;
   triggerType?: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
   keywords?: string[];
   publicReplyText?: string;
+  publicReplyVariations?: string[];
   dmMessageText?: string;
   dmLink?: string | null;
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
   followRequired?: boolean;
   followInstructionText?: string | null;
   followSuccessText?: string | null;
@@ -115,10 +137,49 @@ export type ActionStatusType =
   | "SKIPPED"
   | "CANCELLED";
 
+export type ConversationStateType =
+  | "IDLE"
+  | "AWAITING_TAP"
+  | "AWAITING_FOLLOW"
+  | "COMPLETED"
+  | "EXPIRED"
+  | "NEEDS_REVIEW";
+
+export type DeliveryActionType =
+  | "PUBLIC_REPLY"
+  | "HOOK_DM"
+  | "REWARD_DM"
+  | "FOLLOW_PROMPT"
+  | "FOLLOW_SUCCESS_DM"
+  | "FOLLOW_RETRY_DM"
+  | "FOLLOW_FALLBACK_DM";
+
+export type DeliveryActionStatusType =
+  | "PENDING"
+  | "SENDING"
+  | "SENT"
+  | "FAILED"
+  | "RETRY_SCHEDULED"
+  | "NEEDS_REVIEW"
+  | "SKIPPED"
+  | "CANCELLED";
+
+export interface DeliveryActionRecord {
+  id: string;
+  actionType: DeliveryActionType;
+  status: DeliveryActionStatusType;
+  attempts: number;
+  metaId: string | null;
+  lastErrorCode: string | null;
+  lastErrorMessage: string | null;
+  sentAt: string | null;
+}
+
 export interface ExecutionRecord {
   id: string;
   automationId: string;
   status: ExecutionStatusType;
+  conversationState?: ConversationStateType;
   publicReplyStatus: ActionStatusType;
   privateReplyStatus: ActionStatusType;
   metaReplyId: string | null;
@@ -136,10 +197,11 @@ export interface ExecutionRecord {
   metaFollowCheckReplyId: string | null;
   followVerificationOutcome: string | null;
   followCheckError: string | null;
+  deliveryActions?: DeliveryActionRecord[];
   automation: {
     id: string;
     name: string;
-    mediaId: string;
+    mediaId: string | null;
     triggerType: AutomationTrigger;
     followRequired: boolean;
     instagramAccount: {

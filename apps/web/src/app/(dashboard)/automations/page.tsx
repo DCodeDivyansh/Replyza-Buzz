@@ -83,7 +83,7 @@ export default function AutomationsPage() {
     return automations.filter((auto) => {
       const matchesSearch =
         auto.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        auto.mediaId.includes(searchQuery) ||
+        (auto.mediaId ?? "all posts").toLowerCase().includes(searchQuery.toLowerCase()) ||
         auto.keywords.some((kw) =>
           kw.toLowerCase().includes(searchQuery.toLowerCase())
         );

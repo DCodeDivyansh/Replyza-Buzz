@@ -72,6 +72,29 @@ export function BuilderWizard({
   );
   const [selectedMediaPreview, setSelectedMediaPreview] = useState<InstagramMedia | null>(null);
 
+  const [allMedia, setAllMedia] = useState<boolean>(
+    () => !searchParams.get("mediaId") && initialData?.mediaId === null
+  );
+  const [keywordMatchMode, setKeywordMatchMode] = useState<"CONTAINS" | "EXACT" | "ANY">(
+    initialData?.keywordMatchMode || "CONTAINS"
+  );
+  const [deliveryMode, setDeliveryMode] = useState<"DIRECT" | "BUTTON">(
+    initialData?.deliveryMode || "DIRECT"
+  );
+  const [buttonLabel, setButtonLabel] = useState<string>(
+    initialData?.buttonLabel || "Send me the link"
+  );
+  const [publicReplyVariations, setPublicReplyVariations] = useState<string[]>(
+    initialData?.publicReplyVariations || []
+  );
+  const [variationInput, setVariationInput] = useState<string>("");
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(
+    initialData?.cooldownSeconds ?? 0
+  );
+  const [dmMeFallbackEnabled, setDmMeFallbackEnabled] = useState<boolean>(
+    initialData?.dmMeFallbackEnabled ?? false
+  );
+
   const [triggerType, setTriggerType] = useState<"ANY_COMMENT" | "KEYWORD">(
     initialData?.triggerType || "KEYWORD"
   );
@@ -248,8 +271,8 @@ export function BuilderWizard({
   function validateCurrentStep(): boolean {
     setValidationError(null);
     if (step === 1) {
-      if (!mediaId) {
-        setValidationError("Please select an Instagram post or reel to automate.");
+      if (!allMedia && !mediaId) {
+        setValidationError("Please select an Instagram post/reel or choose All Posts & Reels.");
         return false;
       }
     }
@@ -308,14 +331,23 @@ export function BuilderWizard({
     const payload: CreateAutomationPayload = {
       instagramAccountId: effectiveAccountId,
       name: name.trim(),
-      mediaId,
-      mediaPermalink: mediaPermalink || undefined,
-      mediaType,
+      mediaId: allMedia ? null : mediaId,
+      mediaPermalink: allMedia ? null : mediaPermalink || undefined,
+      mediaType: allMedia ? null : mediaType,
       triggerType,
+      keywordMatchMode: triggerType === "ANY_COMMENT" ? "ANY" : keywordMatchMode,
       keywords: triggerType === "KEYWORD" ? keywords : [],
       publicReplyText: publicReplyText.trim(),
+      publicReplyVariations,
       dmMessageText: dmMessageText.trim(),
       dmLink: dmLink.trim() || undefined,
+      deliveryMode: followRequired ? "BUTTON" : deliveryMode,
+      buttonLabel:
+        followRequired || deliveryMode === "BUTTON"
+          ? buttonLabel.trim().slice(0, 20) || undefined
+          : undefined,
+      cooldownSeconds,
+      dmMeFallbackEnabled,
       followRequired,
       followInstructionText: followRequired ? followInstructionText.trim() : undefined,
       followSuccessText: followRequired ? followSuccessText.trim() : undefined,
@@ -427,27 +459,43 @@ export function BuilderWizard({
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-semibold text-zinc-900">Step 1: Choose Post or Reel</h3>
+              <h3 className="text-sm font-semibold text-zinc-900">Step 1: Choose Post, Reel, or All Media</h3>
               <p className="text-xs text-zinc-500">
-                Pick a post from your Instagram feed to monitor for comments. Zero manual media ID copying.
+                Pick a specific post/Reel, or apply to all posts & Reels. Media-specific rules always take precedence over all-media rules.
               </p>
             </div>
-            {mediaId && (
-              <div className="flex items-center gap-2">
-                <Badge variant="green" className="text-xs">
-                  Post Selected: ID {mediaId.slice(-6)}
-                </Badge>
-                <Button size="sm" variant="primary" onClick={handleNext}>
-                  Continue to Template <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={allMedia ? "primary" : "secondary"}
+                onClick={() => {
+                  setAllMedia(true);
+                  setMediaId("");
+                  setValidationError(null);
+                  setStep(2);
+                }}
+              >
+                All Posts &amp; Reels
+              </Button>
+              {mediaId && !allMedia && (
+                <>
+                  <Badge variant="green" className="text-xs">
+                    Post Selected: ID {mediaId.slice(-6)}
+                  </Badge>
+                  <Button size="sm" variant="primary" onClick={handleNext}>
+                    Continue to Template <ArrowRight className="h-3 w-3 ml-1" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           <MediaGrid
             initialAccountId={accountId}
-            selectedMediaId={mediaId}
+            selectedMediaId={allMedia ? "" : mediaId}
             onSelectForAutomation={(media) => {
+              setAllMedia(false);
               setMediaId(media.id);
               if (media.permalink) setMediaPermalink(media.permalink);
               setMediaType(
@@ -565,7 +613,24 @@ export function BuilderWizard({
             </div>
 
             {triggerType === "KEYWORD" && (
-              <div className="space-y-2 pt-1">
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-zinc-700">Match Mode:</span>
+                  {(["CONTAINS", "EXACT"] as const).map((mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setKeywordMatchMode(mode)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border cursor-pointer ${
+                        keywordMatchMode === mode
+                          ? "bg-[#17131D] text-white border-[#17131D]"
+                          : "bg-white text-zinc-600 border-zinc-200"
+                      }`}
+                    >
+                      {mode === "CONTAINS" ? "Contains word" : "Exact match"}
+                    </button>
+                  ))}
+                </div>
                 <label className="block text-xs font-medium text-zinc-700">
                   Target Keywords (Press Enter to add)
                 </label>
@@ -679,6 +744,54 @@ export function BuilderWizard({
                 required
               />
             </div>
+
+            {/* Public Reply Variations */}
+            <div className="space-y-2 pt-2 border-t border-zinc-100">
+              <label className="block text-xs font-medium text-zinc-700">
+                Public Reply Variations (Optional — rotated automatically to stay natural)
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={variationInput}
+                  onChange={(e) => setVariationInput(e.target.value)}
+                  placeholder="e.g. Check your DM requests! 💌"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    const v = variationInput.trim();
+                    if (v && !publicReplyVariations.includes(v)) {
+                      setPublicReplyVariations([...publicReplyVariations, v]);
+                    }
+                    setVariationInput("");
+                  }}
+                >
+                  Add Variation
+                </Button>
+              </div>
+              {publicReplyVariations.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {publicReplyVariations.map((v) => (
+                    <Badge key={v} variant="gray" className="gap-1 text-xs py-1 px-2.5">
+                      <span>{v}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPublicReplyVariations(
+                            publicReplyVariations.filter((item) => item !== v)
+                          )
+                        }
+                        className="hover:text-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -705,6 +818,68 @@ export function BuilderWizard({
               placeholder="https://yourwebsite.com/resource"
             />
           </div>
+
+          {/* Delivery Mode, Cooldown & DM-me Fallback */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-zinc-700">
+                DM Delivery Mode
+              </label>
+              <select
+                value={followRequired ? "BUTTON" : deliveryMode}
+                disabled={followRequired}
+                onChange={(e) => setDeliveryMode(e.target.value as "DIRECT" | "BUTTON")}
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900"
+              >
+                <option value="DIRECT">Direct (send link in first DM)</option>
+                <option value="BUTTON">Two-Step Button (hook DM + tap to unlock)</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-zinc-700">
+                Per-User Cooldown (seconds)
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={86400}
+                value={cooldownSeconds}
+                onChange={(e) => setCooldownSeconds(Math.max(0, Number(e.target.value) || 0))}
+              />
+            </div>
+          </div>
+
+          {(followRequired || deliveryMode === "BUTTON") && (
+            <div>
+              <label className="block text-xs font-medium text-zinc-700 mb-1">
+                Quick Reply Button Label (max 20 characters — Meta limit)
+              </label>
+              <Input
+                maxLength={20}
+                value={buttonLabel}
+                onChange={(e) => setButtonLabel(e.target.value)}
+                placeholder="Send me the link"
+              />
+            </div>
+          )}
+
+          <label className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/50 cursor-pointer">
+            <div>
+              <p className="text-xs font-semibold text-zinc-900">
+                Enable &ldquo;DM me&rdquo; Public Reply Fallback (Opt-in)
+              </p>
+              <p className="text-[11px] text-zinc-500">
+                Invites commenters to DM your keyword if Meta blocks the initial private reply.
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={dmMeFallbackEnabled}
+              onChange={(e) => setDmMeFallbackEnabled(e.target.checked)}
+              className="h-4 w-4 rounded border-zinc-300 cursor-pointer"
+            />
+          </label>
 
           {/* Follow-to-Get-Link Toggle Card */}
           <div

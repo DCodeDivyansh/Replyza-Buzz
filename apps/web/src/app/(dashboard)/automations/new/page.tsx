@@ -9,9 +9,24 @@ import {
   CreateAutomationPayload,
   InstagramAccountInfo,
 } from "@/types/automation";
-import { BuilderWizard } from "@/components/automations/builder/builder-wizard";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+
+const BuilderWizard = dynamic(
+  () =>
+    import("@/components/automations/builder/builder-wizard").then(
+      (m) => m.BuilderWizard
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="py-20 flex justify-center">
+        <Spinner size="lg" label="Loading builder..." />
+      </div>
+    ),
+  }
+);
 import { ErrorAlert } from "@/components/feedback/error-alert";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
