@@ -153,8 +153,27 @@ export async function persistInstagramCommentEvents(
 
         let executionId: string | null = null;
         let validExecution = false;
+        let selectedProductIndex: number | undefined = undefined;
 
-        if (payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
+        if (payloadString && payloadString.startsWith("PRODUCT_SELECT:")) {
+          const parts = payloadString.slice("PRODUCT_SELECT:".length).split(":");
+          const candidateId = parts[0];
+          const idx = Number.parseInt(parts[1] ?? "", 10);
+          if (candidateId && UUID_REGEX.test(candidateId) && Number.isInteger(idx) && idx >= 0) {
+            const execution = await prisma.automationExecution.findFirst({
+              where: {
+                id: candidateId,
+                automation: { instagramAccountId: instagramAccount.id },
+              },
+              select: { id: true },
+            });
+            if (execution) {
+              executionId = execution.id;
+              validExecution = true;
+              selectedProductIndex = idx;
+            }
+          }
+        } else if (payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
           let candidateExecutionId: string | null = null;
 
           if (features.FOLLOW_CHECK_SIGNED_TOKENS) {
@@ -351,6 +370,7 @@ export async function persistInstagramCommentEvents(
                     instagramUserId: entryInstagramUserId,
                     providerEventId,
                     messagingEventId: msgEvent.id,
+                    ...(selectedProductIndex !== undefined ? { selectedProductIndex } : {}),
                   },
                   status: "PENDING",
                 },

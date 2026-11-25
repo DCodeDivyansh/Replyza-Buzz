@@ -14,7 +14,55 @@ export interface InstagramAccountInfo {
 }
 
 export type KeywordMatchMode = "CONTAINS" | "EXACT" | "ANY";
+export type KeywordMatchLogic = "ANY_KEYWORD" | "ALL_KEYWORDS";
 export type DeliveryMode = "DIRECT" | "BUTTON";
+export type ProductDeliveryMode =
+  | "SINGLE_MESSAGE"
+  | "SEPARATE_MESSAGES"
+  | "GENERIC_CARDS"
+  | "SELECTION_PROMPT";
+export type ProductStatus = "ACTIVE" | "ARCHIVED";
+
+export interface AffiliateProduct {
+  id: string;
+  userId: string;
+  name: string;
+  brand: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  affiliateUrl: string;
+  originalUrl: string | null;
+  price: string | null;
+  discountPrice: string | null;
+  discountInfo: string | null;
+  couponCode: string | null;
+  affiliatePartner: string | null;
+  category: string | null;
+  ctaLabel: string;
+  notes: string | null;
+  status: ProductStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AutomationProductItem {
+  id?: string;
+  affiliateProductId?: string | null;
+  name: string;
+  imageUrl?: string | null;
+  description?: string | null;
+  productUrl?: string | null;
+  affiliateUrl: string;
+  originalUrl?: string | null;
+  price?: string | null;
+  discountPrice?: string | null;
+  category?: string | null;
+  ctaLabel?: string;
+  customMessage?: string | null;
+  couponCode?: string | null;
+  brand?: string | null;
+  sortOrder?: number;
+}
 
 export interface Automation {
   id: string;
@@ -25,11 +73,17 @@ export interface Automation {
   mediaType: MediaType | null;
   triggerType: AutomationTrigger;
   keywordMatchMode?: KeywordMatchMode;
+  keywordMatchLogic?: KeywordMatchLogic;
   keywords: string[];
+  publicReplyEnabled?: boolean;
   publicReplyText: string;
   publicReplyVariations?: string[];
   dmMessageText: string;
   dmLink: string | null;
+  productDeliveryMode?: ProductDeliveryMode;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  products?: AutomationProductItem[];
   deliveryMode?: DeliveryMode;
   buttonLabel?: string | null;
   cooldownSeconds?: number;
@@ -38,6 +92,8 @@ export interface Automation {
   followInstructionText: string | null;
   followSuccessText: string | null;
   followFallbackText: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
   templateId: string | null;
   status: AutomationStatus;
   createdAt: string;
@@ -53,32 +109,17 @@ export interface CreateAutomationPayload {
   mediaType?: MediaType | null;
   triggerType: AutomationTrigger;
   keywordMatchMode?: KeywordMatchMode;
+  keywordMatchLogic?: KeywordMatchLogic;
   keywords: string[];
+  publicReplyEnabled?: boolean;
   publicReplyText: string;
   publicReplyVariations?: string[];
   dmMessageText: string;
   dmLink?: string | null;
-  deliveryMode?: DeliveryMode;
-  buttonLabel?: string | null;
-  cooldownSeconds?: number;
-  dmMeFallbackEnabled?: boolean;
-  followRequired?: boolean;
-  followInstructionText?: string;
-  followSuccessText?: string;
-  followFallbackText?: string;
-  templateId?: string;
-}
-
-export interface UpdateAutomationPayload {
-  name?: string;
-  mediaId?: string | null;
-  triggerType?: AutomationTrigger;
-  keywordMatchMode?: KeywordMatchMode;
-  keywords?: string[];
-  publicReplyText?: string;
-  publicReplyVariations?: string[];
-  dmMessageText?: string;
-  dmLink?: string | null;
+  productDeliveryMode?: ProductDeliveryMode;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  products?: AutomationProductItem[];
   deliveryMode?: DeliveryMode;
   buttonLabel?: string | null;
   cooldownSeconds?: number;
@@ -87,6 +128,37 @@ export interface UpdateAutomationPayload {
   followInstructionText?: string | null;
   followSuccessText?: string | null;
   followFallbackText?: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
+  templateId?: string | null;
+}
+
+export interface UpdateAutomationPayload {
+  name?: string;
+  mediaId?: string | null;
+  triggerType?: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
+  keywordMatchLogic?: KeywordMatchLogic;
+  keywords?: string[];
+  publicReplyEnabled?: boolean;
+  publicReplyText?: string;
+  publicReplyVariations?: string[];
+  dmMessageText?: string;
+  dmLink?: string | null;
+  productDeliveryMode?: ProductDeliveryMode;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  products?: AutomationProductItem[];
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
+  followRequired?: boolean;
+  followInstructionText?: string | null;
+  followSuccessText?: string | null;
+  followFallbackText?: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
   templateId?: string | null;
 }
 

@@ -112,6 +112,25 @@ export async function markDeliveryActionFailed(
   });
 }
 
+export async function markDeliveryActionSkipped(
+  executionId: string,
+  actionType: DeliveryActionKind
+): Promise<void> {
+  await prisma.deliveryAction.update({
+    where: {
+      executionId_actionType: {
+        executionId,
+        actionType,
+      },
+    },
+    data: {
+      status: "SKIPPED",
+      lastErrorCode: null,
+      lastErrorMessage: null,
+    },
+  });
+}
+
 export async function markDeliveryActionNeedsReview(
   executionId: string,
   actionType: DeliveryActionKind,

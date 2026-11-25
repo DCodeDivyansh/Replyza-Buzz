@@ -3,40 +3,67 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import {
+  AffiliateProduct,
+  AutomationProductItem,
   CreateAutomationPayload,
+  DeliveryMode,
   InstagramAccountInfo,
   InstagramMedia,
+  KeywordMatchLogic,
+  KeywordMatchMode,
+  ProductDeliveryMode,
   Template,
 } from "@/types/automation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { MediaGrid } from "@/components/media/media-grid";
-import { TemplateCard } from "@/components/templates/template-card";
 import { LivePreview } from "./live-preview";
+import { DmTemplatePicker } from "./dm-template-picker";
+import { ProductSelectorStep } from "./product-selector-step";
 import { apiRequest } from "@/lib/api-client";
+import { validateTemplateVariables } from "@replyza/shared";
+import { toast } from "sonner";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
+  AlertCircle,
   CheckCircle2,
+  Eye,
+  EyeOff,
+  Hash,
+  Image as ImageIcon,
   MessageSquare,
+  MousePointerClick,
+  Rocket,
+  Save,
   Send,
+  ShoppingBag,
   Sparkles,
   UserCheck,
   X,
 } from "lucide-react";
 
-const DRAFT_KEY = "replyza_builder_draft_v1";
+const DRAFT_KEY = "replyza_builder_draft_v2";
 
 interface BuilderWizardProps {
   discoveredAccounts: InstagramAccountInfo[];
-  initialData?: Partial<CreateAutomationPayload> & { id?: string; status?: string };
+  initialData?: Partial<CreateAutomationPayload> & {
+    id?: string;
+    status?: string;
+  };
   onSubmit: (data: CreateAutomationPayload, activateNow: boolean) => Promise<void>;
   isSubmitting: boolean;
   isEditMode?: boolean;
 }
+
+const STEPS = [
+  { id: "step-trigger", num: 1, label: "Trigger" },
+  { id: "step-condition", num: 2, label: "Keywords" },
+  { id: "step-public-reply", num: 3, label: "Public Reply" },
+  { id: "step-opening-dm", num: 4, label: "Opening DM" },
+  { id: "step-button", num: 5, label: "Button" },
+  { id: "step-products", num: 6, label: "Products" },
+  { id: "step-followup", num: 7, label: "Follow-up" },
+];
 
 export function BuilderWizard({
   discoveredAccounts,
@@ -47,13 +74,10 @@ export function BuilderWizard({
 }: BuilderWizardProps) {
   const searchParams = useSearchParams();
 
-  // Initial account selection
   const defaultAccountId =
     initialData?.instagramAccountId ||
     (discoveredAccounts.length > 0 ? discoveredAccounts[0].id : "");
 
-  // Builder State
-  const [step, setStep] = useState<number>(() => (searchParams.get("mediaId") ? 2 : 1));
   const [accountId, setAccountId] = useState<string>(defaultAccountId);
   const [name, setName] = useState<string>(initialData?.name || "");
   const [mediaId, setMediaId] = useState<string>(
@@ -71,23 +95,100 @@ export function BuilderWizard({
     }
   );
   const [selectedMediaPreview, setSelectedMediaPreview] = useState<InstagramMedia | null>(null);
-
   const [allMedia, setAllMedia] = useState<boolean>(
     () => !searchParams.get("mediaId") && initialData?.mediaId === null
   );
-  const [keywordMatchMode, setKeywordMatchMode] = useState<"CONTAINS" | "EXACT" | "ANY">(
+
+  // Step 2: Comment condition
+  const [triggerType, setTriggerType] = useState<"ANY_COMMENT" | "KEYWORD">(
+    initialData?.triggerType || "KEYWORD"
+  );
+  const [keywordMatchMode, setKeywordMatchMode] = useState<KeywordMatchMode>(
     initialData?.keywordMatchMode || "CONTAINS"
   );
-  const [deliveryMode, setDeliveryMode] = useState<"DIRECT" | "BUTTON">(
-    initialData?.deliveryMode || "DIRECT"
+  const [keywordMatchLogic, setKeywordMatchLogic] = useState<KeywordMatchLogic>(
+    initialData?.keywordMatchLogic || "ANY_KEYWORD"
   );
-  const [buttonLabel, setButtonLabel] = useState<string>(
-    initialData?.buttonLabel || "Send me the link"
+  const [keywords, setKeywords] = useState<string[]>(initialData?.keywords || ["LINK"]);
+  const [keywordInput, setKeywordInput] = useState<string>("");
+
+  // Step 3: Public reply
+  const [publicReplyEnabled, setPublicReplyEnabled] = useState<boolean>(
+    initialData?.publicReplyEnabled ?? true
+  );
+  const [publicReplyText, setPublicReplyText] = useState<string>(
+    initialData?.publicReplyText || "Check your DMs {{username}}! Sent it your way 🔥"
   );
   const [publicReplyVariations, setPublicReplyVariations] = useState<string[]>(
     initialData?.publicReplyVariations || []
   );
   const [variationInput, setVariationInput] = useState<string>("");
+
+  // Step 4: Opening DM & Templates
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    () => searchParams.get("templateId") || initialData?.templateId || null
+  );
+  const [dmMessageText, setDmMessageText] = useState<string>(
+    initialData?.dmMessageText ||
+      "Hey {{first_name}}! 😊 Thanks for commenting! Here's what you asked for:"
+  );
+
+  // Step 5: Button / User interaction
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>(
+    initialData?.deliveryMode || "DIRECT"
+  );
+  const [buttonLabel, setButtonLabel] = useState<string>(
+    initialData?.buttonLabel || "Send me the links"
+  );
+  const [followRequired, setFollowRequired] = useState<boolean>(
+    initialData?.followRequired ?? false
+  );
+  const [followInstructionText, setFollowInstructionText] = useState<string>(
+    initialData?.followInstructionText ||
+      "Hey {{first_name}}! Thanks for commenting. Follow our page and tap below to get your links instantly! 👇"
+  );
+  const [followSuccessText, setFollowSuccessText] = useState<string>(
+    initialData?.followSuccessText ||
+      "Woohoo! Thanks for following {{first_name}} 🎉 Here are your links:"
+  );
+  const [followFallbackText, setFollowFallbackText] = useState<string>(
+    initialData?.followFallbackText ||
+      "Looks like you aren't following us yet! Please follow our profile and tap the button below."
+  );
+
+  // Step 6: Products & Delivery
+  const [libraryProducts, setLibraryProducts] = useState<AffiliateProduct[]>([]);
+  const [products, setProducts] = useState<AutomationProductItem[]>(
+    initialData?.products ||
+      (initialData?.dmLink
+        ? [
+            {
+              name: "Featured Link",
+              affiliateUrl: initialData.dmLink,
+              ctaLabel: "Shop Now",
+              sortOrder: 0,
+            },
+          ]
+        : [])
+  );
+  const [productDeliveryMode, setProductDeliveryMode] = useState<ProductDeliveryMode>(
+    initialData?.productDeliveryMode || "SINGLE_MESSAGE"
+  );
+  const [productIntroText, setProductIntroText] = useState<string>(
+    initialData?.productIntroText || ""
+  );
+  const [productClosingText, setProductClosingText] = useState<string>(
+    initialData?.productClosingText || ""
+  );
+
+  // Step 7: Follow-up & Advanced
+  const [followUpEnabled, setFollowUpEnabled] = useState<boolean>(
+    initialData?.followUpEnabled ?? false
+  );
+  const [followUpText, setFollowUpText] = useState<string>(
+    initialData?.followUpText || "Let me know if you need any help choosing! 😊"
+  );
   const [cooldownSeconds, setCooldownSeconds] = useState<number>(
     initialData?.cooldownSeconds ?? 0
   );
@@ -95,49 +196,8 @@ export function BuilderWizard({
     initialData?.dmMeFallbackEnabled ?? false
   );
 
-  const [triggerType, setTriggerType] = useState<"ANY_COMMENT" | "KEYWORD">(
-    initialData?.triggerType || "KEYWORD"
-  );
-  const [keywords, setKeywords] = useState<string[]>(initialData?.keywords || ["LINK"]);
-  const [keywordInput, setKeywordInput] = useState<string>("");
-
-  const [publicReplyText, setPublicReplyText] = useState<string>(
-    initialData?.publicReplyText || "Check your DMs {{username}}! Sent it your way 🔥"
-  );
-  const [dmMessageText, setDmMessageText] = useState<string>(
-    initialData?.dmMessageText || "Hey {{first_name}}! Thanks for asking for the link. Here is what you requested:"
-  );
-  const [dmLink, setDmLink] = useState<string>(initialData?.dmLink || "");
-
-  const [followRequired, setFollowRequired] = useState<boolean>(initialData?.followRequired ?? false);
-  const [followInstructionText, setFollowInstructionText] = useState<string>(
-    initialData?.followInstructionText ||
-      "Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇"
-  );
-  const [followSuccessText, setFollowSuccessText] = useState<string>(
-    initialData?.followSuccessText || "Woohoo! Thanks for following {{first_name}} 🎉 Here is your link:"
-  );
-  const [followFallbackText, setFollowFallbackText] = useState<string>(
-    initialData?.followFallbackText ||
-      "Looks like you aren't following us yet! Please follow our profile and tap the button below to get your link."
-  );
-
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    () => searchParams.get("templateId") || null
-  );
-  const [hasRestoredDraft, setHasRestoredDraft] = useState<boolean>(() => {
-    if (isEditMode || searchParams.get("mediaId")) return false;
-    try {
-      if (typeof window === "undefined") return false;
-      const saved = localStorage.getItem(DRAFT_KEY);
-      if (!saved) return false;
-      const parsed = JSON.parse(saved);
-      return Boolean(parsed.name || parsed.mediaId);
-    } catch {
-      return false;
-    }
-  });
+  // UI state
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const applyTemplate = useCallback((tmpl: Template) => {
@@ -149,25 +209,31 @@ export function BuilderWizard({
     }
     setPublicReplyText(tmpl.publicReplyText);
     setDmMessageText(tmpl.dmMessageText);
-    if (tmpl.dmLink) setDmLink(tmpl.dmLink);
     setFollowRequired(tmpl.followRequired);
     if (tmpl.followInstructionText) setFollowInstructionText(tmpl.followInstructionText);
     if (tmpl.followSuccessText) setFollowSuccessText(tmpl.followSuccessText);
     if (tmpl.followFallbackText) setFollowFallbackText(tmpl.followFallbackText);
+    toast.success(`Applied "${tmpl.name}" template`);
   }, []);
 
-  // Load templates on mount and apply if templateId was provided in searchParams
   useEffect(() => {
     let ignore = false;
     const qTemplateId = searchParams.get("templateId");
 
-    apiRequest<Template[]>("/templates").then((res) => {
-      if (!ignore && res.data) {
-        setTemplates(res.data);
+    Promise.all([
+      apiRequest<Template[]>("/templates"),
+      apiRequest<AffiliateProduct[]>("/products").catch(() => ({ data: [] as AffiliateProduct[] })),
+    ]).then(([tmplRes, prodRes]) => {
+      if (ignore) return;
+      if (tmplRes.data) {
+        setTemplates(tmplRes.data);
         if (qTemplateId) {
-          const found = res.data.find((t) => t.id === qTemplateId);
+          const found = tmplRes.data.find((t) => t.id === qTemplateId);
           if (found) applyTemplate(found);
         }
+      }
+      if (prodRes.data) {
+        setLibraryProducts(prodRes.data);
       }
     });
 
@@ -176,464 +242,376 @@ export function BuilderWizard({
     };
   }, [searchParams, applyTemplate]);
 
-  // Auto-save draft
-  useEffect(() => {
-    if (isEditMode) return;
-    try {
-      const draft = {
-        name,
-        accountId,
-        mediaId,
-        mediaPermalink,
-        mediaType,
-        triggerType,
-        keywords,
-        publicReplyText,
-        dmMessageText,
-        dmLink,
-        followRequired,
-        followInstructionText,
-        followSuccessText,
-        followFallbackText,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    } catch {
-      // ignore
-    }
-  }, [
-    isEditMode,
-    name,
-    accountId,
-    mediaId,
-    mediaPermalink,
-    mediaType,
-    triggerType,
-    keywords,
-    publicReplyText,
-    dmMessageText,
-    dmLink,
-    followRequired,
-    followInstructionText,
-    followSuccessText,
-    followFallbackText,
-  ]);
-
-  function restoreDraft() {
-    try {
-      const saved = localStorage.getItem(DRAFT_KEY);
-      if (!saved) return;
-      const d = JSON.parse(saved);
-      if (d.name) setName(d.name);
-      if (d.accountId) setAccountId(d.accountId);
-      if (d.mediaId) setMediaId(d.mediaId);
-      if (d.mediaPermalink) setMediaPermalink(d.mediaPermalink);
-      if (d.mediaType) setMediaType(d.mediaType);
-      if (d.triggerType) setTriggerType(d.triggerType);
-      if (d.keywords) setKeywords(d.keywords);
-      if (d.publicReplyText) setPublicReplyText(d.publicReplyText);
-      if (d.dmMessageText) setDmMessageText(d.dmMessageText);
-      if (d.dmLink) setDmLink(d.dmLink);
-      if (typeof d.followRequired === "boolean") setFollowRequired(d.followRequired);
-      if (d.followInstructionText) setFollowInstructionText(d.followInstructionText);
-      if (d.followSuccessText) setFollowSuccessText(d.followSuccessText);
-      if (d.followFallbackText) setFollowFallbackText(d.followFallbackText);
-      setHasRestoredDraft(false);
-    } catch {
-      // ignore
-    }
-  }
-
-  function discardDraft() {
-    try {
-      localStorage.removeItem(DRAFT_KEY);
-      setHasRestoredDraft(false);
-    } catch {
-      // ignore
-    }
-  }
-
-
-
-  function handleAddKeyword() {
+  const handleAddKeyword = () => {
     const trimmed = keywordInput.trim();
     if (!trimmed) return;
     if (!keywords.includes(trimmed)) {
       setKeywords([...keywords, trimmed]);
     }
     setKeywordInput("");
-  }
+  };
 
-  function handleRemoveKeyword(kw: string) {
-    setKeywords(keywords.filter((k) => k !== kw));
-  }
+  const handleAddVariation = () => {
+    const trimmed = variationInput.trim();
+    if (!trimmed) return;
+    if (publicReplyVariations.length >= 10) {
+      toast.error("Maximum 10 reply variations.");
+      return;
+    }
+    setPublicReplyVariations([...publicReplyVariations, trimmed]);
+    setVariationInput("");
+  };
 
-  function validateCurrentStep(): boolean {
+  const buildPayload = (): CreateAutomationPayload | null => {
     setValidationError(null);
-    if (step === 1) {
-      if (!allMedia && !mediaId) {
-        setValidationError("Please select an Instagram post/reel or choose All Posts & Reels.");
-        return false;
+
+    if (!accountId) {
+      setValidationError("Please connect and select an Instagram account first.");
+      return null;
+    }
+    if (!allMedia && !mediaId) {
+      setValidationError("Step 1: Select an Instagram post/Reel or choose All Posts & Reels.");
+      return null;
+    }
+    if (!name.trim()) {
+      setValidationError("Please give your automation a name.");
+      return null;
+    }
+    if (triggerType === "KEYWORD" && keywordMatchMode !== "ANY" && keywords.length === 0) {
+      setValidationError("Step 2: Add at least one comment keyword.");
+      return null;
+    }
+    if (publicReplyEnabled && !publicReplyText.trim()) {
+      setValidationError("Step 3: Enter a public comment reply or disable public replies.");
+      return null;
+    }
+    if (!dmMessageText.trim()) {
+      setValidationError("Step 4: Enter your opening/delivery DM message.");
+      return null;
+    }
+
+    for (const [label, val] of [
+      ["Public Reply", publicReplyEnabled ? publicReplyText : ""],
+      ["Opening DM", dmMessageText],
+      ["Product Intro", productIntroText],
+      ["Product Closing", productClosingText],
+      ["Follow-up", followUpEnabled ? followUpText : ""],
+    ]) {
+      const check = validateTemplateVariables(val);
+      if (!check.valid) {
+        setValidationError(
+          `${label} contains unsupported variable(s): ${check.unsupportedVariables
+            .map((v) => `{{${v}}}`)
+            .join(", ")}`
+        );
+        return null;
       }
     }
-    if (step === 3) {
-      if (!name.trim()) {
-        setValidationError("Please give your automation a name.");
-        return false;
-      }
-      if (triggerType === "KEYWORD" && keywords.length === 0) {
-        setValidationError("Please add at least one trigger keyword.");
-        return false;
-      }
-    }
-    if (step === 4) {
-      if (!publicReplyText.trim()) {
-        setValidationError("Please provide a public comment reply message.");
-        return false;
-      }
-      if (!dmMessageText.trim()) {
-        setValidationError("Please provide a private DM message.");
-        return false;
-      }
-    }
-    if (step === 5) {
-      if (followRequired && !followInstructionText.trim()) {
-        setValidationError("Please provide follow instruction text for the DM.");
-        return false;
-      }
-      if (dmLink && !/^https?:\/\//i.test(dmLink)) {
-        setValidationError("Target Link must be a valid URL starting with http:// or https://");
-        return false;
-      }
-    }
-    return true;
-  }
 
-  function handleNext() {
-    if (validateCurrentStep()) {
-      setStep((prev) => Math.min(prev + 1, 6));
-    }
-  }
+    const effectiveDeliveryMode: DeliveryMode = followRequired ? "BUTTON" : deliveryMode;
 
-  function handleBack() {
-    setValidationError(null);
-    setStep((prev) => Math.max(prev - 1, 1));
-  }
-
-  async function handleFinalSubmit(activateNow: boolean) {
-    if (!validateCurrentStep()) return;
-
-    const effectiveAccountId =
-      accountId ||
-      initialData?.instagramAccountId ||
-      (discoveredAccounts.length > 0 ? discoveredAccounts[0].id : "");
-
-    const payload: CreateAutomationPayload = {
-      instagramAccountId: effectiveAccountId,
+    return {
+      instagramAccountId: accountId,
       name: name.trim(),
       mediaId: allMedia ? null : mediaId,
-      mediaPermalink: allMedia ? null : mediaPermalink || undefined,
+      mediaPermalink: allMedia ? null : mediaPermalink || null,
       mediaType: allMedia ? null : mediaType,
       triggerType,
-      keywordMatchMode: triggerType === "ANY_COMMENT" ? "ANY" : keywordMatchMode,
+      keywordMatchMode,
+      keywordMatchLogic,
       keywords: triggerType === "KEYWORD" ? keywords : [],
-      publicReplyText: publicReplyText.trim(),
+      publicReplyEnabled,
+      publicReplyText: publicReplyText.trim() || "Check your DMs!",
       publicReplyVariations,
       dmMessageText: dmMessageText.trim(),
-      dmLink: dmLink.trim() || undefined,
-      deliveryMode: followRequired ? "BUTTON" : deliveryMode,
-      buttonLabel:
-        followRequired || deliveryMode === "BUTTON"
-          ? buttonLabel.trim().slice(0, 20) || undefined
-          : undefined,
+      dmLink: products[0]?.affiliateUrl || null,
+      productDeliveryMode,
+      productIntroText: productIntroText.trim() || null,
+      productClosingText: productClosingText.trim() || null,
+      products: products.map((p, idx) => ({ ...p, sortOrder: idx })),
+      deliveryMode: effectiveDeliveryMode,
+      buttonLabel: effectiveDeliveryMode === "BUTTON" ? buttonLabel.trim() || "Send me the links" : null,
       cooldownSeconds,
       dmMeFallbackEnabled,
       followRequired,
-      followInstructionText: followRequired ? followInstructionText.trim() : undefined,
-      followSuccessText: followRequired ? followSuccessText.trim() : undefined,
-      followFallbackText: followRequired ? followFallbackText.trim() : undefined,
-      templateId: selectedTemplateId || undefined,
+      followInstructionText: followRequired ? followInstructionText.trim() : null,
+      followSuccessText: followRequired ? followSuccessText.trim() : null,
+      followFallbackText: followRequired ? followFallbackText.trim() : null,
+      followUpEnabled,
+      followUpText: followUpEnabled ? followUpText.trim() : null,
+      templateId: selectedTemplateId,
     };
+  };
 
+  const handleSave = async (activateNow: boolean) => {
+    const payload = buildPayload();
+    if (!payload) return;
     try {
       await onSubmit(payload, activateNow);
-      try {
+      if (typeof window !== "undefined") {
         localStorage.removeItem(DRAFT_KEY);
-      } catch {
-        // ignore
       }
     } catch {
-      // error handled by parent
+      // handled by parent page
     }
-  }
+  };
 
-  const effectiveAccountId =
-    accountId ||
-    initialData?.instagramAccountId ||
-    (discoveredAccounts.length > 0 ? discoveredAccounts[0].id : "");
-  const selectedAccount = discoveredAccounts.find((a) => a.id === effectiveAccountId);
-  const accountUsername = selectedAccount?.username || "your_brand";
-
-  const STEPS = [
-    { num: 1, label: "Select Media" },
-    { num: 2, label: "Template" },
-    { num: 3, label: "Trigger" },
-    { num: 4, label: "Responses" },
-    { num: 5, label: "Follow Gate" },
-    { num: 6, label: "Launch" },
-  ];
+  const activeAccount = discoveredAccounts.find((a) => a.id === accountId);
 
   return (
-    <div className="space-y-6">
-      {/* Draft Restore Notification */}
-      {hasRestoredDraft && (
-        <div className="flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50/70 p-3.5 text-xs text-indigo-900 shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-indigo-600" />
-            <span>You have an auto-saved automation draft. Would you like to restore it?</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button type="button" size="sm" variant="primary" onClick={restoreDraft} className="text-xs py-1">
-              Restore Draft
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={discardDraft} className="text-xs py-1 text-zinc-500">
-              Discard
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* 6-Step Stepper Header */}
-      <div className="bg-white rounded-xl border border-zinc-200/80 p-3 shadow-2xs">
-        <div className="flex items-center justify-between overflow-x-auto pb-1 sm:pb-0">
-          {STEPS.map((s, idx) => {
-            const isDone = s.num < step;
-            const isCurrent = s.num === step;
-            return (
-              <React.Fragment key={s.num}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (s.num < step) setStep(s.num);
-                  }}
-                  disabled={s.num > step}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    isCurrent
-                      ? "bg-indigo-600 text-white shadow-2xs"
-                      : isDone
-                      ? "text-zinc-800 hover:bg-zinc-100 cursor-pointer"
-                      : "text-zinc-400 cursor-not-allowed"
-                  }`}
-                >
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                      isCurrent
-                        ? "bg-white text-indigo-700"
-                        : isDone
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-zinc-100 text-zinc-400"
-                    }`}
-                  >
-                    {isDone ? <Check className="h-3 w-3" /> : s.num}
-                  </span>
-                  <span className="whitespace-nowrap">{s.label}</span>
-                </button>
-                {idx < STEPS.length - 1 && (
-                  <div className="h-px w-4 sm:w-8 bg-zinc-200 shrink-0 mx-1" />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Validation Error Banner */}
-      {validationError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-          {validationError}
-        </div>
-      )}
-
-      {/* STEP 1: SELECT MEDIA */}
-      {step === 1 && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900">Step 1: Choose Post, Reel, or All Media</h3>
-              <p className="text-xs text-zinc-500">
-                Pick a specific post/Reel, or apply to all posts & Reels. Media-specific rules always take precedence over all-media rules.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={allMedia ? "primary" : "secondary"}
-                onClick={() => {
-                  setAllMedia(true);
-                  setMediaId("");
-                  setValidationError(null);
-                  setStep(2);
-                }}
+    <div className="space-y-5">
+      {/* Top Bar: Name + Step Jump Pills + Save Actions */}
+      <div className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-4 shadow-2xs space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Automation name (e.g. Skincare Haul Links)"
+              aria-label="Automation name"
+            />
+            {discoveredAccounts.length > 0 && (
+              <select
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                disabled={isEditMode}
+                className="rounded-xl border border-[#17131D]/15 bg-[#FFFDFB] px-3.5 py-2 text-sm text-[#17131D] focus:border-[#17131D] focus:outline-none disabled:opacity-60"
               >
-                All Posts &amp; Reels
-              </Button>
-              {mediaId && !allMedia && (
-                <>
-                  <Badge variant="green" className="text-xs">
-                    Post Selected: ID {mediaId.slice(-6)}
-                  </Badge>
-                  <Button size="sm" variant="primary" onClick={handleNext}>
-                    Continue to Template <ArrowRight className="h-3 w-3 ml-1" />
-                  </Button>
-                </>
-              )}
-            </div>
+                {discoveredAccounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    @{acc.username || acc.instagramUserId}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
-          <MediaGrid
-            initialAccountId={accountId}
-            selectedMediaId={allMedia ? "" : mediaId}
-            onSelectForAutomation={(media) => {
-              setAllMedia(false);
-              setMediaId(media.id);
-              if (media.permalink) setMediaPermalink(media.permalink);
-              setMediaType(
-                media.media_product_type === "REELS" || media.media_type === "VIDEO"
-                  ? "REELS"
-                  : media.media_type
-              );
-              setSelectedMediaPreview(media);
-              setValidationError(null);
-              // advance
-              setStep(2);
-            }}
-          />
-        </div>
-      )}
-
-      {/* STEP 2: CHOOSE TEMPLATE */}
-      {step === 2 && (
-        <div className="space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900">Step 2: Choose Strategy Template</h3>
-              <p className="text-xs text-zinc-500">
-                Select a high-converting comment-to-DM template, or start with a custom blank canvas.
-              </p>
-            </div>
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() => {
-                setSelectedTemplateId(null);
-                handleNext();
-              }}
+              onClick={() => handleSave(false)}
+              isLoading={isSubmitting}
+              className="gap-1.5"
             >
-              Skip / Blank Canvas
+              <Save className="h-3.5 w-3.5" />
+              {isEditMode ? "Save Changes" : "Save Draft"}
             </Button>
+            {!isEditMode && (
+              <Button
+                type="button"
+                variant="gradient"
+                size="sm"
+                onClick={() => handleSave(true)}
+                isLoading={isSubmitting}
+                className="gap-1.5"
+              >
+                <Rocket className="h-3.5 w-3.5" />
+                Save &amp; Activate
+              </Button>
+            )}
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map((tmpl) => (
-              <TemplateCard
-                key={tmpl.id}
-                template={tmpl}
-                isSelected={selectedTemplateId === tmpl.id}
-                onSelect={(selected) => {
-                  applyTemplate(selected);
-                  handleNext();
-                }}
-              />
-            ))}
-          </div>
+        {/* Step Jump Navigation */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5">
+          {STEPS.map((s) => (
+            <a
+              key={s.id}
+              href={`#${s.id}`}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#F8F5F8] hover:bg-[#17131D] hover:text-white px-2.5 py-1 text-[11px] font-medium text-[#17131D] transition-colors shrink-0"
+            >
+              <span className="font-mono text-[10px] opacity-60">{s.num}.</span>
+              {s.label}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {validationError && (
+        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{validationError}</span>
         </div>
       )}
 
-      {/* STEP 3: CONFIGURE TRIGGER */}
-      {step === 3 && (
-        <div className="rounded-xl border border-zinc-200/80 bg-white p-5 space-y-5 shadow-2xs">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Step 3: Trigger Settings</h3>
-            <p className="text-xs text-zinc-500">
-              Define the name and decide which comments trigger automated responses.
-            </p>
+      {/* Mobile Preview Toggle */}
+      <div className="lg:hidden">
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => setMobilePreviewOpen((v) => !v)}
+          className="w-full justify-center gap-2"
+        >
+          {mobilePreviewOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {mobilePreviewOpen ? "Hide Live DM Preview" : "Show Live DM Preview"}
+        </Button>
+        {mobilePreviewOpen && (
+          <div className="mt-3">
+            <LivePreview
+              accountUsername={activeAccount?.username || "your_brand"}
+              publicReplyEnabled={publicReplyEnabled}
+              publicReplyText={publicReplyText}
+              dmMessageText={dmMessageText}
+              dmLink={products[0]?.affiliateUrl || initialData?.dmLink}
+              triggerType={triggerType}
+              keywords={keywords}
+              deliveryMode={followRequired ? "BUTTON" : deliveryMode}
+              buttonLabel={buttonLabel}
+              followRequired={followRequired}
+              followInstructionText={followInstructionText}
+              followSuccessText={followSuccessText}
+              followUpEnabled={followUpEnabled}
+              followUpText={followUpText}
+              products={products}
+              productDeliveryMode={productDeliveryMode}
+              productIntroText={productIntroText}
+              productClosingText={productClosingText}
+              mediaThumbnailUrl={selectedMediaPreview?.thumbnail_url || selectedMediaPreview?.media_url}
+            />
           </div>
+        )}
+      </div>
 
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="auto-name" className="block text-xs font-medium text-zinc-700 mb-1">
-                Automation Name *
-              </label>
-              <Input
-                id="auto-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Summer Launch Discount Delivery"
-                required
-              />
+      {/* Main 2-Column Builder Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+        {/* LEFT COLUMN: 7 Workflow Step Cards */}
+        <div className="space-y-5 min-w-0">
+          {/* STEP 1: Trigger (Post / Reel) */}
+          <section
+            id="step-trigger"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  1
+                </span>
+                <div>
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Trigger — Select Post or Reel
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Choose a specific post/Reel or trigger on any post on your account.
+                  </p>
+                </div>
+              </div>
+              <ImageIcon className="h-4 w-4 text-[#827D87]" />
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-2">
-                Trigger Type *
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setTriggerType("KEYWORD")}
-                  className={`flex flex-col p-3.5 rounded-xl border text-left transition-all ${
-                    triggerType === "KEYWORD"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-                      : "border-zinc-200 hover:border-zinc-300"
-                  }`}
-                >
-                  <span className="text-xs font-semibold text-zinc-900">Specific Keyword(s)</span>
-                  <span className="text-[11px] text-zinc-500 mt-1">
-                    Triggers only when a comment contains specific words like &ldquo;LINK&rdquo; or &ldquo;DEAL&rdquo;.
-                  </span>
-                </button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                disabled={isEditMode}
+                onClick={() => setAllMedia(false)}
+                className={`text-left rounded-xl border p-3 transition-all cursor-pointer disabled:opacity-60 ${
+                  !allMedia
+                    ? "border-[#17131D] bg-[#F8F5F8] ring-1 ring-[#17131D]/15"
+                    : "border-[#17131D]/10 bg-white"
+                }`}
+              >
+                <div className="text-xs font-semibold text-[#17131D]">Specific Post or Reel</div>
+                <p className="text-[11px] text-[#827D87] mt-0.5">
+                  Ideal for product hauls, tutorials, or single-post campaigns.
+                </p>
+              </button>
+              <button
+                type="button"
+                disabled={isEditMode}
+                onClick={() => {
+                  setAllMedia(true);
+                  setMediaId("");
+                }}
+                className={`text-left rounded-xl border p-3 transition-all cursor-pointer disabled:opacity-60 ${
+                  allMedia
+                    ? "border-[#17131D] bg-[#F8F5F8] ring-1 ring-[#17131D]/15"
+                    : "border-[#17131D]/10 bg-white"
+                }`}
+              >
+                <div className="text-xs font-semibold text-[#17131D]">Any Post or Reel</div>
+                <p className="text-[11px] text-[#827D87] mt-0.5">
+                  Catches matching comments across all your posts (1 active per account).
+                </p>
+              </button>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => setTriggerType("ANY_COMMENT")}
-                  className={`flex flex-col p-3.5 rounded-xl border text-left transition-all ${
-                    triggerType === "ANY_COMMENT"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-                      : "border-zinc-200 hover:border-zinc-300"
-                  }`}
-                >
-                  <span className="text-xs font-semibold text-zinc-900">Any Comment</span>
-                  <span className="text-[11px] text-zinc-500 mt-1">
-                    Triggers for every valid incoming comment on this post.
-                  </span>
-                </button>
+            {!allMedia && accountId && !isEditMode && (
+              <MediaGrid
+                initialAccountId={accountId}
+                selectedMediaId={mediaId}
+                onSelectForAutomation={(m: InstagramMedia) => {
+                  setMediaId(m.id);
+                  setMediaPermalink(m.permalink || "");
+                  setMediaType(
+                    m.media_product_type === "REELS" ? "REELS" : m.media_type
+                  );
+                  setSelectedMediaPreview(m);
+                }}
+              />
+            )}
+
+            {isEditMode && (
+              <div className="rounded-xl bg-[#F8F5F8] px-3.5 py-2.5 text-xs text-[#827D87]">
+                Target:{" "}
+                <strong className="text-[#17131D]">
+                  {allMedia ? "All Posts & Reels" : `Media ID ${mediaId}`}
+                </strong>{" "}
+                (post target is locked after creation)
               </div>
+            )}
+          </section>
+
+          {/* STEP 2: Comment Condition */}
+          <section
+            id="step-condition"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  2
+                </span>
+                <div>
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Comment Condition
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Define which comments trigger this automation.
+                  </p>
+                </div>
+              </div>
+              <Hash className="h-4 w-4 text-[#827D87]" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => setTriggerType("KEYWORD")}
+                className={`rounded-xl border p-3 text-left text-xs font-semibold cursor-pointer ${
+                  triggerType === "KEYWORD"
+                    ? "border-[#17131D] bg-[#F8F5F8]"
+                    : "border-[#17131D]/10 bg-white text-[#827D87]"
+                }`}
+              >
+                Specific Keywords
+              </button>
+              <button
+                type="button"
+                onClick={() => setTriggerType("ANY_COMMENT")}
+                className={`rounded-xl border p-3 text-left text-xs font-semibold cursor-pointer ${
+                  triggerType === "ANY_COMMENT"
+                    ? "border-[#17131D] bg-[#F8F5F8]"
+                    : "border-[#17131D]/10 bg-white text-[#827D87]"
+                }`}
+              >
+                Any Comment
+              </button>
             </div>
 
             {triggerType === "KEYWORD" && (
-              <div className="space-y-3 pt-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-zinc-700">Match Mode:</span>
-                  {(["CONTAINS", "EXACT"] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      onClick={() => setKeywordMatchMode(mode)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border cursor-pointer ${
-                        keywordMatchMode === mode
-                          ? "bg-[#17131D] text-white border-[#17131D]"
-                          : "bg-white text-zinc-600 border-zinc-200"
-                      }`}
-                    >
-                      {mode === "CONTAINS" ? "Contains word" : "Exact match"}
-                    </button>
-                  ))}
-                </div>
-                <label className="block text-xs font-medium text-zinc-700">
-                  Target Keywords (Press Enter to add)
-                </label>
+              <div className="space-y-3">
                 <div className="flex gap-2">
                   <Input
                     value={keywordInput}
@@ -644,459 +622,465 @@ export function BuilderWizard({
                         handleAddKeyword();
                       }
                     }}
-                    placeholder="Type keyword e.g. LINK, PROMO, INFO"
+                    placeholder="Add keyword (e.g. LINK, SHOP, PRICE)"
+                    className="flex-1"
                   />
-                  <Button type="button" size="sm" variant="secondary" onClick={handleAddKeyword}>
+                  <Button type="button" variant="secondary" size="sm" onClick={handleAddKeyword}>
                     Add
                   </Button>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 pt-1">
+                <div className="flex flex-wrap gap-1.5">
                   {keywords.map((kw) => (
-                    <Badge key={kw} variant="blue" className="gap-1 text-xs py-1 px-2.5">
-                      <span>{kw}</span>
+                    <span
+                      key={kw}
+                      className="inline-flex items-center gap-1 rounded-lg bg-[#17131D] text-white px-2.5 py-1 text-xs font-medium"
+                    >
+                      {kw}
                       <button
                         type="button"
-                        onClick={() => handleRemoveKeyword(kw)}
-                        className="hover:text-red-600"
-                        title="Remove"
+                        onClick={() => setKeywords(keywords.filter((k) => k !== kw))}
+                        className="opacity-70 hover:opacity-100 cursor-pointer"
                       >
                         <X className="h-3 w-3" />
                       </button>
-                    </Badge>
+                    </span>
                   ))}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="text-[11px] font-semibold text-[#17131D] block mb-1">
+                      Match Style
+                    </label>
+                    <select
+                      value={keywordMatchMode}
+                      onChange={(e) => setKeywordMatchMode(e.target.value as KeywordMatchMode)}
+                      className="w-full rounded-xl border border-[#17131D]/15 bg-white px-3 py-2 text-xs text-[#17131D]"
+                    >
+                      <option value="CONTAINS">Contains keyword (recommended)</option>
+                      <option value="EXACT">Exact comment match</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-[#17131D] block mb-1">
+                      Matching Logic
+                    </label>
+                    <select
+                      value={keywordMatchLogic}
+                      onChange={(e) => setKeywordMatchLogic(e.target.value as KeywordMatchLogic)}
+                      className="w-full rounded-xl border border-[#17131D]/15 bg-white px-3 py-2 text-xs text-[#17131D]"
+                    >
+                      <option value="ANY_KEYWORD">Match ANY selected keyword</option>
+                      <option value="ALL_KEYWORDS">Match ALL keywords</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </section>
 
-      {/* STEP 4: CRAFT RESPONSES */}
-      {step === 4 && (
-        <div className="rounded-xl border border-zinc-200/80 bg-white p-5 space-y-5 shadow-2xs">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Step 4: Craft Automated Copy</h3>
-            <p className="text-xs text-zinc-500">
-              Personalize your public comment reply and initial direct message using dynamic placeholder tags.
-            </p>
-          </div>
-
-          {/* Variable chips */}
-          <div className="flex flex-wrap items-center gap-2 p-2.5 bg-zinc-50 rounded-lg border border-zinc-200/80 text-[11px]">
-            <span className="font-medium text-zinc-600">Available Variables:</span>
-            <button
-              type="button"
-              onClick={() => setPublicReplyText((prev) => prev + " {{username}}")}
-              className="font-mono bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-zinc-700 hover:border-indigo-500"
-            >
-              {"{{username}}"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDmMessageText((prev) => prev + " {{first_name}}")}
-              className="font-mono bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-zinc-700 hover:border-indigo-500"
-            >
-              {"{{first_name}}"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDmMessageText((prev) => prev + " {{link}}")}
-              className="font-mono bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-zinc-700 hover:border-indigo-500"
-            >
-              {"{{link}}"}
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <MessageSquare className="h-3.5 w-3.5 text-zinc-500" />
-                  Public Comment Reply *
-                </label>
-                <span className="text-[10px] text-zinc-400">{publicReplyText.length}/500</span>
-              </div>
-              <Textarea
-                rows={2}
-                value={publicReplyText}
-                onChange={(e) => setPublicReplyText(e.target.value)}
-                placeholder="Check your DMs {{username}}! Sent it your way 🔥"
-                maxLength={500}
-                required
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <Send className="h-3.5 w-3.5 text-indigo-500" />
-                  Private Direct Message (DM) *
-                </label>
-                <span className="text-[10px] text-zinc-400">{dmMessageText.length}/2000</span>
-              </div>
-              <Textarea
-                rows={4}
-                value={dmMessageText}
-                onChange={(e) => setDmMessageText(e.target.value)}
-                placeholder="Hey {{first_name}}! Thanks for asking. Here is the link:"
-                maxLength={2000}
-                required
-              />
-            </div>
-
-            {/* Public Reply Variations */}
-            <div className="space-y-2 pt-2 border-t border-zinc-100">
-              <label className="block text-xs font-medium text-zinc-700">
-                Public Reply Variations (Optional — rotated automatically to stay natural)
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  value={variationInput}
-                  onChange={(e) => setVariationInput(e.target.value)}
-                  placeholder="e.g. Check your DM requests! 💌"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    const v = variationInput.trim();
-                    if (v && !publicReplyVariations.includes(v)) {
-                      setPublicReplyVariations([...publicReplyVariations, v]);
-                    }
-                    setVariationInput("");
-                  }}
-                >
-                  Add Variation
-                </Button>
-              </div>
-              {publicReplyVariations.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {publicReplyVariations.map((v) => (
-                    <Badge key={v} variant="gray" className="gap-1 text-xs py-1 px-2.5">
-                      <span>{v}</span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPublicReplyVariations(
-                            publicReplyVariations.filter((item) => item !== v)
-                          )
-                        }
-                        className="hover:text-red-600"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 5: FOLLOW GATE & LINK */}
-      {step === 5 && (
-        <div className="rounded-xl border border-zinc-200/80 bg-white p-5 space-y-5 shadow-2xs">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Step 5: Follow Gate & Destination Link</h3>
-            <p className="text-xs text-zinc-500">
-              Deliver your resource link directly, or activate Follow-to-Get-Link to grow your followership.
-            </p>
-          </div>
-
-          <div>
-            <label htmlFor="target-link" className="block text-xs font-medium text-zinc-700 mb-1">
-              Destination URL (Optional)
-            </label>
-            <Input
-              id="target-link"
-              type="url"
-              value={dmLink}
-              onChange={(e) => setDmLink(e.target.value)}
-              placeholder="https://yourwebsite.com/resource"
-            />
-          </div>
-
-          {/* Delivery Mode, Cooldown & DM-me Fallback */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-zinc-700">
-                DM Delivery Mode
-              </label>
-              <select
-                value={followRequired ? "BUTTON" : deliveryMode}
-                disabled={followRequired}
-                onChange={(e) => setDeliveryMode(e.target.value as "DIRECT" | "BUTTON")}
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900"
-              >
-                <option value="DIRECT">Direct (send link in first DM)</option>
-                <option value="BUTTON">Two-Step Button (hook DM + tap to unlock)</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-zinc-700">
-                Per-User Cooldown (seconds)
-              </label>
-              <Input
-                type="number"
-                min={0}
-                max={86400}
-                value={cooldownSeconds}
-                onChange={(e) => setCooldownSeconds(Math.max(0, Number(e.target.value) || 0))}
-              />
-            </div>
-          </div>
-
-          {(followRequired || deliveryMode === "BUTTON") && (
-            <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1">
-                Quick Reply Button Label (max 20 characters — Meta limit)
-              </label>
-              <Input
-                maxLength={20}
-                value={buttonLabel}
-                onChange={(e) => setButtonLabel(e.target.value)}
-                placeholder="Send me the link"
-              />
-            </div>
-          )}
-
-          <label className="flex items-center justify-between p-3.5 rounded-xl border border-zinc-200 bg-zinc-50/50 cursor-pointer">
-            <div>
-              <p className="text-xs font-semibold text-zinc-900">
-                Enable &ldquo;DM me&rdquo; Public Reply Fallback (Opt-in)
-              </p>
-              <p className="text-[11px] text-zinc-500">
-                Invites commenters to DM your keyword if Meta blocks the initial private reply.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={dmMeFallbackEnabled}
-              onChange={(e) => setDmMeFallbackEnabled(e.target.checked)}
-              className="h-4 w-4 rounded border-zinc-300 cursor-pointer"
-            />
-          </label>
-
-          {/* Follow-to-Get-Link Toggle Card */}
-          <div
-            className={`rounded-xl border p-4 transition-all ${
-              followRequired ? "border-purple-300 bg-purple-50/40" : "border-zinc-200 bg-zinc-50/50"
-            }`}
+          {/* STEP 3: Public Comment Reply */}
+          <section
+            id="step-public-reply"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div
-                  className={`h-8 w-8 rounded-lg flex items-center justify-center ${
-                    followRequired ? "bg-purple-600 text-white" : "bg-zinc-200 text-zinc-500"
-                  }`}
-                >
-                  <UserCheck className="h-4 w-4" />
-                </div>
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  3
+                </span>
                 <div>
-                  <h4 className="text-xs font-semibold text-zinc-900">
-                    Require Follow before Link Delivery (Follow-to-Get-Link)
-                  </h4>
-                  <p className="text-[11px] text-zinc-500">
-                    Requires user to follow your Instagram account before receiving the link.
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Public Comment Reply (Optional)
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Reply publicly under the user&apos;s comment to boost engagement.
                   </p>
                 </div>
               </div>
-
-              <input
-                type="checkbox"
-                checked={followRequired}
-                onChange={(e) => setFollowRequired(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-              />
+              <label className="flex items-center gap-2 text-xs font-medium text-[#17131D] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={publicReplyEnabled}
+                  onChange={(e) => setPublicReplyEnabled(e.target.checked)}
+                />
+                Enabled
+              </label>
             </div>
 
-            {followRequired && (
-              <div className="mt-4 pt-4 border-t border-purple-200/60 space-y-3.5">
-                <div className="rounded-lg bg-white/80 border border-purple-200 p-2.5 text-[11px] text-purple-900 flex items-center gap-2">
-                  <Sparkles className="h-3.5 w-3.5 text-purple-600 shrink-0" />
-                  <span>
-                    <strong>Meta Compliant Two-Stage Flow:</strong> Initial DM sends an interactive
-                    &ldquo;I&apos;ve followed! ✅&rdquo; Quick Reply button. When tapped, Replyza verifies follower
-                    status and dispatches the link.
-                  </span>
-                </div>
+            {publicReplyEnabled && (
+              <div className="space-y-3">
+                <Input
+                  label="Primary Public Reply"
+                  value={publicReplyText}
+                  onChange={(e) => setPublicReplyText(e.target.value)}
+                  placeholder="Sent you a DM! ❤️"
+                />
 
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Instruction Copy (Sent with Quick Reply button)
+                <div className="space-y-2">
+                  <label className="text-[11px] font-semibold text-[#827D87]">
+                    Reply Variations (optional, rotates to avoid spam)
                   </label>
-                  <Textarea
-                    rows={2}
-                    value={followInstructionText}
-                    onChange={(e) => setFollowInstructionText(e.target.value)}
-                    placeholder="Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Success Copy (Sent once follower status is verified)
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={followSuccessText}
-                    onChange={(e) => setFollowSuccessText(e.target.value)}
-                    placeholder="Woohoo! Thanks for following {{first_name}} 🎉 Here is your link:"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Fallback Copy (Sent if user taps button without following)
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={followFallbackText}
-                    onChange={(e) => setFollowFallbackText(e.target.value)}
-                    placeholder="Looks like you aren't following us yet! Follow our profile and tap the button below to get your link."
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      value={variationInput}
+                      onChange={(e) => setVariationInput(e.target.value)}
+                      placeholder="Add another variation (e.g. Check your inbox {{username}}!)"
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleAddVariation}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {publicReplyVariations.length > 0 && (
+                    <div className="space-y-1">
+                      {publicReplyVariations.map((v, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between rounded-lg bg-[#F8F5F8] px-3 py-1.5 text-xs"
+                        >
+                          <span className="truncate">{v}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPublicReplyVariations(
+                                publicReplyVariations.filter((_, idx) => idx !== i)
+                              )
+                            }
+                            className="text-[#827D87] hover:text-red-600 cursor-pointer"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </section>
 
-      {/* STEP 6: LIVE PREVIEW & LAUNCH */}
-      {step === 6 && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left: Summary Checklist */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-900">{name || "Untitled Automation"}</h3>
-                    <p className="text-xs text-zinc-500">@{accountUsername}</p>
-                  </div>
-                  <Badge variant={triggerType === "KEYWORD" ? "blue" : "gray"}>
-                    {triggerType === "KEYWORD" ? "Keyword Trigger" : "Any Comment"}
-                  </Badge>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-start justify-between">
-                    <span className="text-zinc-500">Target Media:</span>
-                    <span className="font-mono text-zinc-800 text-[11px] truncate max-w-[200px]">
-                      {mediaId}
-                    </span>
-                  </div>
-
-                  {triggerType === "KEYWORD" && (
-                    <div className="flex items-start justify-between">
-                      <span className="text-zinc-500">Keywords:</span>
-                      <div className="flex flex-wrap gap-1 justify-end max-w-[220px]">
-                        {keywords.map((k) => (
-                          <span key={k} className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded text-[10px]">
-                            {k}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between">
-                    <span className="text-zinc-500">Follow-to-Get-Link:</span>
-                    <span className="font-medium text-zinc-800">
-                      {followRequired ? "Enabled (Follower check required)" : "Disabled (Direct delivery)"}
-                    </span>
-                  </div>
-
-                  {dmLink && (
-                    <div className="flex items-start justify-between">
-                      <span className="text-zinc-500">Link URL:</span>
-                      <a
-                        href={dmLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-indigo-600 underline font-medium truncate max-w-[200px]"
-                      >
-                        {dmLink}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Ready to launch banner */}
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs text-emerald-900 flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+          {/* STEP 4: Opening DM & Template Library */}
+          <section
+            id="step-opening-dm"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  4
+                </span>
                 <div>
-                  <p className="font-semibold">All requirements satisfied!</p>
-                  <p className="text-emerald-700 text-[11px]">
-                    Once activated, Replyza will immediately begin listening for comments on this post.
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Opening DM &amp; Template Library
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Pick a template style or write your own with dynamic variables.
                   </p>
                 </div>
               </div>
+              <MessageSquare className="h-4 w-4 text-[#827D87]" />
             </div>
 
-            {/* Right: Live Interactive Phone Simulator */}
-            <div className="lg:col-span-5">
-              <LivePreview
-                accountUsername={accountUsername}
-                publicReplyText={publicReplyText}
-                dmMessageText={dmMessageText}
-                dmLink={dmLink}
-                triggerType={triggerType}
-                keywords={keywords}
-                followRequired={followRequired}
-                followInstructionText={followInstructionText}
-                followSuccessText={followSuccessText}
-                followFallbackText={followFallbackText}
-                mediaThumbnailUrl={selectedMediaPreview?.thumbnail_url || selectedMediaPreview?.media_url}
+            <DmTemplatePicker
+              templates={templates}
+              selectedTemplateId={selectedTemplateId}
+              onSelectTemplate={applyTemplate}
+              onTemplateCreated={(t) => {
+                setTemplates((prev) => [t, ...prev]);
+                setSelectedTemplateId(t.id);
+              }}
+              dmMessageText={dmMessageText}
+              onChangeDmMessageText={setDmMessageText}
+              publicReplyText={publicReplyText}
+              triggerType={triggerType}
+              keywords={keywords}
+            />
+          </section>
+
+          {/* STEP 5: Button / User Interaction */}
+          <section
+            id="step-button"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  5
+                </span>
+                <div>
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Button &amp; User Interaction
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Require a Quick Reply tap first (unlocks Visual Cards &amp; Follow Gate) or send directly.
+                  </p>
+                </div>
+              </div>
+              <MousePointerClick className="h-4 w-4 text-[#827D87]" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setDeliveryMode("DIRECT");
+                  setFollowRequired(false);
+                }}
+                className={`text-left rounded-xl border p-3 cursor-pointer ${
+                  deliveryMode === "DIRECT" && !followRequired
+                    ? "border-[#17131D] bg-[#F8F5F8] ring-1 ring-[#17131D]/15"
+                    : "border-[#17131D]/10 bg-white"
+                }`}
+              >
+                <div className="text-xs font-semibold text-[#17131D]">Direct Private Reply</div>
+                <p className="text-[11px] text-[#827D87] mt-0.5">
+                  Sends product links immediately in 1 message.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeliveryMode("BUTTON")}
+                className={`text-left rounded-xl border p-3 cursor-pointer ${
+                  deliveryMode === "BUTTON" || followRequired
+                    ? "border-[#17131D] bg-[#F8F5F8] ring-1 ring-[#17131D]/15"
+                    : "border-[#17131D]/10 bg-white"
+                }`}
+              >
+                <div className="text-xs font-semibold text-[#17131D]">
+                  Interactive Quick Reply Button
+                </div>
+                <p className="text-[11px] text-[#827D87] mt-0.5">
+                  User taps a button first, unlocking multi-DM &amp; Product Cards.
+                </p>
+              </button>
+            </div>
+
+            {(deliveryMode === "BUTTON" || followRequired) && (
+              <div className="space-y-3 pt-1">
+                <Input
+                  label="Quick Reply Button Text (max 20 chars — Meta limit)"
+                  value={buttonLabel}
+                  onChange={(e) => setButtonLabel(e.target.value)}
+                  maxLength={20}
+                  placeholder="Send me the links"
+                />
+
+                <label className="flex items-start gap-2.5 rounded-xl border border-[#17131D]/10 bg-[#F8F5F8] p-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={followRequired}
+                    onChange={(e) => {
+                      setFollowRequired(e.target.checked);
+                      if (e.target.checked) setDeliveryMode("BUTTON");
+                    }}
+                    className="mt-0.5"
+                  />
+                  <div className="text-xs">
+                    <span className="font-semibold text-[#17131D] flex items-center gap-1">
+                      <UserCheck className="h-3.5 w-3.5 text-indigo-600" />
+                      Require Follow Before Sending Links
+                    </span>
+                    <p className="text-[#827D87] mt-0.5">
+                      Verifies follower status when the user taps the button.
+                    </p>
+                  </div>
+                </label>
+
+                {followRequired && (
+                  <div className="space-y-3 pl-3 border-l-2 border-indigo-200">
+                    <Textarea
+                      label="Follow Instruction DM"
+                      value={followInstructionText}
+                      onChange={(e) => setFollowInstructionText(e.target.value)}
+                      rows={2}
+                    />
+                    <Input
+                      label="Follow Verified Success Intro"
+                      value={followSuccessText}
+                      onChange={(e) => setFollowSuccessText(e.target.value)}
+                    />
+                    <Input
+                      label="Not Following Fallback DM"
+                      value={followFallbackText}
+                      onChange={(e) => setFollowFallbackText(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+
+          {/* STEP 6: Product Selection & Delivery */}
+          <section
+            id="step-products"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  6
+                </span>
+                <div>
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Product Links &amp; Delivery Format
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Add one or multiple affiliate products, drag to reorder, and choose how they are sent.
+                  </p>
+                </div>
+              </div>
+              <ShoppingBag className="h-4 w-4 text-[#827D87]" />
+            </div>
+
+            <ProductSelectorStep
+              products={products}
+              onChangeProducts={setProducts}
+              productDeliveryMode={productDeliveryMode}
+              onChangeProductDeliveryMode={setProductDeliveryMode}
+              deliveryMode={followRequired ? "BUTTON" : deliveryMode}
+              followRequired={followRequired}
+              productIntroText={productIntroText}
+              onChangeProductIntroText={setProductIntroText}
+              productClosingText={productClosingText}
+              onChangeProductClosingText={setProductClosingText}
+              libraryProducts={libraryProducts}
+            />
+          </section>
+
+          {/* STEP 7: Follow-up & Cooldown */}
+          <section
+            id="step-followup"
+            className="rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#17131D] text-white text-xs font-bold">
+                  7
+                </span>
+                <div>
+                  <h2 className="font-display text-sm font-semibold text-[#17131D]">
+                    Follow-up Message &amp; Protection
+                  </h2>
+                  <p className="text-[11px] text-[#827D87]">
+                    Sent only within Meta&apos;s active 24-hour messaging window.
+                  </p>
+                </div>
+              </div>
+              <Send className="h-4 w-4 text-[#827D87]" />
+            </div>
+
+            <label className="flex items-start gap-2.5 rounded-xl border border-[#17131D]/10 bg-[#F8F5F8] p-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={followUpEnabled}
+                onChange={(e) => setFollowUpEnabled(e.target.checked)}
+                className="mt-0.5"
               />
+              <div className="text-xs">
+                <span className="font-semibold text-[#17131D]">
+                  Send Follow-up Message (2-step DMs only)
+                </span>
+                <p className="text-[#827D87] mt-0.5">
+                  Automatically sends a helpful closing message right after product links are delivered inside the 24h window.
+                </p>
+              </div>
+            </label>
+
+            {followUpEnabled && (
+              <Input
+                label="Follow-up Message"
+                value={followUpText}
+                onChange={(e) => setFollowUpText(e.target.value)}
+                placeholder="Let me know if you need any help choosing! 😊"
+              />
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div>
+                <label className="text-[11px] font-semibold text-[#17131D] block mb-1">
+                  Per-User Cooldown (seconds)
+                </label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={86400}
+                  value={cooldownSeconds}
+                  onChange={(e) => setCooldownSeconds(Number(e.target.value) || 0)}
+                />
+              </div>
+              <label className="flex items-center gap-2 rounded-xl border border-[#17131D]/10 px-3 py-2 text-xs text-[#17131D] cursor-pointer self-end h-[38px]">
+                <input
+                  type="checkbox"
+                  checked={dmMeFallbackEnabled}
+                  onChange={(e) => setDmMeFallbackEnabled(e.target.checked)}
+                />
+                Enable DM-me keyword fallback
+              </label>
             </div>
-          </div>
-        </div>
-      )}
+          </section>
 
-      {/* Footer Navigation Bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-zinc-200/80 shadow-2xs">
-        <div>
-          {step > 1 && (
-            <Button type="button" variant="secondary" size="sm" onClick={handleBack} disabled={isSubmitting}>
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {step < 6 ? (
-            <Button type="button" variant="primary" size="sm" onClick={handleNext}>
-              Next Step <ArrowRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          ) : (
-            <>
+          {/* Bottom Save Bar */}
+          <div className="flex items-center justify-between rounded-2xl border border-[#17131D]/10 bg-[#FFFDFB] p-4">
+            <div className="flex items-center gap-2 text-xs text-[#827D87]">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <span>{products.length} product(s) attached</span>
+            </div>
+            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
-                onClick={() => handleFinalSubmit(false)}
-                disabled={isSubmitting}
+                onClick={() => handleSave(false)}
+                isLoading={isSubmitting}
               >
-                Save as Draft
+                {isEditMode ? "Save Changes" : "Save Draft"}
               </Button>
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={() => handleFinalSubmit(true)}
-                disabled={isSubmitting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                {isSubmitting ? "Activating..." : "Activate Automation"}
-              </Button>
-            </>
-          )}
+              {!isEditMode && (
+                <Button
+                  type="button"
+                  variant="gradient"
+                  size="sm"
+                  onClick={() => handleSave(true)}
+                  isLoading={isSubmitting}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Save &amp; Activate
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Sticky Live Preview */}
+        <div className="hidden lg:block sticky top-6">
+          <LivePreview
+            accountUsername={activeAccount?.username || "your_brand"}
+            publicReplyEnabled={publicReplyEnabled}
+            publicReplyText={publicReplyText}
+            dmMessageText={dmMessageText}
+            dmLink={products[0]?.affiliateUrl || initialData?.dmLink}
+            triggerType={triggerType}
+            keywords={keywords}
+            deliveryMode={followRequired ? "BUTTON" : deliveryMode}
+            buttonLabel={buttonLabel}
+            followRequired={followRequired}
+            followInstructionText={followInstructionText}
+            followSuccessText={followSuccessText}
+            followUpEnabled={followUpEnabled}
+            followUpText={followUpText}
+            products={products}
+            productDeliveryMode={productDeliveryMode}
+            productIntroText={productIntroText}
+            productClosingText={productClosingText}
+            mediaThumbnailUrl={selectedMediaPreview?.thumbnail_url || selectedMediaPreview?.media_url}
+          />
         </div>
       </div>
     </div>

@@ -106,7 +106,7 @@ function NewAutomationContent() {
               Automation Builder
             </h1>
             <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
-              <Sparkles className="h-2.5 w-2.5" /> 6-Step Guided
+              <Sparkles className="h-2.5 w-2.5" /> Multi-Product Flow
             </span>
           </div>
           <p className="text-xs text-zinc-500 mt-0.5">

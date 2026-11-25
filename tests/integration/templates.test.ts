@@ -40,14 +40,14 @@ describe("Automation Templates API", () => {
 
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body.data.length).toBeGreaterThanOrEqual(5);
+    expect(res.body.data.length).toBeGreaterThanOrEqual(9);
 
     const templateNames = res.body.data.map((t: { name: string }) => t.name);
-    expect(templateNames).toContain("Get Link");
-    expect(templateNames).toContain("Product Promotion");
-    expect(templateNames).toContain("Free Resource Guide");
+    expect(templateNames).toContain("Friendly Link Delivery");
+    expect(templateNames).toContain("Professional Product Details");
+    expect(templateNames).toContain("Multi-Product Roundup");
+    expect(templateNames).toContain("Affiliate Favorites Collection");
     expect(templateNames).toContain("Follow-to-Get-Link");
-    expect(templateNames).toContain("Custom Automation");
   });
 
   it("2. Allows creating and retrieving a custom template", async () => {

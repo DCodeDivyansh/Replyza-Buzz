@@ -4,6 +4,8 @@ import {
   getTemplatesController,
   getTemplateByIdController,
   createTemplateController,
+  updateTemplateController,
+  duplicateTemplateController,
   deleteTemplateController,
 } from "../controllers/template.controller";
 
@@ -14,6 +16,8 @@ router.use(authenticate);
 router.get("/", getTemplatesController);
 router.post("/", createTemplateController);
 router.get("/:id", getTemplateByIdController);
+router.patch("/:id", updateTemplateController);
+router.post("/:id/duplicate", duplicateTemplateController);
 router.delete("/:id", deleteTemplateController);
 
 export default router;

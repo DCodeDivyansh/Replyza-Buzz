@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Bot,
   Images,
+  ShoppingBag,
   LayoutTemplate,
   Activity,
   Settings,
@@ -28,6 +29,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
   { name: "Automations", href: "/automations", icon: Bot },
+  { name: "Product Library", href: "/products", icon: ShoppingBag },
   { name: "Media Library", href: "/media", icon: Images },
   { name: "Templates", href: "/templates", icon: LayoutTemplate },
   { name: "Activity", href: "/activity", icon: Activity },

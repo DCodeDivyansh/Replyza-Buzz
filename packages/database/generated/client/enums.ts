@@ -89,6 +89,32 @@ export const KeywordMatchMode = {
 export type KeywordMatchMode = (typeof KeywordMatchMode)[keyof typeof KeywordMatchMode]
 
 
+export const KeywordMatchLogic = {
+  ANY_KEYWORD: 'ANY_KEYWORD',
+  ALL_KEYWORDS: 'ALL_KEYWORDS'
+} as const
+
+export type KeywordMatchLogic = (typeof KeywordMatchLogic)[keyof typeof KeywordMatchLogic]
+
+
+export const ProductDeliveryMode = {
+  SINGLE_MESSAGE: 'SINGLE_MESSAGE',
+  SEPARATE_MESSAGES: 'SEPARATE_MESSAGES',
+  GENERIC_CARDS: 'GENERIC_CARDS',
+  SELECTION_PROMPT: 'SELECTION_PROMPT'
+} as const
+
+export type ProductDeliveryMode = (typeof ProductDeliveryMode)[keyof typeof ProductDeliveryMode]
+
+
+export const ProductStatus = {
+  ACTIVE: 'ACTIVE',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
+
+
 export const DeliveryMode = {
   DIRECT: 'DIRECT',
   BUTTON: 'BUTTON'

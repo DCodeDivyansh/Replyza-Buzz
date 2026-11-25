@@ -11,7 +11,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { ErrorAlert } from "@/components/feedback/error-alert";
 import { apiRequest, ApiClientError } from "@/lib/api-client";
-import { LayoutTemplate, Plus, Search, Trash2 } from "lucide-react";
+import { Copy, LayoutTemplate, Plus, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -121,6 +122,22 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleDuplicateTemplate = async (id: string) => {
+    try {
+      const res = await apiRequest<Template>(`/templates/${id}/duplicate`, {
+        method: "POST",
+      });
+      if (res.data) {
+        setTemplates((prev) => [res.data!, ...prev]);
+        toast.success("Template duplicated");
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof ApiClientError ? err.message : "Failed to duplicate template."
+      );
+    }
+  };
+
   const handleDeleteTemplate = async (id: string) => {
     try {
       await apiRequest(`/templates/${id}`, { method: "DELETE" });
@@ -203,17 +220,28 @@ export default function TemplatesPage() {
           {filtered.map((tmpl) => (
             <div key={tmpl.id} className="relative group">
               <TemplateCard template={tmpl} />
-              {!tmpl.isSystem && (
+              <div className="absolute top-3 right-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   type="button"
-                  onClick={() => void handleDeleteTemplate(tmpl.id)}
-                  className="absolute top-3 right-3 p-1.5 rounded-full bg-[#FFFDFB] border border-[#17131D]/10 text-[#827D87] hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-                  title="Delete custom template"
-                  aria-label="Delete custom template"
+                  onClick={() => void handleDuplicateTemplate(tmpl.id)}
+                  className="p-1.5 rounded-full bg-[#FFFDFB] border border-[#17131D]/10 text-[#827D87] hover:text-[#17131D] hover:bg-[#F8F5F8] cursor-pointer"
+                  title="Duplicate template"
+                  aria-label="Duplicate template"
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Copy className="h-3.5 w-3.5" />
                 </button>
-              )}
+                {!tmpl.isSystem && (
+                  <button
+                    type="button"
+                    onClick={() => void handleDeleteTemplate(tmpl.id)}
+                    className="p-1.5 rounded-full bg-[#FFFDFB] border border-[#17131D]/10 text-[#827D87] hover:text-red-600 hover:bg-red-50 cursor-pointer"
+                    title="Delete custom template"
+                    aria-label="Delete custom template"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -406,7 +406,9 @@ export const ModelName = {
   DeliveryAction: 'DeliveryAction',
   OutboxEvent: 'OutboxEvent',
   MessagingWebhookEvent: 'MessagingWebhookEvent',
-  AutomationTemplate: 'AutomationTemplate'
+  AutomationTemplate: 'AutomationTemplate',
+  AffiliateProduct: 'AffiliateProduct',
+  AutomationProduct: 'AutomationProduct'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -422,7 +424,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "deliveryAction" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate"
+    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "deliveryAction" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate" | "affiliateProduct" | "automationProduct"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1166,6 +1168,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AffiliateProduct: {
+      payload: Prisma.$AffiliateProductPayload<ExtArgs>
+      fields: Prisma.AffiliateProductFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AffiliateProductFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AffiliateProductFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>
+        }
+        findFirst: {
+          args: Prisma.AffiliateProductFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AffiliateProductFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>
+        }
+        findMany: {
+          args: Prisma.AffiliateProductFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>[]
+        }
+        create: {
+          args: Prisma.AffiliateProductCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>
+        }
+        createMany: {
+          args: Prisma.AffiliateProductCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AffiliateProductCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>[]
+        }
+        delete: {
+          args: Prisma.AffiliateProductDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>
+        }
+        update: {
+          args: Prisma.AffiliateProductUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>
+        }
+        deleteMany: {
+          args: Prisma.AffiliateProductDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AffiliateProductUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AffiliateProductUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>[]
+        }
+        upsert: {
+          args: Prisma.AffiliateProductUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateProductPayload>
+        }
+        aggregate: {
+          args: Prisma.AffiliateProductAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAffiliateProduct>
+        }
+        groupBy: {
+          args: Prisma.AffiliateProductGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AffiliateProductGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AffiliateProductCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AffiliateProductCountAggregateOutputType> | number
+        }
+      }
+    }
+    AutomationProduct: {
+      payload: Prisma.$AutomationProductPayload<ExtArgs>
+      fields: Prisma.AutomationProductFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AutomationProductFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AutomationProductFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>
+        }
+        findFirst: {
+          args: Prisma.AutomationProductFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AutomationProductFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>
+        }
+        findMany: {
+          args: Prisma.AutomationProductFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>[]
+        }
+        create: {
+          args: Prisma.AutomationProductCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>
+        }
+        createMany: {
+          args: Prisma.AutomationProductCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AutomationProductCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>[]
+        }
+        delete: {
+          args: Prisma.AutomationProductDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>
+        }
+        update: {
+          args: Prisma.AutomationProductUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>
+        }
+        deleteMany: {
+          args: Prisma.AutomationProductDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AutomationProductUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AutomationProductUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>[]
+        }
+        upsert: {
+          args: Prisma.AutomationProductUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AutomationProductPayload>
+        }
+        aggregate: {
+          args: Prisma.AutomationProductAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAutomationProduct>
+        }
+        groupBy: {
+          args: Prisma.AutomationProductGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AutomationProductGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AutomationProductCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AutomationProductCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1256,11 +1406,16 @@ export const AutomationScalarFieldEnum = {
   mediaType: 'mediaType',
   triggerType: 'triggerType',
   keywordMatchMode: 'keywordMatchMode',
+  keywordMatchLogic: 'keywordMatchLogic',
   keywords: 'keywords',
+  publicReplyEnabled: 'publicReplyEnabled',
   publicReplyText: 'publicReplyText',
   publicReplyVariations: 'publicReplyVariations',
   dmMessageText: 'dmMessageText',
   dmLink: 'dmLink',
+  productDeliveryMode: 'productDeliveryMode',
+  productIntroText: 'productIntroText',
+  productClosingText: 'productClosingText',
   deliveryMode: 'deliveryMode',
   buttonLabel: 'buttonLabel',
   cooldownSeconds: 'cooldownSeconds',
@@ -1269,6 +1424,8 @@ export const AutomationScalarFieldEnum = {
   followInstructionText: 'followInstructionText',
   followSuccessText: 'followSuccessText',
   followFallbackText: 'followFallbackText',
+  followUpEnabled: 'followUpEnabled',
+  followUpText: 'followUpText',
   templateId: 'templateId',
   status: 'status',
   createdAt: 'createdAt',
@@ -1401,6 +1558,56 @@ export const AutomationTemplateScalarFieldEnum = {
 export type AutomationTemplateScalarFieldEnum = (typeof AutomationTemplateScalarFieldEnum)[keyof typeof AutomationTemplateScalarFieldEnum]
 
 
+export const AffiliateProductScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  brand: 'brand',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  affiliateUrl: 'affiliateUrl',
+  originalUrl: 'originalUrl',
+  price: 'price',
+  discountPrice: 'discountPrice',
+  discountInfo: 'discountInfo',
+  couponCode: 'couponCode',
+  affiliatePartner: 'affiliatePartner',
+  category: 'category',
+  ctaLabel: 'ctaLabel',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AffiliateProductScalarFieldEnum = (typeof AffiliateProductScalarFieldEnum)[keyof typeof AffiliateProductScalarFieldEnum]
+
+
+export const AutomationProductScalarFieldEnum = {
+  id: 'id',
+  automationId: 'automationId',
+  affiliateProductId: 'affiliateProductId',
+  name: 'name',
+  imageUrl: 'imageUrl',
+  description: 'description',
+  productUrl: 'productUrl',
+  affiliateUrl: 'affiliateUrl',
+  originalUrl: 'originalUrl',
+  price: 'price',
+  discountPrice: 'discountPrice',
+  category: 'category',
+  ctaLabel: 'ctaLabel',
+  customMessage: 'customMessage',
+  couponCode: 'couponCode',
+  brand: 'brand',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationProductScalarFieldEnum = (typeof AutomationProductScalarFieldEnum)[keyof typeof AutomationProductScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1529,6 +1736,34 @@ export type EnumKeywordMatchModeFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'KeywordMatchMode[]'
  */
 export type ListEnumKeywordMatchModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeywordMatchMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'KeywordMatchLogic'
+ */
+export type EnumKeywordMatchLogicFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeywordMatchLogic'>
+    
+
+
+/**
+ * Reference to a field of type 'KeywordMatchLogic[]'
+ */
+export type ListEnumKeywordMatchLogicFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeywordMatchLogic[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProductDeliveryMode'
+ */
+export type EnumProductDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductDeliveryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'ProductDeliveryMode[]'
+ */
+export type ListEnumProductDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductDeliveryMode[]'>
     
 
 
@@ -1683,6 +1918,20 @@ export type EnumOutboxStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pri
  * Reference to a field of type 'OutboxStatus[]'
  */
 export type ListEnumOutboxStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OutboxStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProductStatus'
+ */
+export type EnumProductStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProductStatus[]'
+ */
+export type ListEnumProductStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProductStatus[]'>
     
 
 
@@ -1860,6 +2109,8 @@ export type GlobalOmitConfig = {
   outboxEvent?: Prisma.OutboxEventOmit
   messagingWebhookEvent?: Prisma.MessagingWebhookEventOmit
   automationTemplate?: Prisma.AutomationTemplateOmit
+  affiliateProduct?: Prisma.AffiliateProductOmit
+  automationProduct?: Prisma.AutomationProductOmit
 }
 
 /* Types for Logging */

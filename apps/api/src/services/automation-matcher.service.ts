@@ -51,7 +51,8 @@ export async function findMatchingAutomation(input: MatchAutomationInput) {
     const result = matchCommentKeywords(
       input.commentText,
       mode,
-      automation.keywords
+      automation.keywords,
+      automation.keywordMatchLogic
     );
     if (result.matched) {
       return automation;
@@ -107,7 +108,8 @@ export async function matchAndQueueAutomation(webhookEventId: string) {
         const res = matchCommentKeywords(
           event.commentText,
           mode,
-          automation.keywords
+          automation.keywords,
+          automation.keywordMatchLogic
         );
         if (res.matched) {
           matchedAutomation = automation;

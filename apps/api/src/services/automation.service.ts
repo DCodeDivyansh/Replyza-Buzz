@@ -1,9 +1,53 @@
 
 import { prisma } from "@replyza/database";
 import type {
+  AutomationProductInput,
   CreateAutomationInput,
   UpdateAutomationInput
 } from "../validators/automation.validator";
+
+async function validateProductOwnership(
+  userId: string,
+  products: AutomationProductInput[]
+) {
+  const ids = products
+    .map((p) => p.affiliateProductId)
+    .filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return;
+
+  const uniqueIds = Array.from(new Set(ids));
+  const owned = await prisma.affiliateProduct.findMany({
+    where: { id: { in: uniqueIds }, userId },
+    select: { id: true },
+  });
+
+  if (owned.length !== uniqueIds.length) {
+    throw new AutomationError(
+      "One or more selected affiliate products were not found",
+      404
+    );
+  }
+}
+
+function mapProductCreateData(products: AutomationProductInput[]) {
+  return products.map((p, index) => ({
+    affiliateProductId: p.affiliateProductId ?? null,
+    name: p.name,
+    imageUrl: p.imageUrl ?? null,
+    description: p.description ?? null,
+    productUrl: p.productUrl ?? null,
+    affiliateUrl: p.affiliateUrl,
+    originalUrl: p.originalUrl ?? null,
+    price: p.price ?? null,
+    discountPrice: p.discountPrice ?? null,
+    category: p.category ?? null,
+    ctaLabel: p.ctaLabel || "Shop Now",
+    customMessage: p.customMessage ?? null,
+    couponCode: p.couponCode ?? null,
+    brand: p.brand ?? null,
+    sortOrder: p.sortOrder ?? index,
+  }));
+}
 
 export class AutomationError extends Error {
   constructor(
@@ -75,6 +119,11 @@ export async function createAutomation(
     }
   }
 
+  const products = input.products ?? [];
+  await validateProductOwnership(userId, products);
+
+  const effectiveDmLink = input.dmLink ?? products[0]?.affiliateUrl ?? null;
+
   try {
     return await prisma.automation.create({
       data: {
@@ -85,11 +134,16 @@ export async function createAutomation(
         mediaType: input.mediaType,
         triggerType: input.triggerType,
         keywordMatchMode: input.keywordMatchMode ?? "CONTAINS",
+        keywordMatchLogic: input.keywordMatchLogic ?? "ANY_KEYWORD",
         keywords: input.keywords,
+        publicReplyEnabled: input.publicReplyEnabled ?? true,
         publicReplyText: input.publicReplyText,
         publicReplyVariations: input.publicReplyVariations ?? [],
         dmMessageText: input.dmMessageText,
-        dmLink: input.dmLink,
+        dmLink: effectiveDmLink,
+        productDeliveryMode: input.productDeliveryMode ?? "SINGLE_MESSAGE",
+        productIntroText: input.productIntroText ?? null,
+        productClosingText: input.productClosingText ?? null,
         deliveryMode: effectiveDeliveryMode,
         buttonLabel: input.buttonLabel ?? null,
         cooldownSeconds: input.cooldownSeconds ?? 0,
@@ -98,9 +152,15 @@ export async function createAutomation(
         followInstructionText: input.followInstructionText,
         followSuccessText: input.followSuccessText,
         followFallbackText: input.followFallbackText,
+        followUpEnabled: input.followUpEnabled ?? false,
+        followUpText: input.followUpText ?? null,
         templateId: resolvedTemplateId,
-        status: "DRAFT"
-      }
+        status: "DRAFT",
+        products: products.length > 0 ? { create: mapProductCreateData(products) } : undefined,
+      },
+      include: {
+        products: { orderBy: { sortOrder: "asc" } },
+      },
     });
   } catch (error) {
     // Handle a duplicate created by a concurrent request.
@@ -135,6 +195,9 @@ export async function getUserAutomations(userId: string) {
           username: true,
           instagramUserId: true
         }
+      },
+      products: {
+        orderBy: { sortOrder: "asc" }
       }
     },
     orderBy: {
@@ -162,6 +225,9 @@ export async function getAutomationById(
           username: true,
           instagramUserId: true
         }
+      },
+      products: {
+        orderBy: { sortOrder: "asc" }
       }
     }
   });
@@ -204,11 +270,43 @@ export async function updateAutomation(
     );
   }
 
-  return prisma.automation.update({
-    where: {
-      id: automationId
-    },
-    data: input
+  const { products, ...scalarInput } = input;
+
+  if (products !== undefined) {
+    await validateProductOwnership(userId, products);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    if (products !== undefined) {
+      await tx.automationProduct.deleteMany({
+        where: { automationId },
+      });
+      if (products.length > 0) {
+        await tx.automationProduct.createMany({
+          data: mapProductCreateData(products).map((p) => ({
+            ...p,
+            automationId,
+          })),
+        });
+      }
+    }
+
+    return tx.automation.update({
+      where: {
+        id: automationId
+      },
+      data: {
+        ...scalarInput,
+        ...(products !== undefined && scalarInput.dmLink === undefined
+          ? { dmLink: products[0]?.affiliateUrl ?? existing.dmLink }
+          : {}),
+      },
+      include: {
+        products: {
+          orderBy: { sortOrder: "asc" }
+        }
+      }
+    });
   });
 }
 

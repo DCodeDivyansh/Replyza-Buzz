@@ -185,6 +185,7 @@ export type UserWhereInput = {
   instagramAccounts?: Prisma.InstagramAccountListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
   automationTemplates?: Prisma.AutomationTemplateListRelationFilter
+  affiliateProducts?: Prisma.AffiliateProductListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -196,6 +197,7 @@ export type UserOrderByWithRelationInput = {
   instagramAccounts?: Prisma.InstagramAccountOrderByRelationAggregateInput
   refreshTokens?: Prisma.RefreshTokenOrderByRelationAggregateInput
   automationTemplates?: Prisma.AutomationTemplateOrderByRelationAggregateInput
+  affiliateProducts?: Prisma.AffiliateProductOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -210,6 +212,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   instagramAccounts?: Prisma.InstagramAccountListRelationFilter
   refreshTokens?: Prisma.RefreshTokenListRelationFilter
   automationTemplates?: Prisma.AutomationTemplateListRelationFilter
+  affiliateProducts?: Prisma.AffiliateProductListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -243,6 +246,7 @@ export type UserCreateInput = {
   instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -254,6 +258,7 @@ export type UserUncheckedCreateInput = {
   instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -265,6 +270,7 @@ export type UserUpdateInput = {
   instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -276,6 +282,7 @@ export type UserUncheckedUpdateInput = {
   instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -388,6 +395,20 @@ export type UserUpdateOneWithoutAutomationTemplatesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAutomationTemplatesInput, Prisma.UserUpdateWithoutAutomationTemplatesInput>, Prisma.UserUncheckedUpdateWithoutAutomationTemplatesInput>
 }
 
+export type UserCreateNestedOneWithoutAffiliateProductsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAffiliateProductsInput, Prisma.UserUncheckedCreateWithoutAffiliateProductsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAffiliateProductsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAffiliateProductsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAffiliateProductsInput, Prisma.UserUncheckedCreateWithoutAffiliateProductsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAffiliateProductsInput
+  upsert?: Prisma.UserUpsertWithoutAffiliateProductsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAffiliateProductsInput, Prisma.UserUpdateWithoutAffiliateProductsInput>, Prisma.UserUncheckedUpdateWithoutAffiliateProductsInput>
+}
+
 export type UserCreateWithoutInstagramAccountsInput = {
   id?: string
   email: string
@@ -396,6 +417,7 @@ export type UserCreateWithoutInstagramAccountsInput = {
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
   automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutInstagramAccountsInput = {
@@ -406,6 +428,7 @@ export type UserUncheckedCreateWithoutInstagramAccountsInput = {
   updatedAt?: Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
   automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutInstagramAccountsInput = {
@@ -432,6 +455,7 @@ export type UserUpdateWithoutInstagramAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
   automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInstagramAccountsInput = {
@@ -442,6 +466,7 @@ export type UserUncheckedUpdateWithoutInstagramAccountsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
   automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRefreshTokensInput = {
@@ -452,6 +477,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
   automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
@@ -462,6 +488,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
   automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRefreshTokensInput = {
@@ -488,6 +515,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
   automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
@@ -498,6 +526,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
   automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAutomationTemplatesInput = {
@@ -508,6 +537,7 @@ export type UserCreateWithoutAutomationTemplatesInput = {
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAutomationTemplatesInput = {
@@ -518,6 +548,7 @@ export type UserUncheckedCreateWithoutAutomationTemplatesInput = {
   updatedAt?: Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
   refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAutomationTemplatesInput = {
@@ -544,6 +575,7 @@ export type UserUpdateWithoutAutomationTemplatesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAutomationTemplatesInput = {
@@ -554,6 +586,67 @@ export type UserUncheckedUpdateWithoutAutomationTemplatesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
   refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  affiliateProducts?: Prisma.AffiliateProductUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutAffiliateProductsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  instagramAccounts?: Prisma.InstagramAccountCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAffiliateProductsInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  instagramAccounts?: Prisma.InstagramAccountUncheckedCreateNestedManyWithoutUserInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedCreateNestedManyWithoutUserInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAffiliateProductsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAffiliateProductsInput, Prisma.UserUncheckedCreateWithoutAffiliateProductsInput>
+}
+
+export type UserUpsertWithoutAffiliateProductsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAffiliateProductsInput, Prisma.UserUncheckedUpdateWithoutAffiliateProductsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAffiliateProductsInput, Prisma.UserUncheckedCreateWithoutAffiliateProductsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAffiliateProductsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAffiliateProductsInput, Prisma.UserUncheckedUpdateWithoutAffiliateProductsInput>
+}
+
+export type UserUpdateWithoutAffiliateProductsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instagramAccounts?: Prisma.InstagramAccountUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAffiliateProductsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instagramAccounts?: Prisma.InstagramAccountUncheckedUpdateManyWithoutUserNestedInput
+  refreshTokens?: Prisma.RefreshTokenUncheckedUpdateManyWithoutUserNestedInput
+  automationTemplates?: Prisma.AutomationTemplateUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -565,12 +658,14 @@ export type UserCountOutputType = {
   instagramAccounts: number
   refreshTokens: number
   automationTemplates: number
+  affiliateProducts: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instagramAccounts?: boolean | UserCountOutputTypeCountInstagramAccountsArgs
   refreshTokens?: boolean | UserCountOutputTypeCountRefreshTokensArgs
   automationTemplates?: boolean | UserCountOutputTypeCountAutomationTemplatesArgs
+  affiliateProducts?: boolean | UserCountOutputTypeCountAffiliateProductsArgs
 }
 
 /**
@@ -604,6 +699,13 @@ export type UserCountOutputTypeCountAutomationTemplatesArgs<ExtArgs extends runt
   where?: Prisma.AutomationTemplateWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAffiliateProductsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AffiliateProductWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -614,6 +716,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   instagramAccounts?: boolean | Prisma.User$instagramAccountsArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   automationTemplates?: boolean | Prisma.User$automationTemplatesArgs<ExtArgs>
+  affiliateProducts?: boolean | Prisma.User$affiliateProductsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -646,6 +749,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   instagramAccounts?: boolean | Prisma.User$instagramAccountsArgs<ExtArgs>
   refreshTokens?: boolean | Prisma.User$refreshTokensArgs<ExtArgs>
   automationTemplates?: boolean | Prisma.User$automationTemplatesArgs<ExtArgs>
+  affiliateProducts?: boolean | Prisma.User$affiliateProductsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -657,6 +761,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     instagramAccounts: Prisma.$InstagramAccountPayload<ExtArgs>[]
     refreshTokens: Prisma.$RefreshTokenPayload<ExtArgs>[]
     automationTemplates: Prisma.$AutomationTemplatePayload<ExtArgs>[]
+    affiliateProducts: Prisma.$AffiliateProductPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1061,6 +1166,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   instagramAccounts<T extends Prisma.User$instagramAccountsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$instagramAccountsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InstagramAccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   refreshTokens<T extends Prisma.User$refreshTokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$refreshTokensArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RefreshTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   automationTemplates<T extends Prisma.User$automationTemplatesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$automationTemplatesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationTemplatePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  affiliateProducts<T extends Prisma.User$affiliateProductsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$affiliateProductsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AffiliateProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1557,6 +1663,30 @@ export type User$automationTemplatesArgs<ExtArgs extends runtime.Types.Extension
   take?: number
   skip?: number
   distinct?: Prisma.AutomationTemplateScalarFieldEnum | Prisma.AutomationTemplateScalarFieldEnum[]
+}
+
+/**
+ * User.affiliateProducts
+ */
+export type User$affiliateProductsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AffiliateProduct
+   */
+  select?: Prisma.AffiliateProductSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AffiliateProduct
+   */
+  omit?: Prisma.AffiliateProductOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AffiliateProductInclude<ExtArgs> | null
+  where?: Prisma.AffiliateProductWhereInput
+  orderBy?: Prisma.AffiliateProductOrderByWithRelationInput | Prisma.AffiliateProductOrderByWithRelationInput[]
+  cursor?: Prisma.AffiliateProductWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AffiliateProductScalarFieldEnum | Prisma.AffiliateProductScalarFieldEnum[]
 }
 
 /**

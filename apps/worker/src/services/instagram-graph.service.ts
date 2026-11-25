@@ -194,6 +194,69 @@ export async function sendDirectMessage(
   );
 }
 
+export interface GenericTemplateButton {
+  type: "web_url";
+  url: string;
+  title: string;
+}
+
+export interface GenericTemplateElement {
+  title: string;
+  subtitle?: string;
+  image_url?: string;
+  default_action?: {
+    type: "web_url";
+    url: string;
+  };
+  buttons: GenericTemplateButton[];
+}
+
+/**
+ * Sends a Meta Instagram Generic Template (carousel of up to 10 product cards).
+ * Only supported for standard `recipient: { id: IGSID }` DMs within the 24h messaging window,
+ * NOT for initial `recipient: { comment_id }` private replies.
+ */
+export async function sendGenericTemplateMessage(
+  instagramUserId: string,
+  recipientIgsid: string,
+  elements: GenericTemplateElement[],
+  token: string
+): Promise<string> {
+  const sanitizedElements = elements.slice(0, 10).map((el) => ({
+    title: el.title.slice(0, 80),
+    ...(el.subtitle ? { subtitle: el.subtitle.slice(0, 80) } : {}),
+    ...(el.image_url && el.image_url.startsWith("https://")
+      ? { image_url: el.image_url }
+      : {}),
+    ...(el.default_action ? { default_action: el.default_action } : {}),
+    buttons: el.buttons.slice(0, 3).map((b) => ({
+      type: "web_url" as const,
+      url: b.url,
+      title: b.title.slice(0, 20),
+    })),
+  }));
+
+  const body = new URLSearchParams({
+    recipient: JSON.stringify({ id: recipientIgsid }),
+    message: JSON.stringify({
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "generic",
+          elements: sanitizedElements,
+        },
+      },
+    }),
+  });
+
+  return graphPost(
+    `${encodeURIComponent(instagramUserId)}/messages`,
+    token,
+    body,
+    "message_id"
+  );
+}
+
 export type FollowVerificationOutcome =
   | "VERIFIED"
   | "NOT_FOLLOWING"
