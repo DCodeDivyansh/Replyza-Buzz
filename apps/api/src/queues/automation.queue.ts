@@ -6,6 +6,7 @@ export interface AutomationJobData {
   executionId: string;
   automationId: string;
   webhookEventId: string;
+  actionType?: "PUBLIC_REPLY" | "HOOK_DM";
 }
 
 export const redisConnection = new IORedis(
@@ -44,7 +45,10 @@ export const automationQueue = new Queue<AutomationJobData>(
 export async function enqueueAutomationExecution(
   data: AutomationJobData
 ): Promise<"QUEUED" | "ALREADY_QUEUED"> {
-  const existingJob = await automationQueue.getJob(data.executionId);
+  const jobId = data.actionType
+    ? `${data.executionId}__${data.actionType}`
+    : data.executionId;
+  const existingJob = await automationQueue.getJob(jobId);
 
   if (existingJob) {
     const state = await existingJob.getState();
@@ -58,10 +62,10 @@ export async function enqueueAutomationExecution(
   }
 
   await automationQueue.add(
-    "process-automation",
+    data.actionType ? `process-${data.actionType.toLowerCase()}` : "process-automation",
     data,
     {
-      jobId: data.executionId,
+      jobId,
     }
   );
 

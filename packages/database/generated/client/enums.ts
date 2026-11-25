@@ -78,3 +78,57 @@ export const OutboxStatus = {
 } as const
 
 export type OutboxStatus = (typeof OutboxStatus)[keyof typeof OutboxStatus]
+
+
+export const KeywordMatchMode = {
+  CONTAINS: 'CONTAINS',
+  EXACT: 'EXACT',
+  ANY: 'ANY'
+} as const
+
+export type KeywordMatchMode = (typeof KeywordMatchMode)[keyof typeof KeywordMatchMode]
+
+
+export const DeliveryMode = {
+  DIRECT: 'DIRECT',
+  BUTTON: 'BUTTON'
+} as const
+
+export type DeliveryMode = (typeof DeliveryMode)[keyof typeof DeliveryMode]
+
+
+export const DeliveryActionType = {
+  PUBLIC_REPLY: 'PUBLIC_REPLY',
+  HOOK_DM: 'HOOK_DM',
+  LINK_DM: 'LINK_DM',
+  FOLLOW_FALLBACK_DM: 'FOLLOW_FALLBACK_DM'
+} as const
+
+export type DeliveryActionType = (typeof DeliveryActionType)[keyof typeof DeliveryActionType]
+
+
+export const DeliveryActionStatus = {
+  PENDING: 'PENDING',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+  SKIPPED: 'SKIPPED',
+  NEEDS_REVIEW: 'NEEDS_REVIEW'
+} as const
+
+export type DeliveryActionStatus = (typeof DeliveryActionStatus)[keyof typeof DeliveryActionStatus]
+
+
+export const ConversationState = {
+  HOOK_SENT: 'HOOK_SENT',
+  AWAITING_TAP: 'AWAITING_TAP',
+  TAPPED: 'TAPPED',
+  FOLLOW_CHECKING: 'FOLLOW_CHECKING',
+  AWAITING_FOLLOW: 'AWAITING_FOLLOW',
+  COMPLETED: 'COMPLETED',
+  EXPIRED_WINDOW: 'EXPIRED_WINDOW',
+  FAILED: 'FAILED',
+  NEEDS_RECONNECT: 'NEEDS_RECONNECT'
+} as const
+
+export type ConversationState = (typeof ConversationState)[keyof typeof ConversationState]

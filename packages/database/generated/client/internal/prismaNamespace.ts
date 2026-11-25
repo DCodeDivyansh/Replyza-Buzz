@@ -403,6 +403,7 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  DeliveryAction: 'DeliveryAction',
   OutboxEvent: 'OutboxEvent',
   MessagingWebhookEvent: 'MessagingWebhookEvent',
   AutomationTemplate: 'AutomationTemplate'
@@ -421,7 +422,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate"
+    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "deliveryAction" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -869,6 +870,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    DeliveryAction: {
+      payload: Prisma.$DeliveryActionPayload<ExtArgs>
+      fields: Prisma.DeliveryActionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DeliveryActionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DeliveryActionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>
+        }
+        findFirst: {
+          args: Prisma.DeliveryActionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DeliveryActionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>
+        }
+        findMany: {
+          args: Prisma.DeliveryActionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>[]
+        }
+        create: {
+          args: Prisma.DeliveryActionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>
+        }
+        createMany: {
+          args: Prisma.DeliveryActionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DeliveryActionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>[]
+        }
+        delete: {
+          args: Prisma.DeliveryActionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>
+        }
+        update: {
+          args: Prisma.DeliveryActionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>
+        }
+        deleteMany: {
+          args: Prisma.DeliveryActionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DeliveryActionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DeliveryActionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>[]
+        }
+        upsert: {
+          args: Prisma.DeliveryActionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DeliveryActionPayload>
+        }
+        aggregate: {
+          args: Prisma.DeliveryActionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDeliveryAction>
+        }
+        groupBy: {
+          args: Prisma.DeliveryActionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeliveryActionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DeliveryActionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DeliveryActionCountAggregateOutputType> | number
+        }
+      }
+    }
     OutboxEvent: {
       payload: Prisma.$OutboxEventPayload<ExtArgs>
       fields: Prisma.OutboxEventFieldRefs
@@ -1180,10 +1255,16 @@ export const AutomationScalarFieldEnum = {
   mediaPermalink: 'mediaPermalink',
   mediaType: 'mediaType',
   triggerType: 'triggerType',
+  keywordMatchMode: 'keywordMatchMode',
   keywords: 'keywords',
   publicReplyText: 'publicReplyText',
+  publicReplyVariations: 'publicReplyVariations',
   dmMessageText: 'dmMessageText',
   dmLink: 'dmLink',
+  deliveryMode: 'deliveryMode',
+  buttonLabel: 'buttonLabel',
+  cooldownSeconds: 'cooldownSeconds',
+  dmMeFallbackEnabled: 'dmMeFallbackEnabled',
   followRequired: 'followRequired',
   followInstructionText: 'followInstructionText',
   followSuccessText: 'followSuccessText',
@@ -1237,10 +1318,30 @@ export const AutomationExecutionScalarFieldEnum = {
   followCheckRetryCount: 'followCheckRetryCount',
   metaFollowCheckReplyId: 'metaFollowCheckReplyId',
   followVerificationOutcome: 'followVerificationOutcome',
-  followCheckError: 'followCheckError'
+  followCheckError: 'followCheckError',
+  conversationState: 'conversationState',
+  commenterIgsid: 'commenterIgsid',
+  tapEventMid: 'tapEventMid'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const DeliveryActionScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  actionType: 'actionType',
+  status: 'status',
+  metaId: 'metaId',
+  attempts: 'attempts',
+  lastErrorCode: 'lastErrorCode',
+  lastErrorMessage: 'lastErrorMessage',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeliveryActionScalarFieldEnum = (typeof DeliveryActionScalarFieldEnum)[keyof typeof DeliveryActionScalarFieldEnum]
 
 
 export const OutboxEventScalarFieldEnum = {
@@ -1418,6 +1519,48 @@ export type ListEnumAutomationTriggerFieldRefInput<$PrismaModel> = FieldRefInput
 
 
 /**
+ * Reference to a field of type 'KeywordMatchMode'
+ */
+export type EnumKeywordMatchModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeywordMatchMode'>
+    
+
+
+/**
+ * Reference to a field of type 'KeywordMatchMode[]'
+ */
+export type ListEnumKeywordMatchModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'KeywordMatchMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryMode'
+ */
+export type EnumDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryMode[]'
+ */
+export type ListEnumDeliveryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'AutomationStatus'
  */
 export type EnumAutomationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AutomationStatus'>
@@ -1488,16 +1631,44 @@ export type ListEnumActionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'ConversationState'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type EnumConversationStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationState'>
     
 
 
 /**
- * Reference to a field of type 'Int[]'
+ * Reference to a field of type 'ConversationState[]'
  */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+export type ListEnumConversationStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ConversationState[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryActionType'
+ */
+export type EnumDeliveryActionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryActionType'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryActionType[]'
+ */
+export type ListEnumDeliveryActionTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryActionType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryActionStatus'
+ */
+export type EnumDeliveryActionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryActionStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DeliveryActionStatus[]'
+ */
+export type ListEnumDeliveryActionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DeliveryActionStatus[]'>
     
 
 
@@ -1685,6 +1856,7 @@ export type GlobalOmitConfig = {
   automation?: Prisma.AutomationOmit
   webhookEvent?: Prisma.WebhookEventOmit
   automationExecution?: Prisma.AutomationExecutionOmit
+  deliveryAction?: Prisma.DeliveryActionOmit
   outboxEvent?: Prisma.OutboxEventOmit
   messagingWebhookEvent?: Prisma.MessagingWebhookEventOmit
   automationTemplate?: Prisma.AutomationTemplateOmit

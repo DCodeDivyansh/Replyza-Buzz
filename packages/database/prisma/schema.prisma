@@ -113,21 +113,67 @@ enum OutboxStatus {
   FAILED
 }
 
+enum KeywordMatchMode {
+  CONTAINS
+  EXACT
+  ANY
+}
+
+enum DeliveryMode {
+  DIRECT
+  BUTTON
+}
+
+enum DeliveryActionType {
+  PUBLIC_REPLY
+  HOOK_DM
+  LINK_DM
+  FOLLOW_FALLBACK_DM
+}
+
+enum DeliveryActionStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+  SKIPPED
+  NEEDS_REVIEW
+}
+
+enum ConversationState {
+  HOOK_SENT
+  AWAITING_TAP
+  TAPPED
+  FOLLOW_CHECKING
+  AWAITING_FOLLOW
+  COMPLETED
+  EXPIRED_WINDOW
+  FAILED
+  NEEDS_RECONNECT
+}
+
 model Automation {
   id                 String            @id @default(uuid()) @db.Uuid
   instagramAccountId String            @db.Uuid
 
   name               String
-  mediaId            String
+  mediaId            String?
   mediaPermalink     String?
   mediaType          String?
 
   triggerType        AutomationTrigger
+  keywordMatchMode   KeywordMatchMode  @default(CONTAINS)
   keywords           String[]          @default([])
 
-  publicReplyText    String
-  dmMessageText      String
-  dmLink             String?
+  publicReplyText       String
+  publicReplyVariations String[]       @default([])
+  dmMessageText         String
+  dmLink                String?
+
+  deliveryMode          DeliveryMode      @default(DIRECT)
+  buttonLabel           String?
+  cooldownSeconds       Int               @default(0)
+  dmMeFallbackEnabled   Boolean           @default(false)
 
   followRequired        Boolean           @default(false)
   followInstructionText String?
@@ -140,10 +186,11 @@ model Automation {
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
-  instagramAccount   InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  instagramAccount   InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  template           AutomationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   executions         AutomationExecution[]
 
-  @@unique([instagramAccountId, mediaId])
+  @@index([instagramAccountId, mediaId])
   @@index([instagramAccountId, status])
   @@map("automations")
 }
@@ -197,21 +244,47 @@ model AutomationExecution {
   retryCount                Int             @default(0)
   lastAttemptAt             DateTime?
 
-  followCheckStatus         ActionStatus?   @default(PENDING)
+  followCheckStatus         ActionStatus?      @default(PENDING)
   followCheckSentAt         DateTime?
   followCheckVerifiedAt     DateTime?
-  followCheckRetryCount     Int             @default(0)
+  followCheckRetryCount     Int                @default(0)
   metaFollowCheckReplyId    String?
   followVerificationOutcome String?
   followCheckError          String?
 
+  conversationState         ConversationState?
+  commenterIgsid            String?
+  tapEventMid               String?            @unique
+
   automation         Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
   webhookEvent       WebhookEvent    @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
   messagingEvents    MessagingWebhookEvent[]
+  deliveryActions    DeliveryAction[]
 
   @@index([automationId, createdAt])
+  @@index([commenterIgsid, createdAt])
   @@index([status])
   @@map("automation_executions")
+}
+
+model DeliveryAction {
+  id               String               @id @default(uuid()) @db.Uuid
+  executionId      String               @db.Uuid
+  actionType       DeliveryActionType
+  status           DeliveryActionStatus @default(PENDING)
+  metaId           String?
+  attempts         Int                  @default(0)
+  lastErrorCode    String?
+  lastErrorMessage String?
+  sentAt           DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  execution AutomationExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@unique([executionId, actionType])
+  @@index([status, createdAt])
+  @@map("delivery_actions")
 }
 
 model OutboxEvent {
@@ -274,6 +347,7 @@ model AutomationTemplate {
   updatedAt             DateTime          @updatedAt
 
   user                  User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automations           Automation[]
 
   @@index([userId])
   @@index([isSystem])

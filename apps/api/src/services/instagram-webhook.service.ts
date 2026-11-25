@@ -1,7 +1,13 @@
-
 import { createHash } from "node:crypto";
 import { prisma } from "@replyza/database";
+import {
+  matchCommentKeywords,
+  verifyFollowCheckPayload,
+} from "@replyza/shared";
+import { env } from "../config/env";
+import { features } from "../config/features";
 import { matchAndQueueAutomation } from "./automation-matcher.service";
+import { redisConnection } from "../queues/automation.queue";
 import { enqueueFollowCheck } from "../queues/follow-check.queue";
 import { logger } from "../utils/logger";
 
@@ -21,6 +27,16 @@ function isNonEmptyString(value: unknown): value is string {
 
 function isDuplicateError(error: unknown): boolean {
   return isRecord(error) && error.code === "P2002";
+}
+
+async function tryFastPathDedupe(key: string): Promise<boolean> {
+  try {
+    const res = await redisConnection.set(key, "1", "EX", 300, "NX");
+    return res === "OK";
+  } catch {
+    // Redis unavailable — fall back seamlessly to authoritative PostgreSQL unique constraints
+    return true;
+  }
 }
 
 export async function persistInstagramCommentEvents(
@@ -50,7 +66,7 @@ export async function persistInstagramCommentEvents(
     if (!instagramAccount) {
       logger.warn(
         {
-          entryId: rawEntry.id,
+          entryId: entryInstagramUserId,
           doc: "https://developers.facebook.com/documentation/instagram-platform/webhooks",
         },
         "Received webhook for unknown or disconnected Instagram account"
@@ -59,7 +75,7 @@ export async function persistInstagramCommentEvents(
       continue;
     }
 
-    // 1. Process messaging events (e.g. Quick Reply clicks for Follow-to-Get-Link)
+    // 1. Process messaging events (Quick Reply taps, Postbacks, text-fallback consent, DM-me fallback)
     if (Array.isArray(rawEntry.messaging)) {
       for (const rawMsg of rawEntry.messaging) {
         if (!isRecord(rawMsg)) {
@@ -67,23 +83,48 @@ export async function persistInstagramCommentEvents(
           continue;
         }
 
-        const sender = isRecord(rawMsg.sender) ? rawMsg.sender : null;
-        const senderId = sender && isNonEmptyString(sender.id) ? sender.id : null;
-        let payloadString: string | null = null;
+        const msgObj = isRecord(rawMsg.message) ? rawMsg.message : null;
+        // Filter echo messages sent by our own Instagram account (prevent DM loops)
+        if (msgObj && msgObj.is_echo === true) {
+          ignored++;
+          continue;
+        }
 
-        if (isRecord(rawMsg.message) && isRecord(rawMsg.message.quick_reply)) {
-          if (isNonEmptyString(rawMsg.message.quick_reply.payload)) {
-            payloadString = rawMsg.message.quick_reply.payload;
+        const sender = isRecord(rawMsg.sender) ? rawMsg.sender : null;
+        const senderId =
+          sender && isNonEmptyString(sender.id) ? sender.id : null;
+        if (!senderId || senderId === entryInstagramUserId) {
+          ignored++;
+          continue;
+        }
+
+        let payloadString: string | null = null;
+        let inboundText: string | null = null;
+
+        if (msgObj) {
+          if (isNonEmptyString(msgObj.text)) {
+            inboundText = msgObj.text;
           }
-        } else if (isRecord(rawMsg.postback) && isNonEmptyString(rawMsg.postback.payload)) {
+          if (
+            isRecord(msgObj.quick_reply) &&
+            isNonEmptyString(msgObj.quick_reply.payload)
+          ) {
+            payloadString = msgObj.quick_reply.payload;
+          }
+        } else if (
+          isRecord(rawMsg.postback) &&
+          isNonEmptyString(rawMsg.postback.payload)
+        ) {
           payloadString = rawMsg.postback.payload;
         }
 
-        // Derive durable providerEventId for messaging webhook deduplication
         let providerEventId: string;
-        if (isRecord(rawMsg.message) && isNonEmptyString(rawMsg.message.mid)) {
-          providerEventId = rawMsg.message.mid;
-        } else if (isRecord(rawMsg.postback) && isNonEmptyString(rawMsg.postback.mid)) {
+        if (msgObj && isNonEmptyString(msgObj.mid)) {
+          providerEventId = msgObj.mid;
+        } else if (
+          isRecord(rawMsg.postback) &&
+          isNonEmptyString(rawMsg.postback.mid)
+        ) {
           providerEventId = rawMsg.postback.mid;
         } else {
           providerEventId = createHash("sha256")
@@ -91,11 +132,38 @@ export async function persistInstagramCommentEvents(
             .digest("hex");
         }
 
+        // Fast-path Redis dedupe (authoritative check remains in PostgreSQL)
+        const isFreshMsg = await tryFastPathDedupe(
+          `ig:dedupe:msg:${entryInstagramUserId}:${providerEventId}`
+        );
+        if (!isFreshMsg) {
+          duplicates++;
+          continue;
+        }
+
         let executionId: string | null = null;
         let validExecution = false;
 
-        if (senderId && payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
-          const candidateExecutionId = payloadString.slice("FOLLOW_CHECK:".length);
+        if (payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
+          let candidateExecutionId: string | null = null;
+
+          if (features.FOLLOW_CHECK_SIGNED_TOKENS) {
+            candidateExecutionId = verifyFollowCheckPayload(
+              payloadString,
+              env.SESSION_SECRET
+            );
+            if (!candidateExecutionId) {
+              logger.warn(
+                { accountId: instagramAccount.id, senderId },
+                "Rejected unsigned or tampered FOLLOW_CHECK payload"
+              );
+              ignored++;
+              continue;
+            }
+          } else {
+            candidateExecutionId = payloadString.slice("FOLLOW_CHECK:".length);
+          }
+
           if (candidateExecutionId) {
             const execution = await prisma.automationExecution.findFirst({
               where: {
@@ -117,9 +185,96 @@ export async function persistInstagramCommentEvents(
               );
             }
           }
+        } else if (inboundText) {
+          // Desktop / text-fallback consent: check if sender has an open AWAITING_TAP/AWAITING_FOLLOW execution
+          const openExecution = await prisma.automationExecution.findFirst({
+            where: {
+              automation: { instagramAccountId: instagramAccount.id },
+              OR: [
+                { commenterIgsid: senderId },
+                { webhookEvent: { commenterInstagramId: senderId } },
+              ],
+              conversationState: {
+                in: ["HOOK_SENT", "AWAITING_TAP", "AWAITING_FOLLOW"],
+              },
+            },
+            orderBy: { createdAt: "desc" },
+            select: { id: true },
+          });
+
+          if (openExecution) {
+            executionId = openExecution.id;
+            validExecution = true;
+          } else if (features.DM_ME_FALLBACK) {
+            // Opt-in DM-me fallback: match inbound DM text against active dmMeFallbackEnabled automations
+            const dmFallbacks = await prisma.automation.findMany({
+              where: {
+                instagramAccountId: instagramAccount.id,
+                status: "ACTIVE",
+                dmMeFallbackEnabled: true,
+              },
+              orderBy: { createdAt: "asc" },
+            });
+
+            for (const auto of dmFallbacks) {
+              const mode =
+                auto.triggerType === "ANY_COMMENT"
+                  ? "ANY"
+                  : auto.keywordMatchMode;
+              const match = matchCommentKeywords(
+                inboundText,
+                mode,
+                auto.keywords
+              );
+              if (match.matched) {
+                // Create synthetic WebhookEvent + Execution for DM-me fallback (deduped by providerEventId)
+                const synthetic = await prisma.$transaction(async (tx) => {
+                  const we = await tx.webhookEvent.upsert({
+                    where: {
+                      instagramAccountId_commentId: {
+                        instagramAccountId: instagramAccount.id,
+                        commentId: `dm:${providerEventId}`,
+                      },
+                    },
+                    create: {
+                      instagramAccountId: instagramAccount.id,
+                      commentId: `dm:${providerEventId}`,
+                      mediaId: auto.mediaId ?? "dm_fallback",
+                      commenterInstagramId: senderId,
+                      commentText: inboundText!,
+                      eventPayload: JSON.parse(JSON.stringify(rawMsg)),
+                      status: "PROCESSED",
+                    },
+                    update: {},
+                    select: { id: true },
+                  });
+
+                  const exec = await tx.automationExecution.upsert({
+                    where: { webhookEventId: we.id },
+                    create: {
+                      automationId: auto.id,
+                      webhookEventId: we.id,
+                      commenterIgsid: senderId,
+                      status: "PROCESSING",
+                      publicReplyStatus: "SKIPPED",
+                      privateReplyStatus: "SUCCESS",
+                      conversationState: "TAPPED",
+                    },
+                    update: {},
+                    select: { id: true },
+                  });
+                  return exec.id;
+                });
+
+                executionId = synthetic;
+                validExecution = true;
+                break;
+              }
+            }
+          }
         }
 
-        // Persist messaging webhook event and outbox record atomically for deduplication & Redis-outage safety
+        // Persist messaging webhook event and outbox record atomically
         let messagingEventId: string | null = null;
         let outboxId: string | null = null;
         let outboxPending = false;
@@ -130,9 +285,9 @@ export async function persistInstagramCommentEvents(
               data: {
                 instagramAccountId: instagramAccount.id,
                 providerEventId,
-                senderId: senderId ?? "UNKNOWN",
+                senderId,
                 recipientId: entryInstagramUserId,
-                payload: payloadString,
+                payload: payloadString ?? inboundText,
                 executionId,
                 rawPayload: JSON.parse(JSON.stringify(rawMsg)),
                 status: "RECEIVED",
@@ -141,7 +296,7 @@ export async function persistInstagramCommentEvents(
             });
 
             let obId: string | null = null;
-            if (validExecution && executionId && senderId) {
+            if (validExecution && executionId) {
               const ob = await tx.outboxEvent.upsert({
                 where: {
                   eventType_aggregateId: {
@@ -182,7 +337,6 @@ export async function persistInstagramCommentEvents(
             );
             duplicates++;
 
-            // Recover only if an outbox record is still PENDING (e.g. Redis was down on first attempt)
             const existingMsg = await prisma.messagingWebhookEvent.findUnique({
               where: {
                 instagramAccountId_providerEventId: {
@@ -190,7 +344,7 @@ export async function persistInstagramCommentEvents(
                   providerEventId,
                 },
               },
-              select: { id: true, executionId: true, senderId: true },
+              select: { id: true, executionId: true },
             });
 
             if (existingMsg && existingMsg.executionId) {
@@ -220,7 +374,7 @@ export async function persistInstagramCommentEvents(
           }
         }
 
-        if (outboxPending && outboxId && executionId && senderId) {
+        if (outboxPending && outboxId && executionId) {
           try {
             await enqueueFollowCheck({
               executionId,
@@ -245,7 +399,8 @@ export async function persistInstagramCommentEvents(
               });
             }
           } catch (err) {
-            const errMsg = err instanceof Error ? err.message : "Redis enqueue failed";
+            const errMsg =
+              err instanceof Error ? err.message : "Redis enqueue failed";
             logger.warn(
               { executionId, outboxId, err: errMsg },
               "Immediate follow-check BullMQ dispatch failed; OutboxEvent preserved for recovery"
@@ -265,7 +420,7 @@ export async function persistInstagramCommentEvents(
       }
     }
 
-    // 2. Process changes events (e.g. comments)
+    // 2. Process changes events (comments)
     if (!Array.isArray(rawEntry.changes)) {
       if (!Array.isArray(rawEntry.messaging)) {
         ignored++;
@@ -299,6 +454,25 @@ export async function persistInstagramCommentEvents(
         continue;
       }
 
+      // D1: Ignore comments authored by our own connected Instagram account to prevent reply loops
+      if (commenter.id === entryInstagramUserId) {
+        logger.debug(
+          { commentId: comment.id, accountId: instagramAccount.id },
+          "Ignoring own-account comment to prevent reply loop"
+        );
+        ignored++;
+        continue;
+      }
+
+      // D11: Redis fast-path dedupe (authoritative check remains PostgreSQL unique constraint)
+      const isFreshComment = await tryFastPathDedupe(
+        `ig:dedupe:comment:${entryInstagramUserId}:${comment.id}`
+      );
+      if (!isFreshComment) {
+        duplicates++;
+        continue;
+      }
+
       let webhookEventId: string;
 
       try {
@@ -326,7 +500,6 @@ export async function persistInstagramCommentEvents(
 
         duplicates++;
 
-        // Recover an event that was saved previously but not queued.
         const existingEvent = await prisma.webhookEvent.findUnique({
           where: {
             instagramAccountId_commentId: {
@@ -346,9 +519,6 @@ export async function persistInstagramCommentEvents(
         webhookEventId = existingEvent.id;
       }
 
-      // Run matching for both new and duplicate deliveries.
-      // If Redis is unavailable, this throws and the webhook returns 500.
-      // A subsequent Meta retry can then attempt queue insertion again.
       await matchAndQueueAutomation(webhookEventId);
     }
   }

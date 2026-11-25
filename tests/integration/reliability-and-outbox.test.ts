@@ -135,11 +135,15 @@ describe("Reliability, Idempotency, Outbox, Reconciliation & Execution API", () 
 
     const events = await prisma.webhookEvent.findMany({ where: { instagramAccountId: accountId } });
     const executions = await prisma.automationExecution.findMany({ where: { automationId } });
-    const outbox = await prisma.outboxEvent.findMany({ where: { eventType: "AUTOMATION_EXECUTION" } });
+    const outbox = await prisma.outboxEvent.findMany({
+      where: {
+        eventType: { in: ["AUTOMATION_EXECUTION", "AUTOMATION_ACTION"] },
+      },
+    });
 
     expect(events).toHaveLength(1);
     expect(executions).toHaveLength(1);
-    expect(outbox).toHaveLength(1);
+    expect(outbox).toHaveLength(2);
   });
 
   it("2. Two concurrent workers processing the same execution send at most 1 public reply and 1 DM", async () => {
@@ -330,7 +334,7 @@ describe("Reliability, Idempotency, Outbox, Reconciliation & Execution API", () 
   });
 
   it("5. Redis outage during webhook preserves OutboxEvent and dispatches safely on recovery", async () => {
-    const addSpy = vi.spyOn(automationQueue, "add").mockRejectedValueOnce(new Error("Redis connection closed"));
+    const addSpy = vi.spyOn(automationQueue, "add").mockRejectedValue(new Error("Redis connection closed"));
 
     const body = JSON.stringify({
       object: "instagram",
@@ -363,23 +367,26 @@ describe("Reliability, Idempotency, Outbox, Reconciliation & Execution API", () 
     addSpy.mockRestore();
 
     const pendingOutbox = await prisma.outboxEvent.findMany({
-      where: { eventType: "AUTOMATION_EXECUTION", status: "PENDING" },
+      where: {
+        eventType: { in: ["AUTOMATION_EXECUTION", "AUTOMATION_ACTION"] },
+        status: "PENDING",
+      },
     });
-    expect(pendingOutbox).toHaveLength(1);
+    expect(pendingOutbox).toHaveLength(2);
 
-    // Reset nextAttemptAt so dispatcher picks it up immediately
-    await prisma.outboxEvent.update({
-      where: { id: pendingOutbox[0].id },
+    // Reset nextAttemptAt so dispatcher picks them up immediately
+    await prisma.outboxEvent.updateMany({
+      where: { id: { in: pendingOutbox.map((o) => o.id) } },
       data: { nextAttemptAt: new Date(Date.now() - 1000) },
     });
 
     const result = await dispatchPendingOutboxEvents();
-    expect(result.dispatched).toBe(1);
+    expect(result.dispatched).toBe(2);
 
-    const dispatchedOutbox = await prisma.outboxEvent.findUnique({
-      where: { id: pendingOutbox[0].id },
+    const dispatchedOutbox = await prisma.outboxEvent.findMany({
+      where: { id: { in: pendingOutbox.map((o) => o.id) } },
     });
-    expect(dispatchedOutbox?.status).toBe("DISPATCHED");
+    expect(dispatchedOutbox.every((o) => o.status === "DISPATCHED")).toBe(true);
   });
 
   it("6. Orphan recovery recovers expired PROCESSING leases and orphaned PENDING executions without duplicating", async () => {

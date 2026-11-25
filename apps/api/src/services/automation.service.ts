@@ -38,24 +38,41 @@ export async function createAutomation(
     );
   }
 
-  // Prevent duplicate automation for the same post.
-  const existingAutomation = await prisma.automation.findUnique({
-    where: {
-      instagramAccountId_mediaId: {
-        instagramAccountId: input.instagramAccountId,
-        mediaId: input.mediaId
-      }
-    },
-    select: {
-      id: true
-    }
-  });
+  const normalizedMediaId = input.mediaId ?? null;
 
-  if (existingAutomation) {
-    throw new AutomationError(
-      "An automation already exists for this post",
-      409
-    );
+  // Prevent duplicate automation for the same specific post.
+  if (normalizedMediaId) {
+    const existingAutomation = await prisma.automation.findFirst({
+      where: {
+        instagramAccountId: input.instagramAccountId,
+        mediaId: normalizedMediaId,
+      },
+      select: { id: true },
+    });
+
+    if (existingAutomation) {
+      throw new AutomationError(
+        "An automation already exists for this post",
+        409
+      );
+    }
+  }
+
+  const effectiveDeliveryMode = input.followRequired
+    ? "BUTTON"
+    : (input.deliveryMode ?? "DIRECT");
+
+  let resolvedTemplateId: string | null = null;
+  if (input.templateId) {
+    try {
+      const existingTemplate = await prisma.automationTemplate.findUnique({
+        where: { id: input.templateId },
+        select: { id: true },
+      });
+      resolvedTemplateId = existingTemplate ? existingTemplate.id : null;
+    } catch {
+      resolvedTemplateId = null;
+    }
   }
 
   try {
@@ -63,19 +80,25 @@ export async function createAutomation(
       data: {
         instagramAccountId: input.instagramAccountId,
         name: input.name,
-        mediaId: input.mediaId,
+        mediaId: normalizedMediaId,
         mediaPermalink: input.mediaPermalink,
         mediaType: input.mediaType,
         triggerType: input.triggerType,
+        keywordMatchMode: input.keywordMatchMode ?? "CONTAINS",
         keywords: input.keywords,
         publicReplyText: input.publicReplyText,
+        publicReplyVariations: input.publicReplyVariations ?? [],
         dmMessageText: input.dmMessageText,
         dmLink: input.dmLink,
+        deliveryMode: effectiveDeliveryMode,
+        buttonLabel: input.buttonLabel ?? null,
+        cooldownSeconds: input.cooldownSeconds ?? 0,
+        dmMeFallbackEnabled: input.dmMeFallbackEnabled ?? false,
         followRequired: input.followRequired ?? false,
         followInstructionText: input.followInstructionText,
         followSuccessText: input.followSuccessText,
         followFallbackText: input.followFallbackText,
-        templateId: input.templateId,
+        templateId: resolvedTemplateId,
         status: "DRAFT"
       }
     });
@@ -195,7 +218,26 @@ export async function updateAutomationStatus(
   automationId: string,
   status: "ACTIVE" | "PAUSED"
 ) {
-  await getAutomationById(userId, automationId);
+  const existing = await getAutomationById(userId, automationId);
+
+  if (status === "ACTIVE" && existing.mediaId === null) {
+    const activeAllMedia = await prisma.automation.findFirst({
+      where: {
+        instagramAccountId: existing.instagramAccountId,
+        mediaId: null,
+        status: "ACTIVE",
+        id: { not: automationId },
+      },
+      select: { id: true },
+    });
+
+    if (activeAllMedia) {
+      throw new AutomationError(
+        "Only one active all-media automation is allowed per Instagram account",
+        409
+      );
+    }
+  }
 
   return prisma.automation.update({
     where: {
@@ -302,6 +344,20 @@ export async function listUserExecutions(
         metaFollowCheckReplyId: true,
         followVerificationOutcome: true,
         followCheckError: true,
+        conversationState: true,
+        deliveryActions: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            actionType: true,
+            status: true,
+            attempts: true,
+            metaId: true,
+            lastErrorCode: true,
+            lastErrorMessage: true,
+            sentAt: true,
+          },
+        },
         automation: {
           select: {
             id: true,
@@ -391,6 +447,20 @@ export async function getUserExecutionById(
       metaFollowCheckReplyId: true,
       followVerificationOutcome: true,
       followCheckError: true,
+      conversationState: true,
+      deliveryActions: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          actionType: true,
+          status: true,
+          attempts: true,
+          metaId: true,
+          lastErrorCode: true,
+          lastErrorMessage: true,
+          sentAt: true,
+        },
+      },
       automation: {
         select: {
           id: true,

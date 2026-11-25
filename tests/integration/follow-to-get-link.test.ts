@@ -5,6 +5,7 @@ import app from "../../apps/api/src/app";
 import { prisma } from "@replyza/database";
 import { cleanDatabase } from "../setup";
 import { encryptToken } from "../../apps/api/src/utils/token-encryption";
+import { signFollowCheckPayload } from "@replyza/shared";
 import { followCheckQueue } from "../../apps/api/src/queues/follow-check.queue";
 import { processFollowCheckJob } from "../../apps/worker/src/processors/follow-check.processor";
 
@@ -25,6 +26,7 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
 
   beforeEach(async () => {
     await cleanDatabase();
+    await followCheckQueue.drain();
 
     const user = await prisma.user.create({
       data: {
@@ -110,10 +112,10 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
               recipient: { id: "ig_biz_user_555" },
               timestamp: 1700000000,
               message: {
-                mid: "m_quick_reply_tap_123",
+                mid: `m_quick_reply_tap_${executionId}`,
                 text: "I've followed! ✅",
                 quick_reply: {
-                  payload: `FOLLOW_CHECK:${executionId}`,
+                  payload: signFollowCheckPayload(executionId, process.env.SESSION_SECRET!),
                 },
               },
             },
@@ -142,7 +144,7 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
     // Verify messaging event persisted in database
     const messagingEvent = await prisma.messagingWebhookEvent.findFirst({
       where: {
-        providerEventId: "m_quick_reply_tap_123",
+        providerEventId: `m_quick_reply_tap_${executionId}`,
         instagramAccountId: accountId,
       },
     });
@@ -276,7 +278,9 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
 
     expect(sentMessageText).toContain("You are not following @superbrand yet!");
     expect(sentQuickReplies).toHaveLength(1);
-    expect(sentQuickReplies[0].payload).toBe(`FOLLOW_CHECK:${executionId}`);
+    expect(sentQuickReplies[0].payload).toMatch(
+      new RegExp(`^FOLLOW_CHECK:${executionId}\\.[a-f0-9]+$`)
+    );
 
     const updated = await prisma.automationExecution.findUnique({
       where: { id: executionId },
@@ -298,10 +302,10 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
               recipient: { id: "ig_biz_user_555" },
               timestamp: 1700000000,
               message: {
-                mid: "m_duplicate_tap_456",
+                mid: `m_duplicate_tap_${executionId}`,
                 text: "I've followed! ✅",
                 quick_reply: {
-                  payload: `FOLLOW_CHECK:${executionId}`,
+                  payload: signFollowCheckPayload(executionId, process.env.SESSION_SECRET!),
                 },
               },
             },
@@ -425,8 +429,8 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
 
     await processFollowCheckJob(mockJob);
 
-    // Only 1 GET call (no DM sent, no false verification)
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    // 1 GET call + 1 neutral fallback DM (never false-verifying or sending reward link)
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
 
     const updated = await prisma.automationExecution.findUnique({ where: { id: executionId } });
     expect(updated?.followCheckStatus).toBe("FAILED");
@@ -457,7 +461,8 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
 
     await processFollowCheckJob(mockJob);
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    // 1 GET call + 1 neutral fallback DM
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
     const updated = await prisma.automationExecution.findUnique({ where: { id: executionId } });
     expect(updated?.followCheckStatus).toBe("FAILED");
     expect(updated?.followVerificationOutcome).toBe("PERMISSION_DENIED");
@@ -562,5 +567,44 @@ describe("Follow-to-Get-Link Compliant Workflow", () => {
     // Repeated button click must NOT blindly resend DM when followCheckStatus is UNKNOWN
     await processFollowCheckJob(mockJob);
     expect(dmCalls).toBe(1);
+  });
+
+  it("13. Rejects unsigned or tampered FOLLOW_CHECK payload without enqueuing job", async () => {
+    const rawPayload = {
+      object: "instagram",
+      entry: [
+        {
+          id: "ig_biz_user_555",
+          time: 1700000000,
+          messaging: [
+            {
+              sender: { id: "igsid_messaging_user_888" },
+              recipient: { id: "ig_biz_user_555" },
+              timestamp: 1700000000,
+              message: {
+                mid: "m_tampered_tap_999",
+                text: "I've followed! ✅",
+                quick_reply: {
+                  payload: `FOLLOW_CHECK:${executionId}`,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    const bodyString = JSON.stringify(rawPayload);
+    await followCheckQueue.drain();
+
+    await request(app)
+      .post("/api/v1/webhooks/instagram")
+      .set("Content-Type", "application/json")
+      .set("x-hub-signature-256", signPayload(bodyString))
+      .send(bodyString)
+      .expect(200);
+
+    const jobs = await followCheckQueue.getJobs(["waiting", "active", "completed"]);
+    expect(jobs).toHaveLength(0);
   });
 });

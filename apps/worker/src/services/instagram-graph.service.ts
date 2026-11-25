@@ -14,18 +14,21 @@ interface MetaApiSuccess {
 export class MetaApiError extends Error {
   public readonly category: MetaErrorCategory;
   public readonly isTransient: boolean;
+  public readonly retryAfterMs?: number;
 
   constructor(
     message: string,
     public readonly httpStatus: number,
     public readonly metaError?: MetaGraphErrorDetails,
     category: MetaErrorCategory = "UNKNOWN",
-    isTransient: boolean = false
+    isTransient: boolean = false,
+    retryAfterMs?: number
   ) {
     super(message);
     this.name = "MetaApiError";
     this.category = category;
     this.isTransient = isTransient;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -70,7 +73,8 @@ async function graphPost(
         err.statusCode || 500,
         details,
         err.category,
-        err.isTransient
+        err.isTransient,
+        err.retryAfterMs
       );
     }
     throw new MetaApiUnknownOutcomeError(

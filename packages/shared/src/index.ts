@@ -9,6 +9,17 @@ export {
 } from "./variables";
 
 export {
+  normalizeForMatching,
+  matchCommentKeywords,
+  type KeywordMatchModeType,
+} from "./keyword-matcher";
+
+export {
+  signFollowCheckPayload,
+  verifyFollowCheckPayload,
+} from "./follow-token";
+
+export {
   MetaGraphClient,
   MetaGraphError,
   classifyMetaError,
