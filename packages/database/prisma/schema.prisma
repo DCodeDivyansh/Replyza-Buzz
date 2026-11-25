@@ -18,6 +18,7 @@ model User {
   instagramAccounts InstagramAccount[]
   refreshTokens RefreshToken[]
   automationTemplates AutomationTemplate[]
+  affiliateProducts AffiliateProduct[]
 
   @@map("users")
 }
@@ -119,6 +120,23 @@ enum KeywordMatchMode {
   ANY
 }
 
+enum KeywordMatchLogic {
+  ANY_KEYWORD
+  ALL_KEYWORDS
+}
+
+enum ProductDeliveryMode {
+  SINGLE_MESSAGE
+  SEPARATE_MESSAGES
+  GENERIC_CARDS
+  SELECTION_PROMPT
+}
+
+enum ProductStatus {
+  ACTIVE
+  ARCHIVED
+}
+
 enum DeliveryMode {
   DIRECT
   BUTTON
@@ -163,12 +181,18 @@ model Automation {
 
   triggerType        AutomationTrigger
   keywordMatchMode   KeywordMatchMode  @default(CONTAINS)
+  keywordMatchLogic  KeywordMatchLogic @default(ANY_KEYWORD)
   keywords           String[]          @default([])
 
+  publicReplyEnabled    Boolean        @default(true)
   publicReplyText       String
   publicReplyVariations String[]       @default([])
   dmMessageText         String
   dmLink                String?
+
+  productDeliveryMode   ProductDeliveryMode @default(SINGLE_MESSAGE)
+  productIntroText      String?
+  productClosingText    String?
 
   deliveryMode          DeliveryMode      @default(DIRECT)
   buttonLabel           String?
@@ -179,6 +203,8 @@ model Automation {
   followInstructionText String?
   followSuccessText     String?
   followFallbackText    String?
+  followUpEnabled       Boolean           @default(false)
+  followUpText          String?
   templateId            String?           @db.Uuid
 
   status             AutomationStatus  @default(DRAFT)
@@ -189,6 +215,7 @@ model Automation {
   instagramAccount   InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
   template           AutomationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   executions         AutomationExecution[]
+  products           AutomationProduct[]
 
   @@index([instagramAccountId, mediaId])
   @@index([instagramAccountId, status])
@@ -352,4 +379,62 @@ model AutomationTemplate {
   @@index([userId])
   @@index([isSystem])
   @@map("automation_templates")
+}
+
+model AffiliateProduct {
+  id               String        @id @default(uuid()) @db.Uuid
+  userId           String        @db.Uuid
+  name             String
+  brand            String?
+  description      String?
+  imageUrl         String?
+  affiliateUrl     String
+  originalUrl      String?
+  price            String?
+  discountPrice    String?
+  discountInfo     String?
+  couponCode       String?
+  affiliatePartner String?
+  category         String?
+  ctaLabel         String        @default("Shop Now")
+  notes            String?
+  status           ProductStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automationProducts AutomationProduct[]
+
+  @@index([userId, status])
+  @@index([userId, category])
+  @@index([userId, brand])
+  @@map("affiliate_products")
+}
+
+model AutomationProduct {
+  id                 String   @id @default(uuid()) @db.Uuid
+  automationId       String   @db.Uuid
+  affiliateProductId String?  @db.Uuid
+  name               String
+  imageUrl           String?
+  description        String?
+  productUrl         String?
+  affiliateUrl       String
+  originalUrl        String?
+  price              String?
+  discountPrice      String?
+  category           String?
+  ctaLabel           String   @default("Shop Now")
+  customMessage      String?
+  couponCode         String?
+  brand              String?
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  automation       Automation        @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  affiliateProduct AffiliateProduct? @relation(fields: [affiliateProductId], references: [id], onDelete: SetNull)
+
+  @@index([automationId, sortOrder])
+  @@map("automation_products")
 }

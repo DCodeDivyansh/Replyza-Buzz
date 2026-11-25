@@ -18,6 +18,7 @@ import instagramOAuthRoutes from "./routes/instagram-oauth.routes";
 import instagramAccountRoutes from "./routes/instagram-account.routes";
 import templateRoutes from "./routes/template.routes";
 import metaRoutes from "./routes/meta.routes";
+import productRoutes from "./routes/product.routes";
 
 import { notFoundHandler } from "./middleware/not-found.middleware";
 import { errorHandler } from "./middleware/error.middleware";
@@ -73,7 +74,7 @@ app.use(pinoHttp({ logger }));
 // Parse incoming JSON and preserve raw body for Meta signature validation.
 app.use(
   express.json({
-    limit: "1mb",
+    limit: "3mb",
     verify: (req, _res, buffer) => {
       (req as Request).rawBody = Buffer.from(buffer);
     }
@@ -91,6 +92,7 @@ app.use("/api/v1/webhooks", instagramWebhookRoutes);
 app.use("/api/v1/instagram/oauth", instagramOAuthRoutes);
 app.use("/api/v1/instagram", instagramAccountRoutes);
 app.use("/api/v1/templates", templateRoutes);
+app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/meta", metaRoutes);
 
 // Error handling must come after all routes.

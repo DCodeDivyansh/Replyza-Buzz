@@ -21,6 +21,11 @@ import {
   markDeliveryActionFailed,
   markDeliveryActionNeedsReview,
 } from "../services/delivery-action.service";
+import {
+  deliverProducts,
+  type DeliverableProduct,
+  type ProductDeliveryModeType,
+} from "../services/product-delivery.service";
 
 const MAX_FOLLOW_RETRIES = 3;
 const MESSAGING_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -56,7 +61,10 @@ export async function processFollowCheckJob(
     where: { id: executionId },
     include: {
       automation: {
-        include: { instagramAccount: true },
+        include: {
+          instagramAccount: true,
+          products: { orderBy: { sortOrder: "asc" } },
+        },
       },
       webhookEvent: true,
     },
@@ -211,6 +219,13 @@ export async function processFollowCheckJob(
         accessToken,
         baseText: automation.dmMessageText,
         dmLink: automation.dmLink,
+        products: automation.products,
+        productDeliveryMode: automation.productDeliveryMode,
+        productIntroText: automation.productIntroText,
+        productClosingText: automation.productClosingText,
+        followUpEnabled: automation.followUpEnabled,
+        followUpText: automation.followUpText,
+        selectedProductIndex: job.data.selectedProductIndex,
         firstName: execution.webhookEvent.commenterUsername,
         username: execution.webhookEvent.commenterUsername,
         keyword: execution.webhookEvent.commentText,
@@ -295,6 +310,13 @@ export async function processFollowCheckJob(
           automation.followSuccessText ||
           "Thanks for following! Here is your link:",
         dmLink: automation.dmLink,
+        products: automation.products,
+        productDeliveryMode: automation.productDeliveryMode,
+        productIntroText: automation.productIntroText,
+        productClosingText: automation.productClosingText,
+        followUpEnabled: automation.followUpEnabled,
+        followUpText: automation.followUpText,
+        selectedProductIndex: job.data.selectedProductIndex,
         firstName,
         username,
         keyword: execution.webhookEvent.commentText,
@@ -429,6 +451,13 @@ async function deliverLinkDm(params: {
   accessToken: string;
   baseText: string;
   dmLink?: string | null;
+  products: DeliverableProduct[];
+  productDeliveryMode: ProductDeliveryModeType;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
+  selectedProductIndex?: number;
   firstName?: string | null;
   username?: string | null;
   keyword: string;
@@ -444,23 +473,29 @@ async function deliverLinkDm(params: {
     return;
   }
 
-  const message = interpolateVariables(
-    params.dmLink ? `${params.baseText}\n${params.dmLink}` : params.baseText,
-    {
-      firstName: params.firstName,
-      username: params.username,
-      keyword: params.keyword,
-      link: params.dmLink,
-    }
-  );
-
   try {
-    const messageId = await sendDirectMessage(
-      params.instagramUserId,
-      params.igsid,
-      message,
-      params.accessToken
-    );
+    const messageId = await deliverProducts({
+      executionId: params.executionId,
+      instagramUserId: params.instagramUserId,
+      accessToken: params.accessToken,
+      isPrivateReply: false,
+      recipientIgsid: params.igsid,
+      baseText: params.baseText,
+      dmLink: params.dmLink,
+      products: params.products,
+      productDeliveryMode: params.productDeliveryMode,
+      productIntroText: params.productIntroText,
+      productClosingText: params.productClosingText,
+      followUpEnabled: params.followUpEnabled,
+      followUpText: params.followUpText,
+      selectedProductIndex: params.selectedProductIndex,
+      baseContext: {
+        firstName: params.firstName,
+        username: params.username,
+        keyword: params.keyword,
+        link: params.dmLink,
+      },
+    });
 
     await markDeliveryActionSent(params.executionId, "LINK_DM", messageId);
     await prisma.automationExecution.update({

@@ -6,6 +6,7 @@ export interface FollowCheckJobData {
   igsid: string;
   instagramUserId: string;
   providerEventId?: string;
+  selectedProductIndex?: number;
 }
 
 export const followCheckQueue = new Queue<FollowCheckJobData>(

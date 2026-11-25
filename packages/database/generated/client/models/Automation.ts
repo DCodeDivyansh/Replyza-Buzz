@@ -43,9 +43,14 @@ export type AutomationMinAggregateOutputType = {
   mediaType: string | null
   triggerType: $Enums.AutomationTrigger | null
   keywordMatchMode: $Enums.KeywordMatchMode | null
+  keywordMatchLogic: $Enums.KeywordMatchLogic | null
+  publicReplyEnabled: boolean | null
   publicReplyText: string | null
   dmMessageText: string | null
   dmLink: string | null
+  productDeliveryMode: $Enums.ProductDeliveryMode | null
+  productIntroText: string | null
+  productClosingText: string | null
   deliveryMode: $Enums.DeliveryMode | null
   buttonLabel: string | null
   cooldownSeconds: number | null
@@ -54,6 +59,8 @@ export type AutomationMinAggregateOutputType = {
   followInstructionText: string | null
   followSuccessText: string | null
   followFallbackText: string | null
+  followUpEnabled: boolean | null
+  followUpText: string | null
   templateId: string | null
   status: $Enums.AutomationStatus | null
   createdAt: Date | null
@@ -69,9 +76,14 @@ export type AutomationMaxAggregateOutputType = {
   mediaType: string | null
   triggerType: $Enums.AutomationTrigger | null
   keywordMatchMode: $Enums.KeywordMatchMode | null
+  keywordMatchLogic: $Enums.KeywordMatchLogic | null
+  publicReplyEnabled: boolean | null
   publicReplyText: string | null
   dmMessageText: string | null
   dmLink: string | null
+  productDeliveryMode: $Enums.ProductDeliveryMode | null
+  productIntroText: string | null
+  productClosingText: string | null
   deliveryMode: $Enums.DeliveryMode | null
   buttonLabel: string | null
   cooldownSeconds: number | null
@@ -80,6 +92,8 @@ export type AutomationMaxAggregateOutputType = {
   followInstructionText: string | null
   followSuccessText: string | null
   followFallbackText: string | null
+  followUpEnabled: boolean | null
+  followUpText: string | null
   templateId: string | null
   status: $Enums.AutomationStatus | null
   createdAt: Date | null
@@ -95,11 +109,16 @@ export type AutomationCountAggregateOutputType = {
   mediaType: number
   triggerType: number
   keywordMatchMode: number
+  keywordMatchLogic: number
   keywords: number
+  publicReplyEnabled: number
   publicReplyText: number
   publicReplyVariations: number
   dmMessageText: number
   dmLink: number
+  productDeliveryMode: number
+  productIntroText: number
+  productClosingText: number
   deliveryMode: number
   buttonLabel: number
   cooldownSeconds: number
@@ -108,6 +127,8 @@ export type AutomationCountAggregateOutputType = {
   followInstructionText: number
   followSuccessText: number
   followFallbackText: number
+  followUpEnabled: number
+  followUpText: number
   templateId: number
   status: number
   createdAt: number
@@ -133,9 +154,14 @@ export type AutomationMinAggregateInputType = {
   mediaType?: true
   triggerType?: true
   keywordMatchMode?: true
+  keywordMatchLogic?: true
+  publicReplyEnabled?: true
   publicReplyText?: true
   dmMessageText?: true
   dmLink?: true
+  productDeliveryMode?: true
+  productIntroText?: true
+  productClosingText?: true
   deliveryMode?: true
   buttonLabel?: true
   cooldownSeconds?: true
@@ -144,6 +170,8 @@ export type AutomationMinAggregateInputType = {
   followInstructionText?: true
   followSuccessText?: true
   followFallbackText?: true
+  followUpEnabled?: true
+  followUpText?: true
   templateId?: true
   status?: true
   createdAt?: true
@@ -159,9 +187,14 @@ export type AutomationMaxAggregateInputType = {
   mediaType?: true
   triggerType?: true
   keywordMatchMode?: true
+  keywordMatchLogic?: true
+  publicReplyEnabled?: true
   publicReplyText?: true
   dmMessageText?: true
   dmLink?: true
+  productDeliveryMode?: true
+  productIntroText?: true
+  productClosingText?: true
   deliveryMode?: true
   buttonLabel?: true
   cooldownSeconds?: true
@@ -170,6 +203,8 @@ export type AutomationMaxAggregateInputType = {
   followInstructionText?: true
   followSuccessText?: true
   followFallbackText?: true
+  followUpEnabled?: true
+  followUpText?: true
   templateId?: true
   status?: true
   createdAt?: true
@@ -185,11 +220,16 @@ export type AutomationCountAggregateInputType = {
   mediaType?: true
   triggerType?: true
   keywordMatchMode?: true
+  keywordMatchLogic?: true
   keywords?: true
+  publicReplyEnabled?: true
   publicReplyText?: true
   publicReplyVariations?: true
   dmMessageText?: true
   dmLink?: true
+  productDeliveryMode?: true
+  productIntroText?: true
+  productClosingText?: true
   deliveryMode?: true
   buttonLabel?: true
   cooldownSeconds?: true
@@ -198,6 +238,8 @@ export type AutomationCountAggregateInputType = {
   followInstructionText?: true
   followSuccessText?: true
   followFallbackText?: true
+  followUpEnabled?: true
+  followUpText?: true
   templateId?: true
   status?: true
   createdAt?: true
@@ -300,11 +342,16 @@ export type AutomationGroupByOutputType = {
   mediaType: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode: $Enums.KeywordMatchMode
+  keywordMatchLogic: $Enums.KeywordMatchLogic
   keywords: string[]
+  publicReplyEnabled: boolean
   publicReplyText: string
   publicReplyVariations: string[]
   dmMessageText: string
   dmLink: string | null
+  productDeliveryMode: $Enums.ProductDeliveryMode
+  productIntroText: string | null
+  productClosingText: string | null
   deliveryMode: $Enums.DeliveryMode
   buttonLabel: string | null
   cooldownSeconds: number
@@ -313,6 +360,8 @@ export type AutomationGroupByOutputType = {
   followInstructionText: string | null
   followSuccessText: string | null
   followFallbackText: string | null
+  followUpEnabled: boolean
+  followUpText: string | null
   templateId: string | null
   status: $Enums.AutomationStatus
   createdAt: Date
@@ -351,11 +400,16 @@ export type AutomationWhereInput = {
   mediaType?: Prisma.StringNullableFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFilter<"Automation"> | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFilter<"Automation"> | $Enums.KeywordMatchLogic
   keywords?: Prisma.StringNullableListFilter<"Automation">
+  publicReplyEnabled?: Prisma.BoolFilter<"Automation"> | boolean
   publicReplyText?: Prisma.StringFilter<"Automation"> | string
   publicReplyVariations?: Prisma.StringNullableListFilter<"Automation">
   dmMessageText?: Prisma.StringFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableFilter<"Automation"> | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFilter<"Automation"> | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  productClosingText?: Prisma.StringNullableFilter<"Automation"> | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFilter<"Automation"> | $Enums.DeliveryMode
   buttonLabel?: Prisma.StringNullableFilter<"Automation"> | string | null
   cooldownSeconds?: Prisma.IntFilter<"Automation"> | number
@@ -364,6 +418,8 @@ export type AutomationWhereInput = {
   followInstructionText?: Prisma.StringNullableFilter<"Automation"> | string | null
   followSuccessText?: Prisma.StringNullableFilter<"Automation"> | string | null
   followFallbackText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followUpEnabled?: Prisma.BoolFilter<"Automation"> | boolean
+  followUpText?: Prisma.StringNullableFilter<"Automation"> | string | null
   templateId?: Prisma.UuidNullableFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
@@ -371,6 +427,7 @@ export type AutomationWhereInput = {
   instagramAccount?: Prisma.XOR<Prisma.InstagramAccountScalarRelationFilter, Prisma.InstagramAccountWhereInput>
   template?: Prisma.XOR<Prisma.AutomationTemplateNullableScalarRelationFilter, Prisma.AutomationTemplateWhereInput> | null
   executions?: Prisma.AutomationExecutionListRelationFilter
+  products?: Prisma.AutomationProductListRelationFilter
 }
 
 export type AutomationOrderByWithRelationInput = {
@@ -382,11 +439,16 @@ export type AutomationOrderByWithRelationInput = {
   mediaType?: Prisma.SortOrderInput | Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
+  keywordMatchLogic?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  publicReplyEnabled?: Prisma.SortOrder
   publicReplyText?: Prisma.SortOrder
   publicReplyVariations?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  productDeliveryMode?: Prisma.SortOrder
+  productIntroText?: Prisma.SortOrderInput | Prisma.SortOrder
+  productClosingText?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryMode?: Prisma.SortOrder
   buttonLabel?: Prisma.SortOrderInput | Prisma.SortOrder
   cooldownSeconds?: Prisma.SortOrder
@@ -395,6 +457,8 @@ export type AutomationOrderByWithRelationInput = {
   followInstructionText?: Prisma.SortOrderInput | Prisma.SortOrder
   followSuccessText?: Prisma.SortOrderInput | Prisma.SortOrder
   followFallbackText?: Prisma.SortOrderInput | Prisma.SortOrder
+  followUpEnabled?: Prisma.SortOrder
+  followUpText?: Prisma.SortOrderInput | Prisma.SortOrder
   templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -402,6 +466,7 @@ export type AutomationOrderByWithRelationInput = {
   instagramAccount?: Prisma.InstagramAccountOrderByWithRelationInput
   template?: Prisma.AutomationTemplateOrderByWithRelationInput
   executions?: Prisma.AutomationExecutionOrderByRelationAggregateInput
+  products?: Prisma.AutomationProductOrderByRelationAggregateInput
 }
 
 export type AutomationWhereUniqueInput = Prisma.AtLeast<{
@@ -416,11 +481,16 @@ export type AutomationWhereUniqueInput = Prisma.AtLeast<{
   mediaType?: Prisma.StringNullableFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFilter<"Automation"> | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFilter<"Automation"> | $Enums.KeywordMatchLogic
   keywords?: Prisma.StringNullableListFilter<"Automation">
+  publicReplyEnabled?: Prisma.BoolFilter<"Automation"> | boolean
   publicReplyText?: Prisma.StringFilter<"Automation"> | string
   publicReplyVariations?: Prisma.StringNullableListFilter<"Automation">
   dmMessageText?: Prisma.StringFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableFilter<"Automation"> | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFilter<"Automation"> | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  productClosingText?: Prisma.StringNullableFilter<"Automation"> | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFilter<"Automation"> | $Enums.DeliveryMode
   buttonLabel?: Prisma.StringNullableFilter<"Automation"> | string | null
   cooldownSeconds?: Prisma.IntFilter<"Automation"> | number
@@ -429,6 +499,8 @@ export type AutomationWhereUniqueInput = Prisma.AtLeast<{
   followInstructionText?: Prisma.StringNullableFilter<"Automation"> | string | null
   followSuccessText?: Prisma.StringNullableFilter<"Automation"> | string | null
   followFallbackText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followUpEnabled?: Prisma.BoolFilter<"Automation"> | boolean
+  followUpText?: Prisma.StringNullableFilter<"Automation"> | string | null
   templateId?: Prisma.UuidNullableFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
@@ -436,6 +508,7 @@ export type AutomationWhereUniqueInput = Prisma.AtLeast<{
   instagramAccount?: Prisma.XOR<Prisma.InstagramAccountScalarRelationFilter, Prisma.InstagramAccountWhereInput>
   template?: Prisma.XOR<Prisma.AutomationTemplateNullableScalarRelationFilter, Prisma.AutomationTemplateWhereInput> | null
   executions?: Prisma.AutomationExecutionListRelationFilter
+  products?: Prisma.AutomationProductListRelationFilter
 }, "id">
 
 export type AutomationOrderByWithAggregationInput = {
@@ -447,11 +520,16 @@ export type AutomationOrderByWithAggregationInput = {
   mediaType?: Prisma.SortOrderInput | Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
+  keywordMatchLogic?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  publicReplyEnabled?: Prisma.SortOrder
   publicReplyText?: Prisma.SortOrder
   publicReplyVariations?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  productDeliveryMode?: Prisma.SortOrder
+  productIntroText?: Prisma.SortOrderInput | Prisma.SortOrder
+  productClosingText?: Prisma.SortOrderInput | Prisma.SortOrder
   deliveryMode?: Prisma.SortOrder
   buttonLabel?: Prisma.SortOrderInput | Prisma.SortOrder
   cooldownSeconds?: Prisma.SortOrder
@@ -460,6 +538,8 @@ export type AutomationOrderByWithAggregationInput = {
   followInstructionText?: Prisma.SortOrderInput | Prisma.SortOrder
   followSuccessText?: Prisma.SortOrderInput | Prisma.SortOrder
   followFallbackText?: Prisma.SortOrderInput | Prisma.SortOrder
+  followUpEnabled?: Prisma.SortOrder
+  followUpText?: Prisma.SortOrderInput | Prisma.SortOrder
   templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -483,11 +563,16 @@ export type AutomationScalarWhereWithAggregatesInput = {
   mediaType?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerWithAggregatesFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeWithAggregatesFilter<"Automation"> | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicWithAggregatesFilter<"Automation"> | $Enums.KeywordMatchLogic
   keywords?: Prisma.StringNullableListFilter<"Automation">
+  publicReplyEnabled?: Prisma.BoolWithAggregatesFilter<"Automation"> | boolean
   publicReplyText?: Prisma.StringWithAggregatesFilter<"Automation"> | string
   publicReplyVariations?: Prisma.StringNullableListFilter<"Automation">
   dmMessageText?: Prisma.StringWithAggregatesFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeWithAggregatesFilter<"Automation"> | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  productClosingText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   deliveryMode?: Prisma.EnumDeliveryModeWithAggregatesFilter<"Automation"> | $Enums.DeliveryMode
   buttonLabel?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   cooldownSeconds?: Prisma.IntWithAggregatesFilter<"Automation"> | number
@@ -496,6 +581,8 @@ export type AutomationScalarWhereWithAggregatesInput = {
   followInstructionText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   followSuccessText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   followFallbackText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  followUpEnabled?: Prisma.BoolWithAggregatesFilter<"Automation"> | boolean
+  followUpText?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   templateId?: Prisma.UuidNullableWithAggregatesFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusWithAggregatesFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Automation"> | Date | string
@@ -510,11 +597,16 @@ export type AutomationCreateInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -523,12 +615,15 @@ export type AutomationCreateInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   instagramAccount: Prisma.InstagramAccountCreateNestedOneWithoutAutomationsInput
   template?: Prisma.AutomationTemplateCreateNestedOneWithoutAutomationsInput
   executions?: Prisma.AutomationExecutionCreateNestedManyWithoutAutomationInput
+  products?: Prisma.AutomationProductCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationUncheckedCreateInput = {
@@ -540,11 +635,16 @@ export type AutomationUncheckedCreateInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -553,11 +653,14 @@ export type AutomationUncheckedCreateInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   executions?: Prisma.AutomationExecutionUncheckedCreateNestedManyWithoutAutomationInput
+  products?: Prisma.AutomationProductUncheckedCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationUpdateInput = {
@@ -568,11 +671,16 @@ export type AutomationUpdateInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -581,12 +689,15 @@ export type AutomationUpdateInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccount?: Prisma.InstagramAccountUpdateOneRequiredWithoutAutomationsNestedInput
   template?: Prisma.AutomationTemplateUpdateOneWithoutAutomationsNestedInput
   executions?: Prisma.AutomationExecutionUpdateManyWithoutAutomationNestedInput
+  products?: Prisma.AutomationProductUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationUncheckedUpdateInput = {
@@ -598,11 +709,16 @@ export type AutomationUncheckedUpdateInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -611,11 +727,14 @@ export type AutomationUncheckedUpdateInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executions?: Prisma.AutomationExecutionUncheckedUpdateManyWithoutAutomationNestedInput
+  products?: Prisma.AutomationProductUncheckedUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationCreateManyInput = {
@@ -627,11 +746,16 @@ export type AutomationCreateManyInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -640,6 +764,8 @@ export type AutomationCreateManyInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
@@ -654,11 +780,16 @@ export type AutomationUpdateManyMutationInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -667,6 +798,8 @@ export type AutomationUpdateManyMutationInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -681,11 +814,16 @@ export type AutomationUncheckedUpdateManyInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -694,6 +832,8 @@ export type AutomationUncheckedUpdateManyInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -727,11 +867,16 @@ export type AutomationCountOrderByAggregateInput = {
   mediaType?: Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
+  keywordMatchLogic?: Prisma.SortOrder
   keywords?: Prisma.SortOrder
+  publicReplyEnabled?: Prisma.SortOrder
   publicReplyText?: Prisma.SortOrder
   publicReplyVariations?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrder
+  productDeliveryMode?: Prisma.SortOrder
+  productIntroText?: Prisma.SortOrder
+  productClosingText?: Prisma.SortOrder
   deliveryMode?: Prisma.SortOrder
   buttonLabel?: Prisma.SortOrder
   cooldownSeconds?: Prisma.SortOrder
@@ -740,6 +885,8 @@ export type AutomationCountOrderByAggregateInput = {
   followInstructionText?: Prisma.SortOrder
   followSuccessText?: Prisma.SortOrder
   followFallbackText?: Prisma.SortOrder
+  followUpEnabled?: Prisma.SortOrder
+  followUpText?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -759,9 +906,14 @@ export type AutomationMaxOrderByAggregateInput = {
   mediaType?: Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
+  keywordMatchLogic?: Prisma.SortOrder
+  publicReplyEnabled?: Prisma.SortOrder
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrder
+  productDeliveryMode?: Prisma.SortOrder
+  productIntroText?: Prisma.SortOrder
+  productClosingText?: Prisma.SortOrder
   deliveryMode?: Prisma.SortOrder
   buttonLabel?: Prisma.SortOrder
   cooldownSeconds?: Prisma.SortOrder
@@ -770,6 +922,8 @@ export type AutomationMaxOrderByAggregateInput = {
   followInstructionText?: Prisma.SortOrder
   followSuccessText?: Prisma.SortOrder
   followFallbackText?: Prisma.SortOrder
+  followUpEnabled?: Prisma.SortOrder
+  followUpText?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -785,9 +939,14 @@ export type AutomationMinOrderByAggregateInput = {
   mediaType?: Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
+  keywordMatchLogic?: Prisma.SortOrder
+  publicReplyEnabled?: Prisma.SortOrder
   publicReplyText?: Prisma.SortOrder
   dmMessageText?: Prisma.SortOrder
   dmLink?: Prisma.SortOrder
+  productDeliveryMode?: Prisma.SortOrder
+  productIntroText?: Prisma.SortOrder
+  productClosingText?: Prisma.SortOrder
   deliveryMode?: Prisma.SortOrder
   buttonLabel?: Prisma.SortOrder
   cooldownSeconds?: Prisma.SortOrder
@@ -796,6 +955,8 @@ export type AutomationMinOrderByAggregateInput = {
   followInstructionText?: Prisma.SortOrder
   followSuccessText?: Prisma.SortOrder
   followFallbackText?: Prisma.SortOrder
+  followUpEnabled?: Prisma.SortOrder
+  followUpText?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -869,6 +1030,10 @@ export type EnumKeywordMatchModeFieldUpdateOperationsInput = {
   set?: $Enums.KeywordMatchMode
 }
 
+export type EnumKeywordMatchLogicFieldUpdateOperationsInput = {
+  set?: $Enums.KeywordMatchLogic
+}
+
 export type AutomationUpdatekeywordsInput = {
   set?: string[]
   push?: string | string[]
@@ -877,6 +1042,10 @@ export type AutomationUpdatekeywordsInput = {
 export type AutomationUpdatepublicReplyVariationsInput = {
   set?: string[]
   push?: string | string[]
+}
+
+export type EnumProductDeliveryModeFieldUpdateOperationsInput = {
+  set?: $Enums.ProductDeliveryMode
 }
 
 export type EnumDeliveryModeFieldUpdateOperationsInput = {
@@ -951,6 +1120,20 @@ export type AutomationUncheckedUpdateManyWithoutTemplateNestedInput = {
   deleteMany?: Prisma.AutomationScalarWhereInput | Prisma.AutomationScalarWhereInput[]
 }
 
+export type AutomationCreateNestedOneWithoutProductsInput = {
+  create?: Prisma.XOR<Prisma.AutomationCreateWithoutProductsInput, Prisma.AutomationUncheckedCreateWithoutProductsInput>
+  connectOrCreate?: Prisma.AutomationCreateOrConnectWithoutProductsInput
+  connect?: Prisma.AutomationWhereUniqueInput
+}
+
+export type AutomationUpdateOneRequiredWithoutProductsNestedInput = {
+  create?: Prisma.XOR<Prisma.AutomationCreateWithoutProductsInput, Prisma.AutomationUncheckedCreateWithoutProductsInput>
+  connectOrCreate?: Prisma.AutomationCreateOrConnectWithoutProductsInput
+  upsert?: Prisma.AutomationUpsertWithoutProductsInput
+  connect?: Prisma.AutomationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.AutomationUpdateToOneWithWhereWithoutProductsInput, Prisma.AutomationUpdateWithoutProductsInput>, Prisma.AutomationUncheckedUpdateWithoutProductsInput>
+}
+
 export type AutomationCreateWithoutInstagramAccountInput = {
   id?: string
   name: string
@@ -959,11 +1142,16 @@ export type AutomationCreateWithoutInstagramAccountInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -972,11 +1160,14 @@ export type AutomationCreateWithoutInstagramAccountInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   template?: Prisma.AutomationTemplateCreateNestedOneWithoutAutomationsInput
   executions?: Prisma.AutomationExecutionCreateNestedManyWithoutAutomationInput
+  products?: Prisma.AutomationProductCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationUncheckedCreateWithoutInstagramAccountInput = {
@@ -987,11 +1178,16 @@ export type AutomationUncheckedCreateWithoutInstagramAccountInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1000,11 +1196,14 @@ export type AutomationUncheckedCreateWithoutInstagramAccountInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   executions?: Prisma.AutomationExecutionUncheckedCreateNestedManyWithoutAutomationInput
+  products?: Prisma.AutomationProductUncheckedCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationCreateOrConnectWithoutInstagramAccountInput = {
@@ -1045,11 +1244,16 @@ export type AutomationScalarWhereInput = {
   mediaType?: Prisma.StringNullableFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFilter<"Automation"> | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFilter<"Automation"> | $Enums.KeywordMatchLogic
   keywords?: Prisma.StringNullableListFilter<"Automation">
+  publicReplyEnabled?: Prisma.BoolFilter<"Automation"> | boolean
   publicReplyText?: Prisma.StringFilter<"Automation"> | string
   publicReplyVariations?: Prisma.StringNullableListFilter<"Automation">
   dmMessageText?: Prisma.StringFilter<"Automation"> | string
   dmLink?: Prisma.StringNullableFilter<"Automation"> | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFilter<"Automation"> | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  productClosingText?: Prisma.StringNullableFilter<"Automation"> | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFilter<"Automation"> | $Enums.DeliveryMode
   buttonLabel?: Prisma.StringNullableFilter<"Automation"> | string | null
   cooldownSeconds?: Prisma.IntFilter<"Automation"> | number
@@ -1058,6 +1262,8 @@ export type AutomationScalarWhereInput = {
   followInstructionText?: Prisma.StringNullableFilter<"Automation"> | string | null
   followSuccessText?: Prisma.StringNullableFilter<"Automation"> | string | null
   followFallbackText?: Prisma.StringNullableFilter<"Automation"> | string | null
+  followUpEnabled?: Prisma.BoolFilter<"Automation"> | boolean
+  followUpText?: Prisma.StringNullableFilter<"Automation"> | string | null
   templateId?: Prisma.UuidNullableFilter<"Automation"> | string | null
   status?: Prisma.EnumAutomationStatusFilter<"Automation"> | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFilter<"Automation"> | Date | string
@@ -1072,11 +1278,16 @@ export type AutomationCreateWithoutExecutionsInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1085,11 +1296,14 @@ export type AutomationCreateWithoutExecutionsInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   instagramAccount: Prisma.InstagramAccountCreateNestedOneWithoutAutomationsInput
   template?: Prisma.AutomationTemplateCreateNestedOneWithoutAutomationsInput
+  products?: Prisma.AutomationProductCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationUncheckedCreateWithoutExecutionsInput = {
@@ -1101,11 +1315,16 @@ export type AutomationUncheckedCreateWithoutExecutionsInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1114,10 +1333,13 @@ export type AutomationUncheckedCreateWithoutExecutionsInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  products?: Prisma.AutomationProductUncheckedCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationCreateOrConnectWithoutExecutionsInput = {
@@ -1144,11 +1366,16 @@ export type AutomationUpdateWithoutExecutionsInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1157,11 +1384,14 @@ export type AutomationUpdateWithoutExecutionsInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccount?: Prisma.InstagramAccountUpdateOneRequiredWithoutAutomationsNestedInput
   template?: Prisma.AutomationTemplateUpdateOneWithoutAutomationsNestedInput
+  products?: Prisma.AutomationProductUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationUncheckedUpdateWithoutExecutionsInput = {
@@ -1173,11 +1403,16 @@ export type AutomationUncheckedUpdateWithoutExecutionsInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1186,10 +1421,13 @@ export type AutomationUncheckedUpdateWithoutExecutionsInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  products?: Prisma.AutomationProductUncheckedUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationCreateWithoutTemplateInput = {
@@ -1200,11 +1438,16 @@ export type AutomationCreateWithoutTemplateInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1213,11 +1456,14 @@ export type AutomationCreateWithoutTemplateInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   instagramAccount: Prisma.InstagramAccountCreateNestedOneWithoutAutomationsInput
   executions?: Prisma.AutomationExecutionCreateNestedManyWithoutAutomationInput
+  products?: Prisma.AutomationProductCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationUncheckedCreateWithoutTemplateInput = {
@@ -1229,11 +1475,16 @@ export type AutomationUncheckedCreateWithoutTemplateInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1242,10 +1493,13 @@ export type AutomationUncheckedCreateWithoutTemplateInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   executions?: Prisma.AutomationExecutionUncheckedCreateNestedManyWithoutAutomationInput
+  products?: Prisma.AutomationProductUncheckedCreateNestedManyWithoutAutomationInput
 }
 
 export type AutomationCreateOrConnectWithoutTemplateInput = {
@@ -1274,7 +1528,7 @@ export type AutomationUpdateManyWithWhereWithoutTemplateInput = {
   data: Prisma.XOR<Prisma.AutomationUpdateManyMutationInput, Prisma.AutomationUncheckedUpdateManyWithoutTemplateInput>
 }
 
-export type AutomationCreateManyInstagramAccountInput = {
+export type AutomationCreateWithoutProductsInput = {
   id?: string
   name: string
   mediaId?: string | null
@@ -1282,11 +1536,16 @@ export type AutomationCreateManyInstagramAccountInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1295,6 +1554,168 @@ export type AutomationCreateManyInstagramAccountInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
+  status?: $Enums.AutomationStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  instagramAccount: Prisma.InstagramAccountCreateNestedOneWithoutAutomationsInput
+  template?: Prisma.AutomationTemplateCreateNestedOneWithoutAutomationsInput
+  executions?: Prisma.AutomationExecutionCreateNestedManyWithoutAutomationInput
+}
+
+export type AutomationUncheckedCreateWithoutProductsInput = {
+  id?: string
+  instagramAccountId: string
+  name: string
+  mediaId?: string | null
+  mediaPermalink?: string | null
+  mediaType?: string | null
+  triggerType: $Enums.AutomationTrigger
+  keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
+  keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
+  publicReplyText: string
+  publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
+  dmMessageText: string
+  dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
+  deliveryMode?: $Enums.DeliveryMode
+  buttonLabel?: string | null
+  cooldownSeconds?: number
+  dmMeFallbackEnabled?: boolean
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
+  templateId?: string | null
+  status?: $Enums.AutomationStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  executions?: Prisma.AutomationExecutionUncheckedCreateNestedManyWithoutAutomationInput
+}
+
+export type AutomationCreateOrConnectWithoutProductsInput = {
+  where: Prisma.AutomationWhereUniqueInput
+  create: Prisma.XOR<Prisma.AutomationCreateWithoutProductsInput, Prisma.AutomationUncheckedCreateWithoutProductsInput>
+}
+
+export type AutomationUpsertWithoutProductsInput = {
+  update: Prisma.XOR<Prisma.AutomationUpdateWithoutProductsInput, Prisma.AutomationUncheckedUpdateWithoutProductsInput>
+  create: Prisma.XOR<Prisma.AutomationCreateWithoutProductsInput, Prisma.AutomationUncheckedCreateWithoutProductsInput>
+  where?: Prisma.AutomationWhereInput
+}
+
+export type AutomationUpdateToOneWithWhereWithoutProductsInput = {
+  where?: Prisma.AutomationWhereInput
+  data: Prisma.XOR<Prisma.AutomationUpdateWithoutProductsInput, Prisma.AutomationUncheckedUpdateWithoutProductsInput>
+}
+
+export type AutomationUpdateWithoutProductsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
+  keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
+  keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
+  publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
+  dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
+  dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
+  dmMeFallbackEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  instagramAccount?: Prisma.InstagramAccountUpdateOneRequiredWithoutAutomationsNestedInput
+  template?: Prisma.AutomationTemplateUpdateOneWithoutAutomationsNestedInput
+  executions?: Prisma.AutomationExecutionUpdateManyWithoutAutomationNestedInput
+}
+
+export type AutomationUncheckedUpdateWithoutProductsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
+  keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
+  keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
+  publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
+  dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
+  dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
+  buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
+  dmMeFallbackEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followRequired?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  executions?: Prisma.AutomationExecutionUncheckedUpdateManyWithoutAutomationNestedInput
+}
+
+export type AutomationCreateManyInstagramAccountInput = {
+  id?: string
+  name: string
+  mediaId?: string | null
+  mediaPermalink?: string | null
+  mediaType?: string | null
+  triggerType: $Enums.AutomationTrigger
+  keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
+  keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
+  publicReplyText: string
+  publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
+  dmMessageText: string
+  dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
+  deliveryMode?: $Enums.DeliveryMode
+  buttonLabel?: string | null
+  cooldownSeconds?: number
+  dmMeFallbackEnabled?: boolean
+  followRequired?: boolean
+  followInstructionText?: string | null
+  followSuccessText?: string | null
+  followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   templateId?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
@@ -1309,11 +1730,16 @@ export type AutomationUpdateWithoutInstagramAccountInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1322,11 +1748,14 @@ export type AutomationUpdateWithoutInstagramAccountInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   template?: Prisma.AutomationTemplateUpdateOneWithoutAutomationsNestedInput
   executions?: Prisma.AutomationExecutionUpdateManyWithoutAutomationNestedInput
+  products?: Prisma.AutomationProductUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationUncheckedUpdateWithoutInstagramAccountInput = {
@@ -1337,11 +1766,16 @@ export type AutomationUncheckedUpdateWithoutInstagramAccountInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1350,11 +1784,14 @@ export type AutomationUncheckedUpdateWithoutInstagramAccountInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executions?: Prisma.AutomationExecutionUncheckedUpdateManyWithoutAutomationNestedInput
+  products?: Prisma.AutomationProductUncheckedUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationUncheckedUpdateManyWithoutInstagramAccountInput = {
@@ -1365,11 +1802,16 @@ export type AutomationUncheckedUpdateManyWithoutInstagramAccountInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1378,6 +1820,8 @@ export type AutomationUncheckedUpdateManyWithoutInstagramAccountInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1393,11 +1837,16 @@ export type AutomationCreateManyTemplateInput = {
   mediaType?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
+  keywordMatchLogic?: $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationCreatekeywordsInput | string[]
+  publicReplyEnabled?: boolean
   publicReplyText: string
   publicReplyVariations?: Prisma.AutomationCreatepublicReplyVariationsInput | string[]
   dmMessageText: string
   dmLink?: string | null
+  productDeliveryMode?: $Enums.ProductDeliveryMode
+  productIntroText?: string | null
+  productClosingText?: string | null
   deliveryMode?: $Enums.DeliveryMode
   buttonLabel?: string | null
   cooldownSeconds?: number
@@ -1406,6 +1855,8 @@ export type AutomationCreateManyTemplateInput = {
   followInstructionText?: string | null
   followSuccessText?: string | null
   followFallbackText?: string | null
+  followUpEnabled?: boolean
+  followUpText?: string | null
   status?: $Enums.AutomationStatus
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1419,11 +1870,16 @@ export type AutomationUpdateWithoutTemplateInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1432,11 +1888,14 @@ export type AutomationUpdateWithoutTemplateInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   instagramAccount?: Prisma.InstagramAccountUpdateOneRequiredWithoutAutomationsNestedInput
   executions?: Prisma.AutomationExecutionUpdateManyWithoutAutomationNestedInput
+  products?: Prisma.AutomationProductUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationUncheckedUpdateWithoutTemplateInput = {
@@ -1448,11 +1907,16 @@ export type AutomationUncheckedUpdateWithoutTemplateInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1461,10 +1925,13 @@ export type AutomationUncheckedUpdateWithoutTemplateInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   executions?: Prisma.AutomationExecutionUncheckedUpdateManyWithoutAutomationNestedInput
+  products?: Prisma.AutomationProductUncheckedUpdateManyWithoutAutomationNestedInput
 }
 
 export type AutomationUncheckedUpdateManyWithoutTemplateInput = {
@@ -1476,11 +1943,16 @@ export type AutomationUncheckedUpdateManyWithoutTemplateInput = {
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
+  keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
   keywords?: Prisma.AutomationUpdatekeywordsInput | string[]
+  publicReplyEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   publicReplyText?: Prisma.StringFieldUpdateOperationsInput | string
   publicReplyVariations?: Prisma.AutomationUpdatepublicReplyVariationsInput | string[]
   dmMessageText?: Prisma.StringFieldUpdateOperationsInput | string
   dmLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productDeliveryMode?: Prisma.EnumProductDeliveryModeFieldUpdateOperationsInput | $Enums.ProductDeliveryMode
+  productIntroText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  productClosingText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   deliveryMode?: Prisma.EnumDeliveryModeFieldUpdateOperationsInput | $Enums.DeliveryMode
   buttonLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cooldownSeconds?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1489,6 +1961,8 @@ export type AutomationUncheckedUpdateManyWithoutTemplateInput = {
   followInstructionText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followSuccessText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   followFallbackText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  followUpEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  followUpText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumAutomationStatusFieldUpdateOperationsInput | $Enums.AutomationStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1501,10 +1975,12 @@ export type AutomationUncheckedUpdateManyWithoutTemplateInput = {
 
 export type AutomationCountOutputType = {
   executions: number
+  products: number
 }
 
 export type AutomationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   executions?: boolean | AutomationCountOutputTypeCountExecutionsArgs
+  products?: boolean | AutomationCountOutputTypeCountProductsArgs
 }
 
 /**
@@ -1524,6 +2000,13 @@ export type AutomationCountOutputTypeCountExecutionsArgs<ExtArgs extends runtime
   where?: Prisma.AutomationExecutionWhereInput
 }
 
+/**
+ * AutomationCountOutputType without action
+ */
+export type AutomationCountOutputTypeCountProductsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AutomationProductWhereInput
+}
+
 
 export type AutomationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1534,11 +2017,16 @@ export type AutomationSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   mediaType?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
+  keywordMatchLogic?: boolean
   keywords?: boolean
+  publicReplyEnabled?: boolean
   publicReplyText?: boolean
   publicReplyVariations?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  productDeliveryMode?: boolean
+  productIntroText?: boolean
+  productClosingText?: boolean
   deliveryMode?: boolean
   buttonLabel?: boolean
   cooldownSeconds?: boolean
@@ -1547,6 +2035,8 @@ export type AutomationSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   followInstructionText?: boolean
   followSuccessText?: boolean
   followFallbackText?: boolean
+  followUpEnabled?: boolean
+  followUpText?: boolean
   templateId?: boolean
   status?: boolean
   createdAt?: boolean
@@ -1554,6 +2044,7 @@ export type AutomationSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   instagramAccount?: boolean | Prisma.InstagramAccountDefaultArgs<ExtArgs>
   template?: boolean | Prisma.Automation$templateArgs<ExtArgs>
   executions?: boolean | Prisma.Automation$executionsArgs<ExtArgs>
+  products?: boolean | Prisma.Automation$productsArgs<ExtArgs>
   _count?: boolean | Prisma.AutomationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["automation"]>
 
@@ -1566,11 +2057,16 @@ export type AutomationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   mediaType?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
+  keywordMatchLogic?: boolean
   keywords?: boolean
+  publicReplyEnabled?: boolean
   publicReplyText?: boolean
   publicReplyVariations?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  productDeliveryMode?: boolean
+  productIntroText?: boolean
+  productClosingText?: boolean
   deliveryMode?: boolean
   buttonLabel?: boolean
   cooldownSeconds?: boolean
@@ -1579,6 +2075,8 @@ export type AutomationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   followInstructionText?: boolean
   followSuccessText?: boolean
   followFallbackText?: boolean
+  followUpEnabled?: boolean
+  followUpText?: boolean
   templateId?: boolean
   status?: boolean
   createdAt?: boolean
@@ -1596,11 +2094,16 @@ export type AutomationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   mediaType?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
+  keywordMatchLogic?: boolean
   keywords?: boolean
+  publicReplyEnabled?: boolean
   publicReplyText?: boolean
   publicReplyVariations?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  productDeliveryMode?: boolean
+  productIntroText?: boolean
+  productClosingText?: boolean
   deliveryMode?: boolean
   buttonLabel?: boolean
   cooldownSeconds?: boolean
@@ -1609,6 +2112,8 @@ export type AutomationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   followInstructionText?: boolean
   followSuccessText?: boolean
   followFallbackText?: boolean
+  followUpEnabled?: boolean
+  followUpText?: boolean
   templateId?: boolean
   status?: boolean
   createdAt?: boolean
@@ -1626,11 +2131,16 @@ export type AutomationSelectScalar = {
   mediaType?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
+  keywordMatchLogic?: boolean
   keywords?: boolean
+  publicReplyEnabled?: boolean
   publicReplyText?: boolean
   publicReplyVariations?: boolean
   dmMessageText?: boolean
   dmLink?: boolean
+  productDeliveryMode?: boolean
+  productIntroText?: boolean
+  productClosingText?: boolean
   deliveryMode?: boolean
   buttonLabel?: boolean
   cooldownSeconds?: boolean
@@ -1639,17 +2149,20 @@ export type AutomationSelectScalar = {
   followInstructionText?: boolean
   followSuccessText?: boolean
   followFallbackText?: boolean
+  followUpEnabled?: boolean
+  followUpText?: boolean
   templateId?: boolean
   status?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AutomationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instagramAccountId" | "name" | "mediaId" | "mediaPermalink" | "mediaType" | "triggerType" | "keywordMatchMode" | "keywords" | "publicReplyText" | "publicReplyVariations" | "dmMessageText" | "dmLink" | "deliveryMode" | "buttonLabel" | "cooldownSeconds" | "dmMeFallbackEnabled" | "followRequired" | "followInstructionText" | "followSuccessText" | "followFallbackText" | "templateId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["automation"]>
+export type AutomationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instagramAccountId" | "name" | "mediaId" | "mediaPermalink" | "mediaType" | "triggerType" | "keywordMatchMode" | "keywordMatchLogic" | "keywords" | "publicReplyEnabled" | "publicReplyText" | "publicReplyVariations" | "dmMessageText" | "dmLink" | "productDeliveryMode" | "productIntroText" | "productClosingText" | "deliveryMode" | "buttonLabel" | "cooldownSeconds" | "dmMeFallbackEnabled" | "followRequired" | "followInstructionText" | "followSuccessText" | "followFallbackText" | "followUpEnabled" | "followUpText" | "templateId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["automation"]>
 export type AutomationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instagramAccount?: boolean | Prisma.InstagramAccountDefaultArgs<ExtArgs>
   template?: boolean | Prisma.Automation$templateArgs<ExtArgs>
   executions?: boolean | Prisma.Automation$executionsArgs<ExtArgs>
+  products?: boolean | Prisma.Automation$productsArgs<ExtArgs>
   _count?: boolean | Prisma.AutomationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type AutomationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1667,6 +2180,7 @@ export type $AutomationPayload<ExtArgs extends runtime.Types.Extensions.Internal
     instagramAccount: Prisma.$InstagramAccountPayload<ExtArgs>
     template: Prisma.$AutomationTemplatePayload<ExtArgs> | null
     executions: Prisma.$AutomationExecutionPayload<ExtArgs>[]
+    products: Prisma.$AutomationProductPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1677,11 +2191,16 @@ export type $AutomationPayload<ExtArgs extends runtime.Types.Extensions.Internal
     mediaType: string | null
     triggerType: $Enums.AutomationTrigger
     keywordMatchMode: $Enums.KeywordMatchMode
+    keywordMatchLogic: $Enums.KeywordMatchLogic
     keywords: string[]
+    publicReplyEnabled: boolean
     publicReplyText: string
     publicReplyVariations: string[]
     dmMessageText: string
     dmLink: string | null
+    productDeliveryMode: $Enums.ProductDeliveryMode
+    productIntroText: string | null
+    productClosingText: string | null
     deliveryMode: $Enums.DeliveryMode
     buttonLabel: string | null
     cooldownSeconds: number
@@ -1690,6 +2209,8 @@ export type $AutomationPayload<ExtArgs extends runtime.Types.Extensions.Internal
     followInstructionText: string | null
     followSuccessText: string | null
     followFallbackText: string | null
+    followUpEnabled: boolean
+    followUpText: string | null
     templateId: string | null
     status: $Enums.AutomationStatus
     createdAt: Date
@@ -2091,6 +2612,7 @@ export interface Prisma__AutomationClient<T, Null = never, ExtArgs extends runti
   instagramAccount<T extends Prisma.InstagramAccountDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.InstagramAccountDefaultArgs<ExtArgs>>): Prisma.Prisma__InstagramAccountClient<runtime.Types.Result.GetResult<Prisma.$InstagramAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   template<T extends Prisma.Automation$templateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Automation$templateArgs<ExtArgs>>): Prisma.Prisma__AutomationTemplateClient<runtime.Types.Result.GetResult<Prisma.$AutomationTemplatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   executions<T extends Prisma.Automation$executionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Automation$executionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationExecutionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  products<T extends Prisma.Automation$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Automation$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AutomationProductPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2128,11 +2650,16 @@ export interface AutomationFieldRefs {
   readonly mediaType: Prisma.FieldRef<"Automation", 'String'>
   readonly triggerType: Prisma.FieldRef<"Automation", 'AutomationTrigger'>
   readonly keywordMatchMode: Prisma.FieldRef<"Automation", 'KeywordMatchMode'>
+  readonly keywordMatchLogic: Prisma.FieldRef<"Automation", 'KeywordMatchLogic'>
   readonly keywords: Prisma.FieldRef<"Automation", 'String[]'>
+  readonly publicReplyEnabled: Prisma.FieldRef<"Automation", 'Boolean'>
   readonly publicReplyText: Prisma.FieldRef<"Automation", 'String'>
   readonly publicReplyVariations: Prisma.FieldRef<"Automation", 'String[]'>
   readonly dmMessageText: Prisma.FieldRef<"Automation", 'String'>
   readonly dmLink: Prisma.FieldRef<"Automation", 'String'>
+  readonly productDeliveryMode: Prisma.FieldRef<"Automation", 'ProductDeliveryMode'>
+  readonly productIntroText: Prisma.FieldRef<"Automation", 'String'>
+  readonly productClosingText: Prisma.FieldRef<"Automation", 'String'>
   readonly deliveryMode: Prisma.FieldRef<"Automation", 'DeliveryMode'>
   readonly buttonLabel: Prisma.FieldRef<"Automation", 'String'>
   readonly cooldownSeconds: Prisma.FieldRef<"Automation", 'Int'>
@@ -2141,6 +2668,8 @@ export interface AutomationFieldRefs {
   readonly followInstructionText: Prisma.FieldRef<"Automation", 'String'>
   readonly followSuccessText: Prisma.FieldRef<"Automation", 'String'>
   readonly followFallbackText: Prisma.FieldRef<"Automation", 'String'>
+  readonly followUpEnabled: Prisma.FieldRef<"Automation", 'Boolean'>
+  readonly followUpText: Prisma.FieldRef<"Automation", 'String'>
   readonly templateId: Prisma.FieldRef<"Automation", 'String'>
   readonly status: Prisma.FieldRef<"Automation", 'AutomationStatus'>
   readonly createdAt: Prisma.FieldRef<"Automation", 'DateTime'>
@@ -2586,6 +3115,30 @@ export type Automation$executionsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.AutomationExecutionScalarFieldEnum | Prisma.AutomationExecutionScalarFieldEnum[]
+}
+
+/**
+ * Automation.products
+ */
+export type Automation$productsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AutomationProduct
+   */
+  select?: Prisma.AutomationProductSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AutomationProduct
+   */
+  omit?: Prisma.AutomationProductOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AutomationProductInclude<ExtArgs> | null
+  where?: Prisma.AutomationProductWhereInput
+  orderBy?: Prisma.AutomationProductOrderByWithRelationInput | Prisma.AutomationProductOrderByWithRelationInput[]
+  cursor?: Prisma.AutomationProductWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AutomationProductScalarFieldEnum | Prisma.AutomationProductScalarFieldEnum[]
 }
 
 /**

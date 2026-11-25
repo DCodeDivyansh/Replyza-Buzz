@@ -16,9 +16,11 @@ import {
   markDeliveryActionSent,
   markDeliveryActionPendingForRetry,
   markDeliveryActionFailed,
+  markDeliveryActionSkipped,
   markDeliveryActionNeedsReview,
   syncExecutionFromDeliveryActions,
 } from "../services/delivery-action.service";
+import { deliverProducts } from "../services/product-delivery.service";
 
 import {
   claimAction,
@@ -779,7 +781,10 @@ async function processIndependentActionJob(
     where: { id: executionId },
     include: {
       automation: {
-        include: { instagramAccount: true },
+        include: {
+          instagramAccount: true,
+          products: { orderBy: { sortOrder: "asc" } },
+        },
       },
       webhookEvent: true,
     },
@@ -840,10 +845,20 @@ async function processIndependentActionJob(
     firstName: webhookEvent.commenterUsername,
     username: webhookEvent.commenterUsername,
     keyword: webhookEvent.commentText,
-    link: automation.dmLink,
+    link: automation.dmLink ?? automation.products[0]?.affiliateUrl ?? null,
+    productName: automation.products[0]?.name ?? null,
+    productUrl: automation.products[0]?.affiliateUrl ?? automation.dmLink ?? null,
+    couponCode: automation.products[0]?.couponCode ?? null,
+    productPrice: automation.products[0]?.discountPrice ?? automation.products[0]?.price ?? null,
+    brand: automation.products[0]?.brand ?? null,
   };
 
   if (actionType === "PUBLIC_REPLY") {
+    if (!automation.publicReplyEnabled) {
+      await markDeliveryActionSkipped(executionId, "PUBLIC_REPLY");
+      await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+      return;
+    }
     const variations =
       automation.publicReplyVariations.length > 0
         ? automation.publicReplyVariations
@@ -919,19 +934,35 @@ async function processIndependentActionJob(
         },
       });
     } else {
-      const baseDm = interpolateVariables(automation.dmMessageText, variableContext);
-      const privateMessage = automation.dmLink
-        ? `${baseDm}\n${automation.dmLink}`
-        : baseDm;
-      messageId = await sendPrivateReply(
-        account.instagramUserId,
-        webhookEvent.commentId,
-        privateMessage,
-        accessToken
-      );
+      messageId = await deliverProducts({
+        executionId,
+        instagramUserId: account.instagramUserId,
+        accessToken,
+        isPrivateReply: true,
+        commentId: webhookEvent.commentId,
+        baseText: automation.dmMessageText,
+        dmLink: automation.dmLink,
+        products: automation.products,
+        productDeliveryMode: automation.productDeliveryMode,
+        productIntroText: automation.productIntroText,
+        productClosingText: automation.productClosingText,
+        followUpEnabled: automation.followUpEnabled,
+        followUpText: automation.followUpText,
+        baseContext: {
+          firstName: webhookEvent.commenterUsername,
+          username: webhookEvent.commenterUsername,
+          keyword: webhookEvent.commentText,
+          link: automation.dmLink,
+        },
+      });
       await prisma.automationExecution.update({
         where: { id: executionId },
-        data: { conversationState: "COMPLETED" },
+        data: {
+          conversationState:
+            automation.productDeliveryMode === "SELECTION_PROMPT" && automation.products.length > 1
+              ? "AWAITING_TAP"
+              : "COMPLETED",
+        },
       });
     }
 

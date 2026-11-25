@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { Spinner } from "@/components/ui/spinner";
+import { Toaster } from "sonner";
 
 export default function DashboardLayout({
   children,
@@ -45,6 +46,7 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }
