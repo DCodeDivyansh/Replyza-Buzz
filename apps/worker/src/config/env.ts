@@ -1,4 +1,4 @@
-﻿const encryptionKey = process.env.META_TOKEN_ENCRYPTION_KEY;
+const encryptionKey = process.env.META_TOKEN_ENCRYPTION_KEY;
 const graphApiVersion = process.env.META_GRAPH_API_VERSION;
 const sessionSecret =
   process.env.SESSION_SECRET || process.env.JWT_SECRET;

@@ -890,7 +890,7 @@ async function processIndependentActionJob(
     if (isTwoStepButton) {
       const rawHookText = automation.followRequired
         ? automation.followInstructionText ||
-          "Hey {{first_name}}! Thanks for commenting. Follow our page and tap below to get your link 👇\n\n(On desktop? Reply LINK to get it)"
+          "Hey {{first_name}}! Thanks for commenting. Follow our page and tap below (or reply FOLLOWED once you've followed) to get your link 👇"
         : `${automation.dmMessageText}\n\nTap below or reply LINK to get it 👇`;
       const hookText = interpolateVariables(rawHookText, variableContext);
       const buttonTitle = (

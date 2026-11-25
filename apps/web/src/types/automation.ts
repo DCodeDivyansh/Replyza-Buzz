@@ -138,12 +138,15 @@ export type ActionStatusType =
   | "CANCELLED";
 
 export type ConversationStateType =
-  | "IDLE"
+  | "HOOK_SENT"
   | "AWAITING_TAP"
+  | "TAPPED"
+  | "FOLLOW_CHECKING"
   | "AWAITING_FOLLOW"
   | "COMPLETED"
-  | "EXPIRED"
-  | "NEEDS_REVIEW";
+  | "EXPIRED_WINDOW"
+  | "FAILED"
+  | "NEEDS_RECONNECT";
 
 export type DeliveryActionType =
   | "PUBLIC_REPLY"
