@@ -25,6 +25,16 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.length > 0;
 }
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function maskIgsid(igsid: string): string {
+  if (igsid.length <= 8) return "***";
+  return `${igsid.slice(0, 4)}...${igsid.slice(-4)}`;
+}
+
+const MESSAGING_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 function isDuplicateError(error: unknown): boolean {
   return isRecord(error) && error.code === "P2002";
 }
@@ -154,17 +164,23 @@ export async function persistInstagramCommentEvents(
             );
             if (!candidateExecutionId) {
               logger.warn(
-                { accountId: instagramAccount.id, senderId },
+                { accountId: instagramAccount.id, sender: maskIgsid(senderId), mid: providerEventId },
                 "Rejected unsigned or tampered FOLLOW_CHECK payload"
               );
               ignored++;
               continue;
             }
           } else {
-            candidateExecutionId = payloadString.slice("FOLLOW_CHECK:".length);
+            // Even when signed tokens are disabled, strip optional .<hmac> suffix and validate UUID
+            const rawToken = payloadString.slice("FOLLOW_CHECK:".length);
+            const dotIdx = rawToken.indexOf(".");
+            const maybeId = dotIdx > 0 ? rawToken.slice(0, dotIdx) : rawToken;
+            if (UUID_REGEX.test(maybeId)) {
+              candidateExecutionId = maybeId;
+            }
           }
 
-          if (candidateExecutionId) {
+          if (candidateExecutionId && UUID_REGEX.test(candidateExecutionId)) {
             const execution = await prisma.automationExecution.findFirst({
               where: {
                 id: candidateExecutionId,
@@ -178,15 +194,21 @@ export async function persistInstagramCommentEvents(
             if (execution) {
               executionId = execution.id;
               validExecution = true;
+              logger.info(
+                { executionId, sender: maskIgsid(senderId), mid: providerEventId, trigger: "quick_reply" },
+                "Resolved execution from FOLLOW_CHECK payload"
+              );
             } else {
               logger.warn(
-                { candidateExecutionId, accountId: instagramAccount.id },
+                { candidateExecutionId, accountId: instagramAccount.id, mid: providerEventId },
                 "Follow check execution does not belong to this Instagram account or does not exist"
               );
             }
           }
         } else if (inboundText) {
-          // Desktop / text-fallback consent: check if sender has an open AWAITING_TAP/AWAITING_FOLLOW execution
+          // Typed consent fallback (desktop & mobile): any text from a user with a pending
+          // unexpired (<24h) follow/button execution triggers verification.
+          const windowCutoff = new Date(Date.now() - MESSAGING_WINDOW_MS);
           const openExecution = await prisma.automationExecution.findFirst({
             where: {
               automation: { instagramAccountId: instagramAccount.id },
@@ -194,17 +216,33 @@ export async function persistInstagramCommentEvents(
                 { commenterIgsid: senderId },
                 { webhookEvent: { commenterInstagramId: senderId } },
               ],
+              createdAt: { gte: windowCutoff },
+              status: { notIn: ["COMPLETED", "CANCELLED"] },
               conversationState: {
-                in: ["HOOK_SENT", "AWAITING_TAP", "AWAITING_FOLLOW"],
+                notIn: ["COMPLETED", "EXPIRED_WINDOW", "FAILED", "NEEDS_RECONNECT"],
+              },
+              followCheckStatus: {
+                in: ["PENDING", "FAILED", "RETRY_PENDING", "UNKNOWN"],
               },
             },
             orderBy: { createdAt: "desc" },
-            select: { id: true },
+            select: { id: true, followCheckSentAt: true },
           });
 
           if (openExecution) {
-            executionId = openExecution.id;
-            validExecution = true;
+            if (openExecution.followCheckSentAt && openExecution.followCheckSentAt < windowCutoff) {
+              logger.info(
+                { executionId: openExecution.id, sender: maskIgsid(senderId), mid: providerEventId },
+                "Open execution 24h messaging window expired; ignoring typed consent"
+              );
+            } else {
+              executionId = openExecution.id;
+              validExecution = true;
+              logger.info(
+                { executionId, sender: maskIgsid(senderId), mid: providerEventId, trigger: "text_consent" },
+                "Resolved open execution from typed DM consent"
+              );
+            }
           } else if (features.DM_ME_FALLBACK) {
             // Opt-in DM-me fallback: match inbound DM text against active dmMeFallbackEnabled automations
             const dmFallbacks = await prisma.automation.findMany({

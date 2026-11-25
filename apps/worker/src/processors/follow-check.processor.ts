@@ -23,6 +23,12 @@ import {
 } from "../services/delivery-action.service";
 
 const MAX_FOLLOW_RETRIES = 3;
+const MESSAGING_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function maskIgsid(igsid: string): string {
+  if (igsid.length <= 8) return "***";
+  return `${igsid.slice(0, 4)}...${igsid.slice(-4)}`;
+}
 
 async function markMessagingEventDone(
   instagramAccountId: string,
@@ -43,7 +49,7 @@ export async function processFollowCheckJob(
 ): Promise<void> {
   const { executionId, igsid, instagramUserId, providerEventId } = job.data;
   console.log(
-    `[FollowCheck] Processing | executionId=${executionId} igsid=${igsid} providerEventId=${providerEventId ?? "none"}`
+    `[FollowCheck] Processing | executionId=${executionId} igsid=${maskIgsid(igsid)} mid=${providerEventId ?? "none"}`
   );
 
   const execution = await prisma.automationExecution.findUnique({
@@ -63,18 +69,76 @@ export async function processFollowCheckJob(
   const { automation } = execution;
   const { instagramAccount } = automation;
 
-  // Idempotency: if link delivery already succeeded or is UNKNOWN, do not send duplicate DMs
+  // Idempotency: if link delivery already succeeded or execution is terminal, do not send duplicate DMs
   if (
     execution.followCheckStatus === "SUCCESS" ||
     execution.status === "COMPLETED" ||
-    execution.conversationState === "COMPLETED"
+    execution.conversationState === "COMPLETED" ||
+    execution.conversationState === "EXPIRED_WINDOW" ||
+    execution.conversationState === "NEEDS_RECONNECT" ||
+    (execution.conversationState === "FAILED" &&
+      execution.followCheckRetryCount >= MAX_FOLLOW_RETRIES)
   ) {
+    console.log(
+      `[FollowCheck] Terminal/already-handled execution skipped | executionId=${executionId} state=${execution.conversationState} followStatus=${execution.followCheckStatus}`
+    );
     await markMessagingEventDone(instagramAccount.id, providerEventId, "PROCESSED");
     return;
   }
 
-  if (execution.followCheckStatus === "UNKNOWN") {
-    await markMessagingEventDone(instagramAccount.id, providerEventId, "PROCESSED");
+  // Check if LINK_DM was already sent or is in an uncertain/crashed state (NEEDS_REVIEW / SENDING)
+  const existingLinkAction = await prisma.deliveryAction.findUnique({
+    where: {
+      executionId_actionType: {
+        executionId,
+        actionType: "LINK_DM",
+      },
+    },
+    select: { status: true },
+  });
+
+  if (existingLinkAction) {
+    if (existingLinkAction.status === "SENT") {
+      await markMessagingEventDone(instagramAccount.id, providerEventId, "PROCESSED");
+      return;
+    }
+    if (
+      existingLinkAction.status === "NEEDS_REVIEW" ||
+      existingLinkAction.status === "SENDING"
+    ) {
+      if (existingLinkAction.status === "SENDING") {
+        await markDeliveryActionNeedsReview(
+          executionId,
+          "LINK_DM",
+          "CRASHED_SENDING",
+          "Worker interrupted during link DM send; blocked duplicate resend"
+        ).catch(() => {});
+      }
+      await prisma.automationExecution.update({
+        where: { id: executionId },
+        data: {
+          followCheckStatus: "UNKNOWN",
+          followCheckError: "Link DM outcome uncertain; blocked duplicate resend",
+        },
+      });
+      await markMessagingEventDone(instagramAccount.id, providerEventId, "PROCESSED");
+      return;
+    }
+  }
+
+  // Check 24-hour messaging window before calling Meta
+  const windowAnchor = execution.followCheckSentAt ?? execution.createdAt;
+  if (Date.now() - windowAnchor.getTime() > MESSAGING_WINDOW_MS) {
+    await prisma.automationExecution.update({
+      where: { id: executionId },
+      data: {
+        followCheckStatus: "FAILED",
+        conversationState: "EXPIRED_WINDOW",
+        followCheckError: "24-hour Instagram messaging window expired",
+        errorMessage: "24-hour Instagram messaging window expired",
+      },
+    });
+    await markMessagingEventDone(instagramAccount.id, providerEventId, "FAILED");
     return;
   }
 
@@ -91,15 +155,17 @@ export async function processFollowCheckJob(
   ) {
     await markMessagingEventDone(instagramAccount.id, providerEventId, "FAILED");
     throw new UnrecoverableError(
-      `Sender ID mismatch: sender ${igsid} does not match original commenter ${execution.webhookEvent.commenterInstagramId}`
+      `Sender ID mismatch: sender ${maskIgsid(igsid)} does not match original commenter`
     );
   }
 
-  // Atomic claim so concurrent taps/workers cannot race
+  // Atomic claim so concurrent taps/workers cannot race.
+  // Note: UNKNOWN from an earlier verification API failure is retryable by the user,
+  // while LINK_DM uncertainty is already blocked above via DeliveryAction status.
   const claimed = await prisma.automationExecution.updateMany({
     where: {
       id: executionId,
-      followCheckStatus: { in: ["PENDING", "FAILED", "RETRY_PENDING"] },
+      followCheckStatus: { in: ["PENDING", "FAILED", "RETRY_PENDING", "UNKNOWN"] },
     },
     data: {
       followCheckStatus: "PROCESSING",
@@ -195,7 +261,7 @@ export async function processFollowCheckJob(
       await sendDirectMessage(
         instagramUserId,
         igsid,
-        "Thanks for tapping! We couldn't verify your follow status right now — please try again in a moment.",
+        "I couldn't verify right now, please try again in a minute.",
         accessToken
       ).catch(() => {});
 
