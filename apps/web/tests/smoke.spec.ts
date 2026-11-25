@@ -145,6 +145,13 @@ test.describe("Web Application End-to-End Smoke Test", () => {
     await expect(page.getByRole("heading", { name: "Automation Templates" })).toBeVisible({ timeout: 10000 });
     await expect(page.locator('div', { hasText: "Free Resource Guide" }).first()).toBeVisible();
 
+    // 7b. Verify Activity Log Page
+    console.log("[Playwright] Navigating to /activity...");
+    await page.goto("/activity");
+    await page.waitForLoadState("networkidle");
+    await expect(page.getByRole("heading", { name: "Activity & Execution History" })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Instagram Platform Rules (Meta API)")).toBeVisible();
+
     // 8. Logout
     console.log("[Playwright] Signing out...");
     const logoutBtn = page.locator('button[aria-label="Sign out"], button[title="Sign out"]').first();
