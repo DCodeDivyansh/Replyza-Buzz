@@ -155,7 +155,7 @@ export default function TemplatesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl ig-gradient text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D94E28] text-white">
               <LayoutTemplate className="h-4 w-4" />
             </div>
             <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-[#17131D]">

@@ -4,7 +4,7 @@ import { Loader2 } from "lucide-react";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "gradient" | "secondary" | "danger" | "ghost" | "outline";
+  variant?: "primary" | "gradient" | "accent" | "secondary" | "danger" | "ghost" | "outline";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
 }
@@ -23,27 +23,29 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
+      "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer";
 
     const variantStyles = {
       primary:
-        "bg-[#17131D] text-[#FFFDFB] hover:bg-[#2A2334] focus:ring-[#17131D]/20 shadow-xs",
+        "bg-[#141413] text-[#FAF9F6] hover:bg-[#2A2A28] focus:ring-[#141413]/20",
+      accent:
+        "bg-[#D94E28] text-white hover:bg-[#C0421F] focus:ring-[#D94E28]/25",
       gradient:
-        "ig-gradient text-white hover:opacity-95 focus:ring-[#E1306C]/30 shadow-sm",
+        "bg-[#D94E28] text-white hover:bg-[#C0421F] focus:ring-[#D94E28]/25",
       secondary:
-        "bg-[#FFFDFB] text-[#17131D] border border-[#17131D]/12 hover:bg-[#F8F5F8] focus:ring-[#17131D]/15 shadow-2xs",
+        "bg-[#FFFFFF] text-[#141413] border border-[#E6E5E1] hover:bg-[#F3F2EE] focus:ring-[#141413]/10",
       outline:
-        "border border-[#17131D]/15 text-[#17131D] hover:bg-[#F8F5F8] focus:ring-[#17131D]/15",
+        "border border-[#D1CFC9] text-[#141413] bg-transparent hover:bg-[#F3F2EE] focus:ring-[#141413]/10",
       danger:
-        "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/20 shadow-xs",
+        "bg-[#C81E1E] text-white hover:bg-[#A61818] focus:ring-[#C81E1E]/25",
       ghost:
-        "text-[#827D87] hover:text-[#17131D] hover:bg-[#F8F5F8] focus:ring-[#17131D]/15",
+        "text-[#5C5B57] hover:text-[#141413] hover:bg-[#F3F2EE] focus:ring-[#141413]/10",
     };
 
     const sizeStyles = {
-      sm: "text-xs px-3.5 py-1.5 gap-1.5",
-      md: "text-sm px-4.5 py-2.5 gap-2",
-      lg: "text-sm sm:text-base px-6 py-3 gap-2",
+      sm: "text-xs px-3 py-1.5 gap-1.5",
+      md: "text-xs sm:text-sm px-4 py-2 gap-2",
+      lg: "text-sm px-5 py-2.5 gap-2",
     };
 
     return (
@@ -59,7 +61,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading && (
-          <Loader2 className="h-4 w-4 animate-spin text-current shrink-0" />
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-current shrink-0" />
         )}
         {children}
       </button>
