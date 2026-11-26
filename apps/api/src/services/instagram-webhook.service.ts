@@ -4,6 +4,7 @@ import { prisma } from "@replyza/database";
 import { matchAndQueueAutomation } from "./automation-matcher.service";
 import { enqueueFollowCheck } from "../queues/follow-check.queue";
 import { logger } from "../utils/logger";
+import { isValidUuid } from "../utils/uuid";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -96,7 +97,7 @@ export async function persistInstagramCommentEvents(
 
         if (senderId && payloadString && payloadString.startsWith("FOLLOW_CHECK:")) {
           const candidateExecutionId = payloadString.slice("FOLLOW_CHECK:".length);
-          if (candidateExecutionId) {
+          if (isValidUuid(candidateExecutionId)) {
             const execution = await prisma.automationExecution.findFirst({
               where: {
                 id: candidateExecutionId,

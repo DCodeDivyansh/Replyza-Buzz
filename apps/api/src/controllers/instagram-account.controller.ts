@@ -3,6 +3,7 @@ import { prisma } from "@replyza/database";
 import { logger } from "../utils/logger";
 import { decryptToken } from "../utils/token-encryption";
 import { subscribeInstagramAccount } from "../services/instagram-oauth.service";
+import { isValidUuid } from "../utils/uuid";
 
 /**
  * List connected Instagram accounts for the authenticated user.
@@ -48,6 +49,14 @@ export const subscribeAccount: RequestHandler = async (req, res, next) => {
   try {
     const userId = req.user!.id;
     const accountId = req.params.id as string;
+
+    if (!isValidUuid(accountId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid Instagram account ID format",
+      });
+      return;
+    }
 
     const account = await prisma.instagramAccount.findFirst({
       where: { id: accountId, userId },
@@ -123,6 +132,14 @@ export const deleteInstagramAccount: RequestHandler = async (req, res, next) => 
   try {
     const userId = req.user!.id;
     const accountId = req.params.id as string;
+
+    if (!isValidUuid(accountId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid Instagram account ID format",
+      });
+      return;
+    }
 
     const account = await prisma.instagramAccount.findFirst({
       where: { id: accountId, userId },

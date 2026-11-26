@@ -23,8 +23,9 @@ echo "[2/6] Installing dependencies with pnpm..."
 pnpm install --frozen-lockfile
 
 # 3. Build all workspace packages in topological order
-echo "[3/6] Building packages (shared, database, api, worker)..."
+echo "[3/6] Generating Prisma client & building packages (shared, database, api, worker)..."
 pnpm --filter @replyza/shared build
+pnpm --filter @replyza/database db:generate
 pnpm --filter @replyza/database build
 pnpm --filter @replyza/api build
 pnpm --filter @replyza/worker build

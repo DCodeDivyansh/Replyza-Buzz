@@ -17,6 +17,7 @@ import {
   updateAutomationSchema,
   automationStatusSchema
 } from "../validators/automation.validator";
+import { isValidUuid } from "../utils/uuid";
 
 // Create automation.
 export const createAutomationController: RequestHandler = async (
@@ -84,6 +85,14 @@ export const getAutomationController: RequestHandler = async (
   next
 ) => {
   try {
+    if (!isValidUuid(req.params.id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid automation ID format"
+      });
+      return;
+    }
+
     const automation = await getAutomationById(
       req.user!.id,
       req.params.id as string
@@ -113,6 +122,14 @@ export const updateAutomationController: RequestHandler = async (
   next
 ) => {
   try {
+    if (!isValidUuid(req.params.id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid automation ID format"
+      });
+      return;
+    }
+
     const parsed = updateAutomationSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -155,6 +172,14 @@ export const updateAutomationStatusController: RequestHandler = async (
   next
 ) => {
   try {
+    if (!isValidUuid(req.params.id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid automation ID format"
+      });
+      return;
+    }
+
     const parsed = automationStatusSchema.safeParse(req.body);
 
     if (!parsed.success) {
@@ -197,6 +222,14 @@ export const deleteAutomationController: RequestHandler = async (
   next
 ) => {
   try {
+    if (!isValidUuid(req.params.id)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid automation ID format"
+      });
+      return;
+    }
+
     const result = await deleteAutomation(
       req.user!.id,
       req.params.id as string
@@ -266,6 +299,14 @@ export const getExecutionController: RequestHandler = async (
   next
 ) => {
   try {
+    if (!isValidUuid(req.params.executionId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid execution ID format",
+      });
+      return;
+    }
+
     const execution = await getUserExecutionById(
       req.user!.id,
       req.params.executionId as string

@@ -14,6 +14,7 @@ const envSchema = z
     PORT: z.coerce.number().int().min(1).max(65535).default(4000),
     FRONTEND_URL: z.string().url().default("http://localhost:3000"),
     DATABASE_URL: z.string().min(1),
+    REDIS_URL: z.string().url().default("redis://127.0.0.1:6379"),
     JWT_SECRET: z.string().min(32),
     SESSION_SECRET: z.string().min(32),
     META_APP_SECRET: z.string().min(1),

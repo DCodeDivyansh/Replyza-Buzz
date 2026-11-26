@@ -6,6 +6,7 @@ import {
   createCustomTemplate,
   deleteCustomTemplate,
 } from "../services/template.service";
+import { isValidUuid } from "../utils/uuid";
 
 const createTemplateValidator = z.object({
   name: z.string().trim().min(1).max(100),
@@ -40,6 +41,13 @@ export const getTemplateByIdController: RequestHandler = async (req, res, next) 
   try {
     const userId = req.user!.id;
     const templateId = req.params.id as string;
+    if (!isValidUuid(templateId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid template ID format",
+      });
+      return;
+    }
     const template = await getTemplateById(userId, templateId);
 
     if (!template) {
@@ -88,6 +96,14 @@ export const deleteTemplateController: RequestHandler = async (req, res, next) =
   try {
     const userId = req.user!.id;
     const templateId = req.params.id as string;
+
+    if (!isValidUuid(templateId)) {
+      res.status(400).json({
+        success: false,
+        message: "Invalid template ID format",
+      });
+      return;
+    }
 
     const deleted = await deleteCustomTemplate(userId, templateId);
 
