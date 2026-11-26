@@ -129,18 +129,28 @@ export default function EditAutomationPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-7xl items-center gap-3">
         <Link href={`/automations/${id}`}>
-          <Button variant="ghost" size="sm" className="p-2 text-[#827D87]">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-full border border-[#E6DFD8] bg-white p-2 text-[#6E655F] hover:text-[#161413]"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <h2 className="font-display text-xl font-bold tracking-tight text-[#17131D]">
-            Edit Automation
-          </h2>
-          <p className="text-xs text-[#827D87] mt-0.5">
-            Update triggers, DM templates, and product links for {automation.name}
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-xl font-bold tracking-tight text-[#161413]">
+              Edit Automation
+            </h2>
+            <span className="inline-flex items-center rounded-full border border-[#E6DFD8] bg-[#FCE8EC] px-2.5 py-0.5 text-[10px] font-semibold text-[#E1306C]">
+              Live Studio
+            </span>
+          </div>
+          <p className="mt-0.5 text-xs text-[#6E655F]">
+            Update triggers, follow gate, DM templates, and product links for{" "}
+            {automation.name}
           </p>
         </div>
       </div>
