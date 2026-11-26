@@ -2,11 +2,25 @@
 import { Job, UnrecoverableError } from "bullmq";
 import { randomUUID } from "node:crypto";
 import { prisma } from "@replyza/database";
-import { decryptToken, interpolateVariables } from "@replyza/shared";
+import {
+  decryptToken,
+  interpolateVariables,
+  signFollowCheckPayload,
+} from "@replyza/shared";
 
 import type { AutomationJobData } from "../queues/automation.queue";
 
 import { workerEnv } from "../config/env";
+import {
+  claimDeliveryAction,
+  markDeliveryActionSent,
+  markDeliveryActionPendingForRetry,
+  markDeliveryActionFailed,
+  markDeliveryActionSkipped,
+  markDeliveryActionNeedsReview,
+  syncExecutionFromDeliveryActions,
+} from "../services/delivery-action.service";
+import { deliverProducts } from "../services/product-delivery.service";
 
 import {
   claimAction,
@@ -340,6 +354,10 @@ async function finalizeExecution(
 export async function processAutomationJob(
   job: Job<AutomationJobData>
 ): Promise<void> {
+  if (job.data.actionType === "PUBLIC_REPLY" || job.data.actionType === "HOOK_DM") {
+    return processIndependentActionJob(job.data);
+  }
+
   const { executionId, automationId, webhookEventId } = job.data;
 
   console.log(`[Worker] Processing execution: ${executionId}`);
@@ -634,17 +652,23 @@ export async function processAutomationJob(
     // Action 2: Private Instagram reply.
     let privateActionSender: () => Promise<string>;
 
-    if (automation.followRequired) {
+    if (automation.followRequired || automation.deliveryMode === "BUTTON") {
       const instructionText = interpolateVariables(
-        automation.followInstructionText ||
-          "Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇",
+        automation.followRequired
+          ? automation.followInstructionText ||
+              "Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇\n\n(On desktop? Reply LINK to get it)"
+          : `${automation.dmMessageText}\n\nTap below or reply LINK to get it 👇`,
         variableContext
       );
+      const buttonTitle = (
+        automation.buttonLabel ||
+        (automation.followRequired ? "I've followed! ✅" : "Send me the link")
+      ).slice(0, 20);
       const quickReplies = [
         {
           content_type: "text" as const,
-          title: "I've followed! ✅",
-          payload: `FOLLOW_CHECK:${executionId}`,
+          title: buttonTitle,
+          payload: signFollowCheckPayload(executionId, workerEnv.sessionSecret),
         },
       ];
       privateActionSender = () =>
@@ -699,7 +723,7 @@ export async function processAutomationJob(
       );
     }
 
-    if (automation.followRequired && privateResult === "SUCCESS") {
+    if ((automation.followRequired || automation.deliveryMode === "BUTTON") && privateResult === "SUCCESS") {
       await prisma.automationExecution.updateMany({
         where: {
           id: executionId,
@@ -709,6 +733,7 @@ export async function processAutomationJob(
         data: {
           followCheckStatus: "PENDING",
           followCheckSentAt: new Date(),
+          conversationState: "AWAITING_TAP",
         },
       });
     }
@@ -744,4 +769,310 @@ export async function processAutomationJob(
       });
     }
   }
+}
+
+async function processIndependentActionJob(
+  data: AutomationJobData
+): Promise<void> {
+  const { executionId, automationId, webhookEventId, actionType } = data;
+  if (!actionType) return;
+
+  const execution = await prisma.automationExecution.findUnique({
+    where: { id: executionId },
+    include: {
+      automation: {
+        include: {
+          instagramAccount: true,
+          products: { orderBy: { sortOrder: "asc" } },
+        },
+      },
+      webhookEvent: true,
+    },
+  });
+
+  if (!execution) {
+    throw new UnrecoverableError(`Execution not found: ${executionId}`);
+  }
+  if (
+    execution.automationId !== automationId ||
+    execution.webhookEventId !== webhookEventId
+  ) {
+    throw new UnrecoverableError("Job IDs do not match execution record");
+  }
+
+  const { automation, webhookEvent } = execution;
+  const account = automation.instagramAccount;
+
+  if (automation.status !== "ACTIVE" || account.status === "NEEDS_RECONNECT") {
+    await markDeliveryActionFailed(
+      executionId,
+      actionType,
+      account.status === "NEEDS_RECONNECT" ? "190" : "INACTIVE",
+      account.status === "NEEDS_RECONNECT"
+        ? "Instagram account needs reconnect (Error 190)"
+        : `Automation is ${automation.status}`
+    );
+    await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+    return;
+  }
+
+  const claimed = await claimDeliveryAction(executionId, actionType);
+  if (!claimed) {
+    console.log(
+      `[Worker] ${actionType} already claimed or terminal for executionId=${executionId}`
+    );
+    return;
+  }
+
+  let accessToken: string;
+  try {
+    accessToken = decryptToken(
+      account.encryptedAccessToken,
+      workerEnv.metaTokenEncryptionKey
+    );
+  } catch {
+    await markDeliveryActionFailed(
+      executionId,
+      actionType,
+      "DECRYPT_ERROR",
+      "Could not decrypt Instagram access token"
+    );
+    await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+    throw new UnrecoverableError("Could not decrypt Instagram access token");
+  }
+
+  const variableContext = {
+    firstName: webhookEvent.commenterUsername,
+    username: webhookEvent.commenterUsername,
+    keyword: webhookEvent.commentText,
+    link: automation.dmLink ?? automation.products[0]?.affiliateUrl ?? null,
+    productName: automation.products[0]?.name ?? null,
+    productUrl: automation.products[0]?.affiliateUrl ?? automation.dmLink ?? null,
+    couponCode: automation.products[0]?.couponCode ?? null,
+    productPrice: automation.products[0]?.discountPrice ?? automation.products[0]?.price ?? null,
+    brand: automation.products[0]?.brand ?? null,
+  };
+
+  if (actionType === "PUBLIC_REPLY") {
+    if (!automation.publicReplyEnabled) {
+      await markDeliveryActionSkipped(executionId, "PUBLIC_REPLY");
+      await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+      return;
+    }
+    const variations =
+      automation.publicReplyVariations.length > 0
+        ? automation.publicReplyVariations
+        : [automation.publicReplyText];
+    const selectedTemplate =
+      variations[(claimed.attempts - 1) % variations.length] ||
+      automation.publicReplyText;
+    let replyText = interpolateVariables(selectedTemplate, variableContext);
+
+    if (automation.dmMeFallbackEnabled && !replyText.toLowerCase().includes("dm me")) {
+      const kw = automation.keywords[0] || "LINK";
+      replyText = `${replyText} (DM me ${kw} if you didn't get it!)`;
+    }
+
+    try {
+      const replyId = await publishCommentReply(
+        webhookEvent.commentId,
+        replyText,
+        accessToken
+      );
+      await markDeliveryActionSent(executionId, "PUBLIC_REPLY", replyId);
+      await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+    } catch (err) {
+      await handleIndependentActionError(
+        executionId,
+        webhookEventId,
+        account.id,
+        account.instagramUserId,
+        webhookEvent.commentId,
+        replyText,
+        accessToken,
+        "PUBLIC_REPLY",
+        err
+      );
+    }
+    return;
+  }
+
+  // HOOK_DM
+  const isTwoStepButton =
+    automation.followRequired || automation.deliveryMode === "BUTTON";
+  try {
+    let messageId: string;
+    if (isTwoStepButton) {
+      const rawHookText = automation.followRequired
+        ? automation.followInstructionText ||
+          "Hey {{first_name}}! Thanks for commenting. Follow our page and tap below (or reply FOLLOWED once you've followed) to get your link 👇"
+        : `${automation.dmMessageText}\n\nTap below or reply LINK to get it 👇`;
+      const hookText = interpolateVariables(rawHookText, variableContext);
+      const buttonTitle = (
+        automation.buttonLabel ||
+        (automation.followRequired ? "I've followed! ✅" : "Send me the link")
+      ).slice(0, 20);
+      const quickReplies = [
+        {
+          content_type: "text" as const,
+          title: buttonTitle,
+          payload: signFollowCheckPayload(executionId, workerEnv.sessionSecret),
+        },
+      ];
+      messageId = await sendPrivateReplyWithQuickReply(
+        account.instagramUserId,
+        webhookEvent.commentId,
+        hookText,
+        quickReplies,
+        accessToken
+      );
+      await prisma.automationExecution.update({
+        where: { id: executionId },
+        data: {
+          conversationState: "AWAITING_TAP",
+          followCheckSentAt: new Date(),
+        },
+      });
+    } else {
+      messageId = await deliverProducts({
+        executionId,
+        instagramUserId: account.instagramUserId,
+        accessToken,
+        isPrivateReply: true,
+        commentId: webhookEvent.commentId,
+        baseText: automation.dmMessageText,
+        dmLink: automation.dmLink,
+        products: automation.products,
+        productDeliveryMode: automation.productDeliveryMode,
+        productIntroText: automation.productIntroText,
+        productClosingText: automation.productClosingText,
+        followUpEnabled: automation.followUpEnabled,
+        followUpText: automation.followUpText,
+        baseContext: {
+          firstName: webhookEvent.commenterUsername,
+          username: webhookEvent.commenterUsername,
+          keyword: webhookEvent.commentText,
+          link: automation.dmLink,
+        },
+      });
+      await prisma.automationExecution.update({
+        where: { id: executionId },
+        data: {
+          conversationState:
+            automation.productDeliveryMode === "SELECTION_PROMPT" && automation.products.length > 1
+              ? "AWAITING_TAP"
+              : "COMPLETED",
+        },
+      });
+    }
+
+    await markDeliveryActionSent(executionId, "HOOK_DM", messageId);
+    await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+  } catch (err) {
+    await handleIndependentActionError(
+      executionId,
+      webhookEventId,
+      account.id,
+      account.instagramUserId,
+      webhookEvent.commentId,
+      "",
+      accessToken,
+      "HOOK_DM",
+      err
+    );
+  }
+}
+
+async function handleIndependentActionError(
+  executionId: string,
+  webhookEventId: string,
+  accountId: string,
+  instagramUserId: string,
+  commentId: string,
+  expectedReplyText: string,
+  accessToken: string,
+  actionType: "PUBLIC_REPLY" | "HOOK_DM",
+  err: unknown
+): Promise<void> {
+  if (err instanceof MetaApiError) {
+    const errCode = err.metaError?.code ? String(err.metaError.code) : String(err.httpStatus);
+
+    // Token Error 190 -> mark account NEEDS_RECONNECT and pause without burning retries
+    if (err.metaError?.code === 190 || err.category === "AUTH_EXPIRED") {
+      await prisma.instagramAccount
+        .update({
+          where: { id: accountId },
+          data: { status: "NEEDS_RECONNECT" },
+        })
+        .catch(() => {});
+      await markDeliveryActionFailed(
+        executionId,
+        actionType,
+        "190",
+        "Instagram access token expired or revoked by Meta (Error 190). Please reconnect."
+      );
+      await prisma.automationExecution.update({
+        where: { id: executionId },
+        data: { conversationState: "NEEDS_RECONNECT" },
+      });
+      await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+      throw new UnrecoverableError("Instagram access token expired (Error 190)");
+    }
+
+    // D4: Duplicate action handling
+    if (err.category === "DUPLICATE_ACTION") {
+      if (actionType === "HOOK_DM") {
+        // Private reply "already has a private reply" -> SENT-equivalent
+        await markDeliveryActionSent(executionId, "HOOK_DM", "already_replied_meta");
+        await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+        return;
+      }
+      // For PUBLIC_REPLY, verify via GET /{commentId}/replies before marking SENT
+      const reconciledId = await reconcileCommentReply(
+        commentId,
+        expectedReplyText,
+        instagramUserId,
+        accessToken
+      );
+      if (reconciledId) {
+        await markDeliveryActionSent(executionId, "PUBLIC_REPLY", reconciledId);
+        await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+        return;
+      }
+      await markDeliveryActionFailed(executionId, "PUBLIC_REPLY", errCode, err.message);
+      await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+      throw new UnrecoverableError(err.message);
+    }
+
+    // Transient rate limit / upstream -> revert to PENDING and throw so BullMQ retries with backoff
+    if (err.isTransient) {
+      await markDeliveryActionPendingForRetry(executionId, actionType, errCode, err.message);
+      throw err;
+    }
+
+    // Permanent rejection (7-day window, comment deleted, permission denied, etc.)
+    await markDeliveryActionFailed(executionId, actionType, errCode, err.message);
+    await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+    throw new UnrecoverableError(err.message);
+  }
+
+  // Ambiguous / UNKNOWN_OUTCOME (timeout, 5xx, socket reset)
+  if (actionType === "PUBLIC_REPLY" && expectedReplyText) {
+    const reconciledId = await reconcileCommentReply(
+      commentId,
+      expectedReplyText,
+      instagramUserId,
+      accessToken
+    );
+    if (reconciledId) {
+      await markDeliveryActionSent(executionId, "PUBLIC_REPLY", reconciledId);
+      await syncExecutionFromDeliveryActions(executionId, webhookEventId);
+      return;
+    }
+  }
+
+  const msg =
+    err instanceof Error ? err.message : "Uncertain delivery outcome from Meta";
+  await markDeliveryActionNeedsReview(executionId, actionType, "UNKNOWN", msg);
+  await syncExecutionFromDeliveryActions(executionId, webhookEventId);
 }

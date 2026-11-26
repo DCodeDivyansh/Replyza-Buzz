@@ -15,7 +15,12 @@ const worker = new Worker(
   processAutomationJob,
   {
     connection: redisConnection,
-    concurrency: 5,
+    concurrency: 10,
+    // Rate-limited to respect Meta's documented 750/hr private-reply limit (~12/min safe burst buffer)
+    limiter: {
+      max: 180,
+      duration: 60_000,
+    },
   }
 );
 
@@ -24,7 +29,7 @@ const followCheckWorker = new Worker(
   processFollowCheckJob,
   {
     connection: redisConnection,
-    concurrency: 5,
+    concurrency: 10,
   }
 );
 

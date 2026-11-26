@@ -6,6 +6,7 @@ export interface FollowCheckJobData {
   igsid: string;
   instagramUserId: string;
   providerEventId?: string;
+  selectedProductIndex?: number;
 }
 
 export const followCheckQueue = new Queue<FollowCheckJobData>(
@@ -33,8 +34,8 @@ export async function enqueueFollowCheck(
   data: FollowCheckJobData
 ): Promise<void> {
   const jobId = data.providerEventId
-    ? `follow-check:${data.executionId}:${data.providerEventId}`
-    : `follow-check:${data.executionId}:${data.igsid}`;
+    ? `follow-check__${data.executionId}__${data.providerEventId}`
+    : `follow-check__${data.executionId}__${data.igsid}`;
 
   await followCheckQueue.add(
     "follow-check",

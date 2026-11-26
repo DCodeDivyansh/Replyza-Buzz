@@ -1,42 +1,60 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import {
-  CreateAutomationPayload,
-  InstagramAccountInfo,
-  InstagramMedia,
-  Template,
-} from "@/types/automation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { MediaGrid } from "@/components/media/media-grid";
-import { TemplateCard } from "@/components/templates/template-card";
-import { LivePreview } from "./live-preview";
-import { apiRequest } from "@/lib/api-client";
-import {
+  AlertCircle,
   ArrowLeft,
   ArrowRight,
-  Check,
-  CheckCircle2,
-  MessageSquare,
-  Send,
-  Sparkles,
-  UserCheck,
+  Rocket,
+  Save,
+  Smartphone,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
+import { validateTemplateVariables } from "@replyza/shared";
+import { apiRequest } from "@/lib/api-client";
+import {
+  AffiliateProduct,
+  AutomationProductItem,
+  CreateAutomationPayload,
+  DeliveryMode,
+  InstagramAccountInfo,
+  InstagramMedia,
+  KeywordMatchLogic,
+  KeywordMatchMode,
+  ProductDeliveryMode,
+  Template,
+} from "@/types/automation";
+import { LivePreview } from "./live-preview";
+import { ProductSelectorStep } from "./product-selector-step";
+import { StepFollowDm } from "./step-follow-dm";
+import { StepReview } from "./step-review";
+import { StepTrigger } from "./step-trigger";
 
-const DRAFT_KEY = "replyza_builder_draft_v1";
+const DRAFT_KEY = "replyza_builder_draft_v2";
 
-interface BuilderWizardProps {
+export interface BuilderWizardProps {
   discoveredAccounts: InstagramAccountInfo[];
-  initialData?: Partial<CreateAutomationPayload> & { id?: string; status?: string };
-  onSubmit: (data: CreateAutomationPayload, activateNow: boolean) => Promise<void>;
+  initialData?: Partial<CreateAutomationPayload> & {
+    id?: string;
+    status?: string;
+  };
+  onSubmit: (
+    data: CreateAutomationPayload,
+    activateNow: boolean
+  ) => Promise<void>;
   isSubmitting: boolean;
   isEditMode?: boolean;
 }
+
+const WIZARD_STEPS = [
+  { id: 0, num: "01", label: "Post & Trigger" },
+  { id: 1, num: "02", label: "Follow Gate" },
+  { id: 2, num: "03", label: "DM & Products" },
+  { id: 3, num: "04", label: "Review & Launch" },
+] as const;
 
 export function BuilderWizard({
   discoveredAccounts,
@@ -47,13 +65,13 @@ export function BuilderWizard({
 }: BuilderWizardProps) {
   const searchParams = useSearchParams();
 
-  // Initial account selection
   const defaultAccountId =
     initialData?.instagramAccountId ||
     (discoveredAccounts.length > 0 ? discoveredAccounts[0].id : "");
 
-  // Builder State
-  const [step, setStep] = useState<number>(() => (searchParams.get("mediaId") ? 2 : 1));
+  const [activeStep, setActiveStep] = useState<number>(0);
+
+  // Step 1: Post & Trigger
   const [accountId, setAccountId] = useState<string>(defaultAccountId);
   const [name, setName] = useState<string>(initialData?.name || "");
   const [mediaId, setMediaId] = useState<string>(
@@ -62,59 +80,124 @@ export function BuilderWizard({
   const [mediaPermalink, setMediaPermalink] = useState<string>(
     () => searchParams.get("permalink") || initialData?.mediaPermalink || ""
   );
-  const [mediaType, setMediaType] = useState<"IMAGE" | "VIDEO" | "CAROUSEL_ALBUM" | "REELS">(
-    () => {
-      const q = searchParams.get("mediaType");
-      if (q === "IMAGE" || q === "VIDEO" || q === "CAROUSEL_ALBUM" || q === "REELS") return q;
-      if (initialData?.mediaType) return initialData.mediaType;
-      return "IMAGE";
+  const [mediaType, setMediaType] = useState<
+    "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM" | "REELS"
+  >(() => {
+    const q = searchParams.get("mediaType");
+    if (
+      q === "IMAGE" ||
+      q === "VIDEO" ||
+      q === "CAROUSEL_ALBUM" ||
+      q === "REELS"
+    ) {
+      return q;
     }
+    if (initialData?.mediaType) return initialData.mediaType;
+    return "IMAGE";
+  });
+  const [selectedMediaPreview, setSelectedMediaPreview] =
+    useState<InstagramMedia | null>(null);
+  const [allMedia, setAllMedia] = useState<boolean>(
+    () => !searchParams.get("mediaId") && initialData?.mediaId === null
   );
-  const [selectedMediaPreview, setSelectedMediaPreview] = useState<InstagramMedia | null>(null);
 
   const [triggerType, setTriggerType] = useState<"ANY_COMMENT" | "KEYWORD">(
     initialData?.triggerType || "KEYWORD"
   );
-  const [keywords, setKeywords] = useState<string[]>(initialData?.keywords || ["LINK"]);
-  const [keywordInput, setKeywordInput] = useState<string>("");
+  const [keywordMatchMode, setKeywordMatchMode] = useState<KeywordMatchMode>(
+    initialData?.keywordMatchMode || "CONTAINS"
+  );
+  const [keywordMatchLogic, setKeywordMatchLogic] =
+    useState<KeywordMatchLogic>(
+      initialData?.keywordMatchLogic || "ANY_KEYWORD"
+    );
+  const [keywords, setKeywords] = useState<string[]>(
+    initialData?.keywords || ["LINK"]
+  );
 
+  const [publicReplyEnabled, setPublicReplyEnabled] = useState<boolean>(
+    initialData?.publicReplyEnabled ?? true
+  );
   const [publicReplyText, setPublicReplyText] = useState<string>(
-    initialData?.publicReplyText || "Check your DMs {{username}}! Sent it your way 🔥"
+    initialData?.publicReplyText ||
+      "Check your DMs {{username}}! Sent it your way ✨"
+  );
+  const [publicReplyVariations, setPublicReplyVariations] = useState<string[]>(
+    initialData?.publicReplyVariations || []
+  );
+
+  // Step 2: Follow Gate & DM
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    () => searchParams.get("templateId") || initialData?.templateId || null
   );
   const [dmMessageText, setDmMessageText] = useState<string>(
-    initialData?.dmMessageText || "Hey {{first_name}}! Thanks for asking for the link. Here is what you requested:"
+    initialData?.dmMessageText ||
+      "Hey {{first_name}}! Thanks for commenting! Here's what you asked for:"
   );
-  const [dmLink, setDmLink] = useState<string>(initialData?.dmLink || "");
-
-  const [followRequired, setFollowRequired] = useState<boolean>(initialData?.followRequired ?? false);
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>(
+    initialData?.deliveryMode || "DIRECT"
+  );
+  const [buttonLabel, setButtonLabel] = useState<string>(
+    initialData?.buttonLabel || "Send me the links"
+  );
+  const [followRequired, setFollowRequired] = useState<boolean>(
+    initialData?.followRequired ?? false
+  );
   const [followInstructionText, setFollowInstructionText] = useState<string>(
     initialData?.followInstructionText ||
-      "Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇"
+      "Hey {{first_name}}! Follow our page and tap below to get your links instantly! 👇"
   );
   const [followSuccessText, setFollowSuccessText] = useState<string>(
-    initialData?.followSuccessText || "Woohoo! Thanks for following {{first_name}} 🎉 Here is your link:"
+    initialData?.followSuccessText ||
+      "Woohoo! Thanks for following {{first_name}} 🎉 Here are your links:"
   );
   const [followFallbackText, setFollowFallbackText] = useState<string>(
     initialData?.followFallbackText ||
-      "Looks like you aren't following us yet! Please follow our profile and tap the button below to get your link."
+      "Looks like you aren't following us yet! Please follow our profile and tap the button below."
   );
 
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    () => searchParams.get("templateId") || null
+  // Step 3: Products
+  const [libraryProducts, setLibraryProducts] = useState<AffiliateProduct[]>(
+    []
   );
-  const [hasRestoredDraft, setHasRestoredDraft] = useState<boolean>(() => {
-    if (isEditMode || searchParams.get("mediaId")) return false;
-    try {
-      if (typeof window === "undefined") return false;
-      const saved = localStorage.getItem(DRAFT_KEY);
-      if (!saved) return false;
-      const parsed = JSON.parse(saved);
-      return Boolean(parsed.name || parsed.mediaId);
-    } catch {
-      return false;
-    }
-  });
+  const [products, setProducts] = useState<AutomationProductItem[]>(
+    initialData?.products ||
+      (initialData?.dmLink
+        ? [
+            {
+              name: "Featured Link",
+              affiliateUrl: initialData.dmLink,
+              ctaLabel: "Shop Now",
+              sortOrder: 0,
+            },
+          ]
+        : [])
+  );
+  const [productDeliveryMode, setProductDeliveryMode] =
+    useState<ProductDeliveryMode>(
+      initialData?.productDeliveryMode || "SINGLE_MESSAGE"
+    );
+  const [productIntroText, setProductIntroText] = useState<string>(
+    initialData?.productIntroText || ""
+  );
+  const [productClosingText, setProductClosingText] = useState<string>(
+    initialData?.productClosingText || ""
+  );
+
+  // Step 4: Guardrails & Launch
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(
+    initialData?.cooldownSeconds ?? 0
+  );
+  const [dmMeFallbackEnabled, setDmMeFallbackEnabled] = useState<boolean>(
+    initialData?.dmMeFallbackEnabled ?? false
+  );
+  const [dmMeFallbackKeyword, setDmMeFallbackKeyword] = useState<string>(
+    keywords[0] || "LINK"
+  );
+
+  // UI state
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const applyTemplate = useCallback((tmpl: Template) => {
@@ -126,25 +209,39 @@ export function BuilderWizard({
     }
     setPublicReplyText(tmpl.publicReplyText);
     setDmMessageText(tmpl.dmMessageText);
-    if (tmpl.dmLink) setDmLink(tmpl.dmLink);
     setFollowRequired(tmpl.followRequired);
-    if (tmpl.followInstructionText) setFollowInstructionText(tmpl.followInstructionText);
-    if (tmpl.followSuccessText) setFollowSuccessText(tmpl.followSuccessText);
-    if (tmpl.followFallbackText) setFollowFallbackText(tmpl.followFallbackText);
+    if (tmpl.followInstructionText) {
+      setFollowInstructionText(tmpl.followInstructionText);
+    }
+    if (tmpl.followSuccessText) {
+      setFollowSuccessText(tmpl.followSuccessText);
+    }
+    if (tmpl.followFallbackText) {
+      setFollowFallbackText(tmpl.followFallbackText);
+    }
+    toast.success(`Applied "${tmpl.name}" template`);
   }, []);
 
-  // Load templates on mount and apply if templateId was provided in searchParams
   useEffect(() => {
     let ignore = false;
     const qTemplateId = searchParams.get("templateId");
 
-    apiRequest<Template[]>("/templates").then((res) => {
-      if (!ignore && res.data) {
-        setTemplates(res.data);
+    Promise.all([
+      apiRequest<Template[]>("/templates"),
+      apiRequest<AffiliateProduct[]>("/products").catch(() => ({
+        data: [] as AffiliateProduct[],
+      })),
+    ]).then(([tmplRes, prodRes]) => {
+      if (ignore) return;
+      if (tmplRes.data) {
+        setTemplates(tmplRes.data);
         if (qTemplateId) {
-          const found = res.data.find((t) => t.id === qTemplateId);
+          const found = tmplRes.data.find((t) => t.id === qTemplateId);
           if (found) applyTemplate(found);
         }
+      }
+      if (prodRes.data) {
+        setLibraryProducts(prodRes.data);
       }
     });
 
@@ -153,777 +250,449 @@ export function BuilderWizard({
     };
   }, [searchParams, applyTemplate]);
 
-  // Auto-save draft
-  useEffect(() => {
-    if (isEditMode) return;
-    try {
-      const draft = {
-        name,
-        accountId,
-        mediaId,
-        mediaPermalink,
-        mediaType,
-        triggerType,
-        keywords,
-        publicReplyText,
-        dmMessageText,
-        dmLink,
-        followRequired,
-        followInstructionText,
-        followSuccessText,
-        followFallbackText,
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-    } catch {
-      // ignore
-    }
-  }, [
-    isEditMode,
-    name,
-    accountId,
-    mediaId,
-    mediaPermalink,
-    mediaType,
-    triggerType,
-    keywords,
-    publicReplyText,
-    dmMessageText,
-    dmLink,
-    followRequired,
-    followInstructionText,
-    followSuccessText,
-    followFallbackText,
-  ]);
-
-  function restoreDraft() {
-    try {
-      const saved = localStorage.getItem(DRAFT_KEY);
-      if (!saved) return;
-      const d = JSON.parse(saved);
-      if (d.name) setName(d.name);
-      if (d.accountId) setAccountId(d.accountId);
-      if (d.mediaId) setMediaId(d.mediaId);
-      if (d.mediaPermalink) setMediaPermalink(d.mediaPermalink);
-      if (d.mediaType) setMediaType(d.mediaType);
-      if (d.triggerType) setTriggerType(d.triggerType);
-      if (d.keywords) setKeywords(d.keywords);
-      if (d.publicReplyText) setPublicReplyText(d.publicReplyText);
-      if (d.dmMessageText) setDmMessageText(d.dmMessageText);
-      if (d.dmLink) setDmLink(d.dmLink);
-      if (typeof d.followRequired === "boolean") setFollowRequired(d.followRequired);
-      if (d.followInstructionText) setFollowInstructionText(d.followInstructionText);
-      if (d.followSuccessText) setFollowSuccessText(d.followSuccessText);
-      if (d.followFallbackText) setFollowFallbackText(d.followFallbackText);
-      setHasRestoredDraft(false);
-    } catch {
-      // ignore
-    }
-  }
-
-  function discardDraft() {
-    try {
-      localStorage.removeItem(DRAFT_KEY);
-      setHasRestoredDraft(false);
-    } catch {
-      // ignore
-    }
-  }
-
-
-
-  function handleAddKeyword() {
-    const trimmed = keywordInput.trim();
-    if (!trimmed) return;
-    if (!keywords.includes(trimmed)) {
-      setKeywords([...keywords, trimmed]);
-    }
-    setKeywordInput("");
-  }
-
-  function handleRemoveKeyword(kw: string) {
-    setKeywords(keywords.filter((k) => k !== kw));
-  }
-
-  function validateCurrentStep(): boolean {
+  const buildPayload = (): CreateAutomationPayload | null => {
     setValidationError(null);
-    if (step === 1) {
-      if (!mediaId) {
-        setValidationError("Please select an Instagram post or reel to automate.");
-        return false;
+
+    if (!accountId) {
+      setValidationError(
+        "Please connect and select an Instagram account first."
+      );
+      setActiveStep(0);
+      return null;
+    }
+    if (!allMedia && !mediaId) {
+      setValidationError(
+        "Step 01: Select an Instagram post/Reel or choose All Posts & Reels."
+      );
+      setActiveStep(0);
+      return null;
+    }
+    if (!name.trim()) {
+      setValidationError("Step 01: Please give your automation a name.");
+      setActiveStep(0);
+      return null;
+    }
+    if (
+      triggerType === "KEYWORD" &&
+      keywordMatchMode !== "ANY" &&
+      keywords.length === 0
+    ) {
+      setValidationError("Step 01: Add at least one comment keyword.");
+      setActiveStep(0);
+      return null;
+    }
+    if (publicReplyEnabled && !publicReplyText.trim()) {
+      setValidationError(
+        "Step 01: Enter a public comment reply or disable public replies."
+      );
+      setActiveStep(0);
+      return null;
+    }
+    if (!dmMessageText.trim()) {
+      setValidationError("Step 02: Enter your opening/delivery DM message.");
+      setActiveStep(1);
+      return null;
+    }
+
+    for (const [label, val, stepIdx] of [
+      ["Public Reply", publicReplyEnabled ? publicReplyText : "", 0],
+      ["Opening DM", dmMessageText, 1],
+      ["Product Intro", productIntroText, 2],
+      ["Product Closing", productClosingText, 2],
+    ] as const) {
+      const check = validateTemplateVariables(val);
+      if (!check.valid) {
+        setValidationError(
+          `${label} contains unsupported variable(s): ${check.unsupportedVariables
+            .map((v) => `{{${v}}}`)
+            .join(", ")}`
+        );
+        setActiveStep(stepIdx);
+        return null;
       }
     }
-    if (step === 3) {
-      if (!name.trim()) {
-        setValidationError("Please give your automation a name.");
-        return false;
-      }
-      if (triggerType === "KEYWORD" && keywords.length === 0) {
-        setValidationError("Please add at least one trigger keyword.");
-        return false;
-      }
-    }
-    if (step === 4) {
-      if (!publicReplyText.trim()) {
-        setValidationError("Please provide a public comment reply message.");
-        return false;
-      }
-      if (!dmMessageText.trim()) {
-        setValidationError("Please provide a private DM message.");
-        return false;
-      }
-    }
-    if (step === 5) {
-      if (followRequired && !followInstructionText.trim()) {
-        setValidationError("Please provide follow instruction text for the DM.");
-        return false;
-      }
-      if (dmLink && !/^https?:\/\//i.test(dmLink)) {
-        setValidationError("Target Link must be a valid URL starting with http:// or https://");
-        return false;
-      }
-    }
-    return true;
-  }
 
-  function handleNext() {
-    if (validateCurrentStep()) {
-      setStep((prev) => Math.min(prev + 1, 6));
-    }
-  }
+    const effectiveDeliveryMode: DeliveryMode = followRequired
+      ? "BUTTON"
+      : deliveryMode;
 
-  function handleBack() {
-    setValidationError(null);
-    setStep((prev) => Math.max(prev - 1, 1));
-  }
-
-  async function handleFinalSubmit(activateNow: boolean) {
-    if (!validateCurrentStep()) return;
-
-    const effectiveAccountId =
-      accountId ||
-      initialData?.instagramAccountId ||
-      (discoveredAccounts.length > 0 ? discoveredAccounts[0].id : "");
-
-    const payload: CreateAutomationPayload = {
-      instagramAccountId: effectiveAccountId,
+    return {
+      instagramAccountId: accountId,
       name: name.trim(),
-      mediaId,
-      mediaPermalink: mediaPermalink || undefined,
-      mediaType,
+      mediaId: allMedia ? null : mediaId,
+      mediaPermalink: allMedia ? null : mediaPermalink || null,
+      mediaType: allMedia ? null : mediaType,
       triggerType,
+      keywordMatchMode,
+      keywordMatchLogic,
       keywords: triggerType === "KEYWORD" ? keywords : [],
-      publicReplyText: publicReplyText.trim(),
+      publicReplyEnabled,
+      publicReplyText: publicReplyText.trim() || "Check your DMs!",
+      publicReplyVariations,
       dmMessageText: dmMessageText.trim(),
-      dmLink: dmLink.trim() || undefined,
+      dmLink: products[0]?.affiliateUrl || null,
+      productDeliveryMode,
+      productIntroText: productIntroText.trim() || null,
+      productClosingText: productClosingText.trim() || null,
+      products: products.map((p, idx) => ({ ...p, sortOrder: idx })),
+      deliveryMode: effectiveDeliveryMode,
+      buttonLabel:
+        effectiveDeliveryMode === "BUTTON"
+          ? buttonLabel.trim() || "Send me the links"
+          : null,
+      cooldownSeconds,
+      dmMeFallbackEnabled,
       followRequired,
-      followInstructionText: followRequired ? followInstructionText.trim() : undefined,
-      followSuccessText: followRequired ? followSuccessText.trim() : undefined,
-      followFallbackText: followRequired ? followFallbackText.trim() : undefined,
-      templateId: selectedTemplateId || undefined,
+      followInstructionText: followRequired
+        ? followInstructionText.trim()
+        : null,
+      followSuccessText: followRequired ? followSuccessText.trim() : null,
+      followFallbackText: followRequired ? followFallbackText.trim() : null,
+      followUpEnabled: initialData?.followUpEnabled ?? false,
+      followUpText: initialData?.followUpText ?? null,
+      templateId: selectedTemplateId,
     };
+  };
 
+  const handleSave = async (activateNow: boolean) => {
+    const payload = buildPayload();
+    if (!payload) return;
     try {
       await onSubmit(payload, activateNow);
-      try {
+      if (typeof window !== "undefined") {
         localStorage.removeItem(DRAFT_KEY);
-      } catch {
-        // ignore
       }
     } catch {
-      // error handled by parent
+      // handled by parent page
     }
-  }
+  };
 
-  const effectiveAccountId =
-    accountId ||
-    initialData?.instagramAccountId ||
-    (discoveredAccounts.length > 0 ? discoveredAccounts[0].id : "");
-  const selectedAccount = discoveredAccounts.find((a) => a.id === effectiveAccountId);
-  const accountUsername = selectedAccount?.username || "your_brand";
+  const activeAccount = discoveredAccounts.find((a) => a.id === accountId);
 
-  const STEPS = [
-    { num: 1, label: "Select Media" },
-    { num: 2, label: "Template" },
-    { num: 3, label: "Trigger" },
-    { num: 4, label: "Responses" },
-    { num: 5, label: "Follow Gate" },
-    { num: 6, label: "Launch" },
-  ];
+  const previewNode = (
+    <LivePreview
+      accountUsername={activeAccount?.username || "shre_yadayal"}
+      publicReplyEnabled={publicReplyEnabled}
+      publicReplyText={publicReplyText}
+      dmMessageText={dmMessageText}
+      dmLink={products[0]?.affiliateUrl || null}
+      triggerType={triggerType}
+      keywords={keywords}
+      deliveryMode={followRequired ? "BUTTON" : deliveryMode}
+      buttonLabel={buttonLabel}
+      followRequired={followRequired}
+      followInstructionText={followInstructionText}
+      followSuccessText={followSuccessText}
+      products={products}
+      productDeliveryMode={productDeliveryMode}
+      productIntroText={productIntroText}
+      productClosingText={productClosingText}
+      mediaThumbnailUrl={
+        selectedMediaPreview?.thumbnail_url || selectedMediaPreview?.media_url
+      }
+    />
+  );
 
   return (
-    <div className="space-y-6">
-      {/* Draft Restore Notification */}
-      {hasRestoredDraft && (
-        <div className="flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50/70 p-3.5 text-xs text-indigo-900 shadow-2xs">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-indigo-600" />
-            <span>You have an auto-saved automation draft. Would you like to restore it?</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button type="button" size="sm" variant="primary" onClick={restoreDraft} className="text-xs py-1">
-              Restore Draft
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={discardDraft} className="text-xs py-1 text-zinc-500">
-              Discard
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* 6-Step Stepper Header */}
-      <div className="bg-white rounded-xl border border-zinc-200/80 p-3 shadow-2xs">
-        <div className="flex items-center justify-between overflow-x-auto pb-1 sm:pb-0">
-          {STEPS.map((s, idx) => {
-            const isDone = s.num < step;
-            const isCurrent = s.num === step;
-            return (
-              <React.Fragment key={s.num}>
+    <div className="mx-auto max-w-7xl pb-24 lg:pb-12">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
+        {/* Left Column: 4-Step Editorial Studio */}
+        <div className="space-y-6 lg:col-span-7">
+          {/* Step Progress Bar */}
+          <nav
+            aria-label="Automation builder steps"
+            className="flex flex-wrap items-center gap-2 rounded-2xl border border-[#E6DFD8] bg-white p-2"
+          >
+            {WIZARD_STEPS.map((step) => {
+              const isActive = activeStep === step.id;
+              return (
                 <button
+                  key={step.id}
                   type="button"
                   onClick={() => {
-                    if (s.num < step) setStep(s.num);
+                    setValidationError(null);
+                    setActiveStep(step.id);
                   }}
-                  disabled={s.num > step}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    isCurrent
-                      ? "bg-indigo-600 text-white shadow-2xs"
-                      : isDone
-                      ? "text-zinc-800 hover:bg-zinc-100 cursor-pointer"
-                      : "text-zinc-400 cursor-not-allowed"
+                  className={`relative flex flex-1 min-w-[130px] items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+                    isActive
+                      ? "text-white"
+                      : "text-[#6E655F] hover:bg-[#F7F1EC] hover:text-[#161413]"
                   }`}
                 >
+                  {isActive && (
+                    <motion.span
+                      layoutId="builder-step-pill"
+                      transition={{
+                        type: "spring",
+                        stiffness: 420,
+                        damping: 32,
+                      }}
+                      className="absolute inset-0 rounded-xl bg-[#161413]"
+                    />
+                  )}
                   <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
-                      isCurrent
-                        ? "bg-white text-indigo-700"
-                        : isDone
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-zinc-100 text-zinc-400"
+                    className={`relative z-10 font-mono text-[10px] ${
+                      isActive ? "text-[#F77737]" : "text-[#6E655F]"
                     }`}
                   >
-                    {isDone ? <Check className="h-3 w-3" /> : s.num}
+                    {step.num}
                   </span>
-                  <span className="whitespace-nowrap">{s.label}</span>
+                  <span className="relative z-10 truncate">{step.label}</span>
                 </button>
-                {idx < STEPS.length - 1 && (
-                  <div className="h-px w-4 sm:w-8 bg-zinc-200 shrink-0 mx-1" />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Validation Error Banner */}
-      {validationError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-          {validationError}
-        </div>
-      )}
-
-      {/* STEP 1: SELECT MEDIA */}
-      {step === 1 && (
-        <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900">Step 1: Choose Post or Reel</h3>
-              <p className="text-xs text-zinc-500">
-                Pick a post from your Instagram feed to monitor for comments. Zero manual media ID copying.
-              </p>
-            </div>
-            {mediaId && (
-              <div className="flex items-center gap-2">
-                <Badge variant="green" className="text-xs">
-                  Post Selected: ID {mediaId.slice(-6)}
-                </Badge>
-                <Button size="sm" variant="primary" onClick={handleNext}>
-                  Continue to Template <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <MediaGrid
-            initialAccountId={accountId}
-            selectedMediaId={mediaId}
-            onSelectForAutomation={(media) => {
-              setMediaId(media.id);
-              if (media.permalink) setMediaPermalink(media.permalink);
-              setMediaType(
-                media.media_product_type === "REELS" || media.media_type === "VIDEO"
-                  ? "REELS"
-                  : media.media_type
               );
-              setSelectedMediaPreview(media);
-              setValidationError(null);
-              // advance
-              setStep(2);
-            }}
-          />
-        </div>
-      )}
+            })}
+          </nav>
 
-      {/* STEP 2: CHOOSE TEMPLATE */}
-      {step === 2 && (
-        <div className="space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-900">Step 2: Choose Strategy Template</h3>
-              <p className="text-xs text-zinc-500">
-                Select a high-converting comment-to-DM template, or start with a custom blank canvas.
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                setSelectedTemplateId(null);
-                handleNext();
-              }}
+          {/* Validation Error Banner */}
+          {validationError && (
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 rounded-2xl border border-[#E1306C]/30 bg-[#FCE8EC] px-4 py-3 text-xs font-medium text-[#161413]"
             >
-              Skip / Blank Canvas
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {templates.map((tmpl) => (
-              <TemplateCard
-                key={tmpl.id}
-                template={tmpl}
-                isSelected={selectedTemplateId === tmpl.id}
-                onSelect={(selected) => {
-                  applyTemplate(selected);
-                  handleNext();
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* STEP 3: CONFIGURE TRIGGER */}
-      {step === 3 && (
-        <div className="rounded-xl border border-zinc-200/80 bg-white p-5 space-y-5 shadow-2xs">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Step 3: Trigger Settings</h3>
-            <p className="text-xs text-zinc-500">
-              Define the name and decide which comments trigger automated responses.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="auto-name" className="block text-xs font-medium text-zinc-700 mb-1">
-                Automation Name *
-              </label>
-              <Input
-                id="auto-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Summer Launch Discount Delivery"
-                required
-              />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#E1306C]" />
+              <span className="flex-1">{validationError}</span>
+              <button
+                type="button"
+                aria-label="Dismiss error"
+                onClick={() => setValidationError(null)}
+                className="text-[#6E655F] hover:text-[#161413] cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
+          )}
 
-            <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-2">
-                Trigger Type *
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Active Step Card */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeStep}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              {activeStep === 0 && (
+                <StepTrigger
+                  name={name}
+                  onChangeName={setName}
+                  accountId={accountId}
+                  onChangeAccountId={setAccountId}
+                  discoveredAccounts={discoveredAccounts}
+                  isEditMode={isEditMode}
+                  allMedia={allMedia}
+                  onChangeAllMedia={setAllMedia}
+                  mediaId={mediaId}
+                  onSelectMedia={(m) => {
+                    setMediaId(m.id);
+                    setMediaPermalink(m.permalink || "");
+                    setMediaType(m.media_type);
+                    setSelectedMediaPreview(m);
+                  }}
+                  triggerType={triggerType}
+                  onChangeTriggerType={setTriggerType}
+                  keywords={keywords}
+                  onChangeKeywords={setKeywords}
+                  keywordMatchMode={keywordMatchMode}
+                  onChangeKeywordMatchMode={setKeywordMatchMode}
+                  keywordMatchLogic={keywordMatchLogic}
+                  onChangeKeywordMatchLogic={setKeywordMatchLogic}
+                  publicReplyEnabled={publicReplyEnabled}
+                  onChangePublicReplyEnabled={setPublicReplyEnabled}
+                  publicReplyText={publicReplyText}
+                  onChangePublicReplyText={setPublicReplyText}
+                  publicReplyVariations={publicReplyVariations}
+                  onChangePublicReplyVariations={setPublicReplyVariations}
+                />
+              )}
+
+              {activeStep === 1 && (
+                <StepFollowDm
+                  followRequired={followRequired}
+                  onChangeFollowRequired={setFollowRequired}
+                  followInstructionText={followInstructionText}
+                  onChangeFollowInstructionText={setFollowInstructionText}
+                  followSuccessText={followSuccessText}
+                  onChangeFollowSuccessText={setFollowSuccessText}
+                  followFallbackText={followFallbackText}
+                  onChangeFollowFallbackText={setFollowFallbackText}
+                  buttonLabel={buttonLabel}
+                  onChangeButtonLabel={setButtonLabel}
+                  deliveryMode={deliveryMode}
+                  onChangeDeliveryMode={setDeliveryMode}
+                  dmMessageText={dmMessageText}
+                  onChangeDmMessageText={setDmMessageText}
+                  templates={templates}
+                  selectedTemplateId={selectedTemplateId}
+                  onSelectTemplate={applyTemplate}
+                  onTemplateCreated={(created) =>
+                    setTemplates((prev) => [created, ...prev])
+                  }
+                  publicReplyText={publicReplyText}
+                  triggerType={triggerType}
+                  keywords={keywords}
+                />
+              )}
+
+              {activeStep === 2 && (
+                <div className="rounded-2xl border border-[#E6DFD8] bg-white p-5 sm:p-6">
+                  <div className="mb-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6E655F]">
+                      Step 03 • Product Attachment
+                    </p>
+                    <h2 className="mt-0.5 text-lg font-bold tracking-tight text-[#161413]">
+                      Attach Products &amp; Affiliate Links
+                    </h2>
+                  </div>
+                  <ProductSelectorStep
+                    products={products}
+                    onChangeProducts={setProducts}
+                    productDeliveryMode={productDeliveryMode}
+                    onChangeProductDeliveryMode={setProductDeliveryMode}
+                    deliveryMode={followRequired ? "BUTTON" : deliveryMode}
+                    followRequired={followRequired}
+                    productIntroText={productIntroText}
+                    onChangeProductIntroText={setProductIntroText}
+                    productClosingText={productClosingText}
+                    onChangeProductClosingText={setProductClosingText}
+                    libraryProducts={libraryProducts}
+                  />
+                </div>
+              )}
+
+              {activeStep === 3 && (
+                <StepReview
+                  name={name}
+                  triggerType={triggerType}
+                  keywords={keywords}
+                  publicReplyEnabled={publicReplyEnabled}
+                  publicReplyText={publicReplyText}
+                  dmMessageText={dmMessageText}
+                  dmLink={products[0]?.affiliateUrl}
+                  productCount={products.length}
+                  followRequired={followRequired}
+                  followSuccessText={followSuccessText}
+                  cooldownMinutes={Math.round(cooldownSeconds / 60)}
+                  onChangeCooldownMinutes={(mins) =>
+                    setCooldownSeconds(Math.max(0, mins) * 60)
+                  }
+                  dmMeFallbackEnabled={dmMeFallbackEnabled}
+                  onChangeDmMeFallbackEnabled={setDmMeFallbackEnabled}
+                  dmMeFallbackKeyword={dmMeFallbackKeyword}
+                  onChangeDmMeFallbackKeyword={setDmMeFallbackKeyword}
+                  isEditMode={isEditMode}
+                  saving={isSubmitting}
+                  onSaveDraft={() => handleSave(false)}
+                  onActivate={() => handleSave(true)}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Sticky Bottom Navigation Bar */}
+          <div className="sticky bottom-3 z-20 flex items-center justify-between gap-3 rounded-2xl border border-[#E6DFD8] bg-white/95 px-4 py-3 backdrop-blur-sm shadow-sm">
+            <button
+              type="button"
+              disabled={activeStep === 0}
+              onClick={() => setActiveStep((s) => Math.max(0, s - 1))}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#E6DFD8] bg-[#F7F1EC] px-4 py-2 text-xs font-semibold text-[#161413] transition-colors hover:bg-[#EDE4DD] disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleSave(false)}
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[#E6DFD8] bg-white px-4 py-2 text-xs font-semibold text-[#161413] hover:bg-[#F7F1EC] disabled:opacity-50 cursor-pointer"
+              >
+                <Save className="h-3.5 w-3.5" />
+                {isEditMode ? "Save Changes" : "Save Draft"}
+              </button>
+
+              {activeStep < WIZARD_STEPS.length - 1 ? (
                 <button
                   type="button"
-                  onClick={() => setTriggerType("KEYWORD")}
-                  className={`flex flex-col p-3.5 rounded-xl border text-left transition-all ${
-                    triggerType === "KEYWORD"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-                      : "border-zinc-200 hover:border-zinc-300"
-                  }`}
+                  onClick={() =>
+                    setActiveStep((s) =>
+                      Math.min(WIZARD_STEPS.length - 1, s + 1)
+                    )
+                  }
+                  className="inline-flex items-center gap-2 rounded-full bg-[#161413] px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#2A2624] cursor-pointer"
                 >
-                  <span className="text-xs font-semibold text-zinc-900">Specific Keyword(s)</span>
-                  <span className="text-[11px] text-zinc-500 mt-1">
-                    Triggers only when a comment contains specific words like &ldquo;LINK&rdquo; or &ldquo;DEAL&rdquo;.
-                  </span>
+                  Continue
+                  <ArrowRight className="h-3.5 w-3.5 text-[#F77737]" />
                 </button>
-
+              ) : (
                 <button
                   type="button"
-                  onClick={() => setTriggerType("ANY_COMMENT")}
-                  className={`flex flex-col p-3.5 rounded-xl border text-left transition-all ${
-                    triggerType === "ANY_COMMENT"
-                      ? "border-indigo-600 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-                      : "border-zinc-200 hover:border-zinc-300"
-                  }`}
+                  disabled={isSubmitting}
+                  onClick={() => handleSave(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#E1306C] px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#c8235a] disabled:opacity-50 cursor-pointer"
                 >
-                  <span className="text-xs font-semibold text-zinc-900">Any Comment</span>
-                  <span className="text-[11px] text-zinc-500 mt-1">
-                    Triggers for every valid incoming comment on this post.
-                  </span>
+                  <Rocket className="h-3.5 w-3.5" />
+                  {isSubmitting ? "Saving..." : "Activate Automation"}
                 </button>
-              </div>
-            </div>
-
-            {triggerType === "KEYWORD" && (
-              <div className="space-y-2 pt-1">
-                <label className="block text-xs font-medium text-zinc-700">
-                  Target Keywords (Press Enter to add)
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    value={keywordInput}
-                    onChange={(e) => setKeywordInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddKeyword();
-                      }
-                    }}
-                    placeholder="Type keyword e.g. LINK, PROMO, INFO"
-                  />
-                  <Button type="button" size="sm" variant="secondary" onClick={handleAddKeyword}>
-                    Add
-                  </Button>
-                </div>
-
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {keywords.map((kw) => (
-                    <Badge key={kw} variant="blue" className="gap-1 text-xs py-1 px-2.5">
-                      <span>{kw}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveKeyword(kw)}
-                        className="hover:text-red-600"
-                        title="Remove"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* STEP 4: CRAFT RESPONSES */}
-      {step === 4 && (
-        <div className="rounded-xl border border-zinc-200/80 bg-white p-5 space-y-5 shadow-2xs">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Step 4: Craft Automated Copy</h3>
-            <p className="text-xs text-zinc-500">
-              Personalize your public comment reply and initial direct message using dynamic placeholder tags.
-            </p>
-          </div>
-
-          {/* Variable chips */}
-          <div className="flex flex-wrap items-center gap-2 p-2.5 bg-zinc-50 rounded-lg border border-zinc-200/80 text-[11px]">
-            <span className="font-medium text-zinc-600">Available Variables:</span>
-            <button
-              type="button"
-              onClick={() => setPublicReplyText((prev) => prev + " {{username}}")}
-              className="font-mono bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-zinc-700 hover:border-indigo-500"
-            >
-              {"{{username}}"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDmMessageText((prev) => prev + " {{first_name}}")}
-              className="font-mono bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-zinc-700 hover:border-indigo-500"
-            >
-              {"{{first_name}}"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDmMessageText((prev) => prev + " {{link}}")}
-              className="font-mono bg-white border border-zinc-300 rounded px-1.5 py-0.5 text-zinc-700 hover:border-indigo-500"
-            >
-              {"{{link}}"}
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <MessageSquare className="h-3.5 w-3.5 text-zinc-500" />
-                  Public Comment Reply *
-                </label>
-                <span className="text-[10px] text-zinc-400">{publicReplyText.length}/500</span>
-              </div>
-              <Textarea
-                rows={2}
-                value={publicReplyText}
-                onChange={(e) => setPublicReplyText(e.target.value)}
-                placeholder="Check your DMs {{username}}! Sent it your way 🔥"
-                maxLength={500}
-                required
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-zinc-700 flex items-center gap-1.5">
-                  <Send className="h-3.5 w-3.5 text-indigo-500" />
-                  Private Direct Message (DM) *
-                </label>
-                <span className="text-[10px] text-zinc-400">{dmMessageText.length}/2000</span>
-              </div>
-              <Textarea
-                rows={4}
-                value={dmMessageText}
-                onChange={(e) => setDmMessageText(e.target.value)}
-                placeholder="Hey {{first_name}}! Thanks for asking. Here is the link:"
-                maxLength={2000}
-                required
-              />
+              )}
             </div>
           </div>
         </div>
-      )}
 
-      {/* STEP 5: FOLLOW GATE & LINK */}
-      {step === 5 && (
-        <div className="rounded-xl border border-zinc-200/80 bg-white p-5 space-y-5 shadow-2xs">
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">Step 5: Follow Gate & Destination Link</h3>
-            <p className="text-xs text-zinc-500">
-              Deliver your resource link directly, or activate Follow-to-Get-Link to grow your followership.
-            </p>
+        {/* Right Column: Sticky Live iPhone 16 Pro Preview (Desktop) */}
+        <aside className="hidden lg:block lg:col-span-5 lg:sticky lg:top-8">
+          <div className="rounded-3xl border border-[#E6DFD8] bg-[#F2EBE4]/55 p-5">
+            {previewNode}
           </div>
-
-          <div>
-            <label htmlFor="target-link" className="block text-xs font-medium text-zinc-700 mb-1">
-              Destination URL (Optional)
-            </label>
-            <Input
-              id="target-link"
-              type="url"
-              value={dmLink}
-              onChange={(e) => setDmLink(e.target.value)}
-              placeholder="https://yourwebsite.com/resource"
-            />
-          </div>
-
-          {/* Follow-to-Get-Link Toggle Card */}
-          <div
-            className={`rounded-xl border p-4 transition-all ${
-              followRequired ? "border-purple-300 bg-purple-50/40" : "border-zinc-200 bg-zinc-50/50"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={`h-8 w-8 rounded-lg flex items-center justify-center ${
-                    followRequired ? "bg-purple-600 text-white" : "bg-zinc-200 text-zinc-500"
-                  }`}
-                >
-                  <UserCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-zinc-900">
-                    Require Follow before Link Delivery (Follow-to-Get-Link)
-                  </h4>
-                  <p className="text-[11px] text-zinc-500">
-                    Requires user to follow your Instagram account before receiving the link.
-                  </p>
-                </div>
-              </div>
-
-              <input
-                type="checkbox"
-                checked={followRequired}
-                onChange={(e) => setFollowRequired(e.target.checked)}
-                className="h-4 w-4 rounded border-zinc-300 text-purple-600 focus:ring-purple-500 cursor-pointer"
-              />
-            </div>
-
-            {followRequired && (
-              <div className="mt-4 pt-4 border-t border-purple-200/60 space-y-3.5">
-                <div className="rounded-lg bg-white/80 border border-purple-200 p-2.5 text-[11px] text-purple-900 flex items-center gap-2">
-                  <Sparkles className="h-3.5 w-3.5 text-purple-600 shrink-0" />
-                  <span>
-                    <strong>Meta Compliant Two-Stage Flow:</strong> Initial DM sends an interactive
-                    &ldquo;I&apos;ve followed! ✅&rdquo; Quick Reply button. When tapped, Replyza verifies follower
-                    status and dispatches the link.
-                  </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Instruction Copy (Sent with Quick Reply button)
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={followInstructionText}
-                    onChange={(e) => setFollowInstructionText(e.target.value)}
-                    placeholder="Hey {{first_name}}! Thanks for commenting. Follow our page and tap the button below to get your link instantly! 👇"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Success Copy (Sent once follower status is verified)
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={followSuccessText}
-                    onChange={(e) => setFollowSuccessText(e.target.value)}
-                    placeholder="Woohoo! Thanks for following {{first_name}} 🎉 Here is your link:"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Fallback Copy (Sent if user taps button without following)
-                  </label>
-                  <Textarea
-                    rows={2}
-                    value={followFallbackText}
-                    onChange={(e) => setFollowFallbackText(e.target.value)}
-                    placeholder="Looks like you aren't following us yet! Follow our profile and tap the button below to get your link."
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* STEP 6: LIVE PREVIEW & LAUNCH */}
-      {step === 6 && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left: Summary Checklist */}
-            <div className="lg:col-span-7 space-y-4">
-              <div className="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-2xs space-y-4">
-                <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-                  <div>
-                    <h3 className="text-sm font-semibold text-zinc-900">{name || "Untitled Automation"}</h3>
-                    <p className="text-xs text-zinc-500">@{accountUsername}</p>
-                  </div>
-                  <Badge variant={triggerType === "KEYWORD" ? "blue" : "gray"}>
-                    {triggerType === "KEYWORD" ? "Keyword Trigger" : "Any Comment"}
-                  </Badge>
-                </div>
-
-                <div className="space-y-3 text-xs">
-                  <div className="flex items-start justify-between">
-                    <span className="text-zinc-500">Target Media:</span>
-                    <span className="font-mono text-zinc-800 text-[11px] truncate max-w-[200px]">
-                      {mediaId}
-                    </span>
-                  </div>
-
-                  {triggerType === "KEYWORD" && (
-                    <div className="flex items-start justify-between">
-                      <span className="text-zinc-500">Keywords:</span>
-                      <div className="flex flex-wrap gap-1 justify-end max-w-[220px]">
-                        {keywords.map((k) => (
-                          <span key={k} className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded text-[10px]">
-                            {k}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between">
-                    <span className="text-zinc-500">Follow-to-Get-Link:</span>
-                    <span className="font-medium text-zinc-800">
-                      {followRequired ? "Enabled (Follower check required)" : "Disabled (Direct delivery)"}
-                    </span>
-                  </div>
-
-                  {dmLink && (
-                    <div className="flex items-start justify-between">
-                      <span className="text-zinc-500">Link URL:</span>
-                      <a
-                        href={dmLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-indigo-600 underline font-medium truncate max-w-[200px]"
-                      >
-                        {dmLink}
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Ready to launch banner */}
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs text-emerald-900 flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-                <div>
-                  <p className="font-semibold">All requirements satisfied!</p>
-                  <p className="text-emerald-700 text-[11px]">
-                    Once activated, Replyza will immediately begin listening for comments on this post.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Live Interactive Phone Simulator */}
-            <div className="lg:col-span-5">
-              <LivePreview
-                accountUsername={accountUsername}
-                publicReplyText={publicReplyText}
-                dmMessageText={dmMessageText}
-                dmLink={dmLink}
-                triggerType={triggerType}
-                keywords={keywords}
-                followRequired={followRequired}
-                followInstructionText={followInstructionText}
-                followSuccessText={followSuccessText}
-                followFallbackText={followFallbackText}
-                mediaThumbnailUrl={selectedMediaPreview?.thumbnail_url || selectedMediaPreview?.media_url}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Footer Navigation Bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-zinc-200/80 shadow-2xs">
-        <div>
-          {step > 1 && (
-            <Button type="button" variant="secondary" size="sm" onClick={handleBack} disabled={isSubmitting}>
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Back
-            </Button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          {step < 6 ? (
-            <Button type="button" variant="primary" size="sm" onClick={handleNext}>
-              Next Step <ArrowRight className="h-3.5 w-3.5 ml-1" />
-            </Button>
-          ) : (
-            <>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => handleFinalSubmit(false)}
-                disabled={isSubmitting}
-              >
-                Save as Draft
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                size="sm"
-                onClick={() => handleFinalSubmit(true)}
-                disabled={isSubmitting}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                {isSubmitting ? "Activating..." : "Activate Automation"}
-              </Button>
-            </>
-          )}
-        </div>
+        </aside>
       </div>
+
+      {/* Mobile Floating Preview Pill (< 1024px) */}
+      <button
+        type="button"
+        onClick={() => setMobilePreviewOpen(true)}
+        className="fixed bottom-20 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-[#161413] px-4 py-2.5 text-xs font-semibold text-white shadow-lg ring-1 ring-white/15 lg:hidden cursor-pointer"
+      >
+        <Smartphone className="h-4 w-4 text-[#F77737]" />
+        Live Phone Preview
+      </button>
+
+      {/* Mobile Slide-Up Preview Drawer */}
+      <AnimatePresence>
+        {mobilePreviewOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-[#161413]/60 backdrop-blur-xs lg:hidden"
+            onClick={() => setMobilePreviewOpen(false)}
+          >
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 360, damping: 34 }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[90vh] w-full overflow-y-auto rounded-t-3xl border-t border-[#E6DFD8] bg-[#F7F1EC] px-4 pt-4 pb-8"
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-[0.14em] text-[#6E655F]">
+                  Live Phone Preview
+                </span>
+                <button
+                  type="button"
+                  aria-label="Close phone preview"
+                  onClick={() => setMobilePreviewOpen(false)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E6DFD8] bg-white text-[#161413]"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              {previewNode}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

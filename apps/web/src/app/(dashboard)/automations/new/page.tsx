@@ -9,9 +9,24 @@ import {
   CreateAutomationPayload,
   InstagramAccountInfo,
 } from "@/types/automation";
-import { BuilderWizard } from "@/components/automations/builder/builder-wizard";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+
+const BuilderWizard = dynamic(
+  () =>
+    import("@/components/automations/builder/builder-wizard").then(
+      (m) => m.BuilderWizard
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="py-20 flex justify-center">
+        <Spinner size="lg" label="Loading builder..." />
+      </div>
+    ),
+  }
+);
 import { ErrorAlert } from "@/components/feedback/error-alert";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
@@ -79,23 +94,27 @@ function NewAutomationContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-7xl items-center gap-3">
         <Link href="/automations">
-          <Button variant="ghost" size="sm" className="gap-1 p-2 text-zinc-500">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1 rounded-full border border-[#E6DFD8] bg-white p-2 text-[#6E655F] hover:text-[#161413]"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-zinc-900">
-              Automation Builder
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight text-[#161413]">
+              Automation Studio
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 border border-indigo-100">
-              <Sparkles className="h-2.5 w-2.5" /> 6-Step Guided
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#E1306C]/20 bg-[#FCE8EC] px-2.5 py-0.5 text-[10px] font-semibold text-[#E1306C]">
+              <Sparkles className="h-2.5 w-2.5" /> Multi-Product Flow
             </span>
           </div>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Create high-converting comment-to-DM flows with zero manual media ID entry.
+          <p className="mt-0.5 text-xs text-[#6E655F]">
+            Build comment-to-DM &amp; follow-gate product flows with live iPhone preview.
           </p>
         </div>
       </div>

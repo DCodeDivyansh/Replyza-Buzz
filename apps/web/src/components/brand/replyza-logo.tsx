@@ -28,7 +28,7 @@ export function ReplyzaLogo({
     <span className={cn("inline-flex items-center gap-2.5 select-none", className)}>
       <span
         className={cn(
-          "ig-gradient flex items-center justify-center text-white shadow-sm shrink-0",
+          "bg-[#D94E28] flex items-center justify-center text-white shrink-0",
           iconDimensions
         )}
       >
@@ -56,7 +56,7 @@ export function ReplyzaLogo({
       {showWordmark && (
         <span
           className={cn(
-            "font-display font-bold tracking-tight text-[#17131D]",
+            "font-display font-bold tracking-tight text-[#141413]",
             textSize
           )}
         >

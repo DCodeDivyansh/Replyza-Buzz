@@ -13,22 +13,87 @@ export interface InstagramAccountInfo {
   tokenExpiresAt?: string | null;
 }
 
+export type KeywordMatchMode = "CONTAINS" | "EXACT" | "ANY";
+export type KeywordMatchLogic = "ANY_KEYWORD" | "ALL_KEYWORDS";
+export type DeliveryMode = "DIRECT" | "BUTTON";
+export type ProductDeliveryMode =
+  | "SINGLE_MESSAGE"
+  | "SEPARATE_MESSAGES"
+  | "GENERIC_CARDS"
+  | "SELECTION_PROMPT";
+export type ProductStatus = "ACTIVE" | "ARCHIVED";
+
+export interface AffiliateProduct {
+  id: string;
+  userId: string;
+  name: string;
+  brand: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  affiliateUrl: string;
+  originalUrl: string | null;
+  price: string | null;
+  discountPrice: string | null;
+  discountInfo: string | null;
+  couponCode: string | null;
+  affiliatePartner: string | null;
+  category: string | null;
+  ctaLabel: string;
+  notes: string | null;
+  status: ProductStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AutomationProductItem {
+  id?: string;
+  affiliateProductId?: string | null;
+  name: string;
+  imageUrl?: string | null;
+  description?: string | null;
+  productUrl?: string | null;
+  affiliateUrl: string;
+  originalUrl?: string | null;
+  price?: string | null;
+  discountPrice?: string | null;
+  category?: string | null;
+  ctaLabel?: string;
+  customMessage?: string | null;
+  couponCode?: string | null;
+  brand?: string | null;
+  sortOrder?: number;
+}
+
 export interface Automation {
   id: string;
   instagramAccountId: string;
   name: string;
-  mediaId: string;
+  mediaId: string | null;
   mediaPermalink: string | null;
   mediaType: MediaType | null;
   triggerType: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
+  keywordMatchLogic?: KeywordMatchLogic;
   keywords: string[];
+  publicReplyEnabled?: boolean;
   publicReplyText: string;
+  publicReplyVariations?: string[];
   dmMessageText: string;
   dmLink: string | null;
+  productDeliveryMode?: ProductDeliveryMode;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  products?: AutomationProductItem[];
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
   followRequired: boolean;
   followInstructionText: string | null;
   followSuccessText: string | null;
   followFallbackText: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
   templateId: string | null;
   status: AutomationStatus;
   createdAt: string;
@@ -39,32 +104,61 @@ export interface Automation {
 export interface CreateAutomationPayload {
   instagramAccountId: string;
   name: string;
-  mediaId: string;
-  mediaPermalink?: string;
-  mediaType?: MediaType;
+  mediaId?: string | null;
+  mediaPermalink?: string | null;
+  mediaType?: MediaType | null;
   triggerType: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
+  keywordMatchLogic?: KeywordMatchLogic;
   keywords: string[];
+  publicReplyEnabled?: boolean;
   publicReplyText: string;
+  publicReplyVariations?: string[];
   dmMessageText: string;
-  dmLink?: string;
-  followRequired?: boolean;
-  followInstructionText?: string;
-  followSuccessText?: string;
-  followFallbackText?: string;
-  templateId?: string;
-}
-
-export interface UpdateAutomationPayload {
-  name?: string;
-  triggerType?: AutomationTrigger;
-  keywords?: string[];
-  publicReplyText?: string;
-  dmMessageText?: string;
   dmLink?: string | null;
+  productDeliveryMode?: ProductDeliveryMode;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  products?: AutomationProductItem[];
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
   followRequired?: boolean;
   followInstructionText?: string | null;
   followSuccessText?: string | null;
   followFallbackText?: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
+  templateId?: string | null;
+}
+
+export interface UpdateAutomationPayload {
+  name?: string;
+  mediaId?: string | null;
+  triggerType?: AutomationTrigger;
+  keywordMatchMode?: KeywordMatchMode;
+  keywordMatchLogic?: KeywordMatchLogic;
+  keywords?: string[];
+  publicReplyEnabled?: boolean;
+  publicReplyText?: string;
+  publicReplyVariations?: string[];
+  dmMessageText?: string;
+  dmLink?: string | null;
+  productDeliveryMode?: ProductDeliveryMode;
+  productIntroText?: string | null;
+  productClosingText?: string | null;
+  products?: AutomationProductItem[];
+  deliveryMode?: DeliveryMode;
+  buttonLabel?: string | null;
+  cooldownSeconds?: number;
+  dmMeFallbackEnabled?: boolean;
+  followRequired?: boolean;
+  followInstructionText?: string | null;
+  followSuccessText?: string | null;
+  followFallbackText?: string | null;
+  followUpEnabled?: boolean;
+  followUpText?: string | null;
   templateId?: string | null;
 }
 
@@ -115,10 +209,52 @@ export type ActionStatusType =
   | "SKIPPED"
   | "CANCELLED";
 
+export type ConversationStateType =
+  | "HOOK_SENT"
+  | "AWAITING_TAP"
+  | "TAPPED"
+  | "FOLLOW_CHECKING"
+  | "AWAITING_FOLLOW"
+  | "COMPLETED"
+  | "EXPIRED_WINDOW"
+  | "FAILED"
+  | "NEEDS_RECONNECT";
+
+export type DeliveryActionType =
+  | "PUBLIC_REPLY"
+  | "HOOK_DM"
+  | "REWARD_DM"
+  | "FOLLOW_PROMPT"
+  | "FOLLOW_SUCCESS_DM"
+  | "FOLLOW_RETRY_DM"
+  | "FOLLOW_FALLBACK_DM";
+
+export type DeliveryActionStatusType =
+  | "PENDING"
+  | "SENDING"
+  | "SENT"
+  | "FAILED"
+  | "RETRY_SCHEDULED"
+  | "NEEDS_REVIEW"
+  | "SKIPPED"
+  | "CANCELLED";
+
+export interface DeliveryActionRecord {
+  id: string;
+  actionType: DeliveryActionType;
+  status: DeliveryActionStatusType;
+  attempts: number;
+  metaId: string | null;
+  lastErrorCode: string | null;
+  lastErrorMessage: string | null;
+  sentAt: string | null;
+}
+
 export interface ExecutionRecord {
   id: string;
   automationId: string;
   status: ExecutionStatusType;
+  conversationState?: ConversationStateType;
   publicReplyStatus: ActionStatusType;
   privateReplyStatus: ActionStatusType;
   metaReplyId: string | null;
@@ -136,10 +272,11 @@ export interface ExecutionRecord {
   metaFollowCheckReplyId: string | null;
   followVerificationOutcome: string | null;
   followCheckError: string | null;
+  deliveryActions?: DeliveryActionRecord[];
   automation: {
     id: string;
     name: string;
-    mediaId: string;
+    mediaId: string | null;
     triggerType: AutomationTrigger;
     followRequired: boolean;
     instagramAccount: {

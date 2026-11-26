@@ -5,6 +5,7 @@ export interface AutomationJobData {
   executionId: string;
   automationId: string;
   webhookEventId: string;
+  actionType?: "PUBLIC_REPLY" | "HOOK_DM";
 }
 
 export const automationQueue = new Queue<AutomationJobData>(

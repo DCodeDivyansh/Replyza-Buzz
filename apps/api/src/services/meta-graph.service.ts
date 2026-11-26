@@ -123,7 +123,7 @@ export class MetaGraphService {
     try {
       const res = await this.client.post<{ success?: boolean }>(
         `${instagramUserId}/subscribed_apps`,
-        new URLSearchParams({ subscribed_fields: "feed,comments,messages" }),
+        new URLSearchParams({ subscribed_fields: "feed,comments,messages,messaging_postbacks" }),
         accessToken
       );
       return { success: res.success ?? true };

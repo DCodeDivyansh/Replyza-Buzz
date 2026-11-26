@@ -123,15 +123,27 @@ function getActionLabel(
 
 function getFollowBadge(exec: ExecutionRecord): { label: string; className: string } | null {
   if (!exec.automation.followRequired) return null;
+  if (exec.conversationState === "EXPIRED_WINDOW") {
+    return {
+      label: "Window expired (24h)",
+      className: "bg-zinc-100 text-zinc-700 border-zinc-200",
+    };
+  }
+  if (exec.conversationState === "NEEDS_RECONNECT") {
+    return {
+      label: "Reconnect Instagram",
+      className: "bg-red-50 text-red-700 border-red-200",
+    };
+  }
   if (exec.followCheckStatus === "SUCCESS" && exec.followVerificationOutcome === "VERIFIED") {
     return {
-      label: "Follow verified",
+      label: "Verified · Link sent",
       className: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
   }
   if (exec.followCheckStatus === "UNKNOWN") {
     return {
-      label: "Follow DM unknown",
+      label: "Couldn't verify",
       className: "bg-orange-50 text-orange-800 border-orange-200",
     };
   }
@@ -144,13 +156,13 @@ function getFollowBadge(exec: ExecutionRecord): { label: string; className: stri
   if (exec.followCheckStatus === "FAILED") {
     if (exec.followVerificationOutcome === "UNSUPPORTED") {
       return {
-        label: "Verification unsupported",
+        label: "Couldn't verify (unsupported)",
         className: "bg-red-50 text-red-700 border-red-200",
       };
     }
     if (exec.followVerificationOutcome === "PERMISSION_DENIED") {
       return {
-        label: "Permission denied",
+        label: "Couldn't verify (permission denied)",
         className: "bg-red-50 text-red-700 border-red-200",
       };
     }
@@ -292,6 +304,16 @@ export default function ActivityPage() {
       </div>
 
       {error && <ErrorAlert message={error} onDismiss={() => setError(null)} />}
+
+      <div className="rounded-xl border border-indigo-200/80 bg-indigo-50/70 px-4 py-3 text-xs text-indigo-950 flex items-start gap-2.5">
+        <HelpCircle className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <p className="font-semibold">Instagram Platform Rules (Meta API)</p>
+          <p className="text-indigo-900/85">
+            Meta allows <strong>1 Private Reply DM per comment</strong> within <strong>7 days</strong>. Once a user taps your quick-reply button or sends a DM, a <strong>24-hour messaging window</strong> opens for follow verification and link delivery.
+          </p>
+        </div>
+      </div>
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -520,6 +542,32 @@ export default function ActivityPage() {
               <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800">
                 <p className="font-semibold">Recorded Diagnostic</p>
                 <p className="mt-0.5">{selectedExec.followCheckError || selectedExec.errorMessage}</p>
+              </div>
+            )}
+
+            {selectedExec.deliveryActions && selectedExec.deliveryActions.length > 0 && (
+              <div className="p-3.5 rounded-xl bg-[#F8F5F8] space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-[#17131D]">Delivery Actions</p>
+                  {selectedExec.conversationState && (
+                    <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-white border border-zinc-200 text-zinc-700">
+                      State: {selectedExec.conversationState}
+                    </span>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  {selectedExec.deliveryActions.map((da) => (
+                    <div
+                      key={da.id}
+                      className="flex items-center justify-between gap-2 text-[11px] bg-white rounded-lg px-2.5 py-1.5 border border-zinc-200/70"
+                    >
+                      <span className="font-mono font-medium text-zinc-800">{da.actionType}</span>
+                      <span className="text-zinc-600">
+                        {da.status} ({da.attempts} {da.attempts === 1 ? "attempt" : "attempts"})
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

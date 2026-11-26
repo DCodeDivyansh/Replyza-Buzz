@@ -14,18 +14,21 @@ interface MetaApiSuccess {
 export class MetaApiError extends Error {
   public readonly category: MetaErrorCategory;
   public readonly isTransient: boolean;
+  public readonly retryAfterMs?: number;
 
   constructor(
     message: string,
     public readonly httpStatus: number,
     public readonly metaError?: MetaGraphErrorDetails,
     category: MetaErrorCategory = "UNKNOWN",
-    isTransient: boolean = false
+    isTransient: boolean = false,
+    retryAfterMs?: number
   ) {
     super(message);
     this.name = "MetaApiError";
     this.category = category;
     this.isTransient = isTransient;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -70,7 +73,8 @@ async function graphPost(
         err.statusCode || 500,
         details,
         err.category,
-        err.isTransient
+        err.isTransient,
+        err.retryAfterMs
       );
     }
     throw new MetaApiUnknownOutcomeError(
@@ -180,6 +184,69 @@ export async function sendDirectMessage(
       id: recipientIgsid,
     }),
     message: JSON.stringify(messagePayload),
+  });
+
+  return graphPost(
+    `${encodeURIComponent(instagramUserId)}/messages`,
+    token,
+    body,
+    "message_id"
+  );
+}
+
+export interface GenericTemplateButton {
+  type: "web_url";
+  url: string;
+  title: string;
+}
+
+export interface GenericTemplateElement {
+  title: string;
+  subtitle?: string;
+  image_url?: string;
+  default_action?: {
+    type: "web_url";
+    url: string;
+  };
+  buttons: GenericTemplateButton[];
+}
+
+/**
+ * Sends a Meta Instagram Generic Template (carousel of up to 10 product cards).
+ * Only supported for standard `recipient: { id: IGSID }` DMs within the 24h messaging window,
+ * NOT for initial `recipient: { comment_id }` private replies.
+ */
+export async function sendGenericTemplateMessage(
+  instagramUserId: string,
+  recipientIgsid: string,
+  elements: GenericTemplateElement[],
+  token: string
+): Promise<string> {
+  const sanitizedElements = elements.slice(0, 10).map((el) => ({
+    title: el.title.slice(0, 80),
+    ...(el.subtitle ? { subtitle: el.subtitle.slice(0, 80) } : {}),
+    ...(el.image_url && el.image_url.startsWith("https://")
+      ? { image_url: el.image_url }
+      : {}),
+    ...(el.default_action ? { default_action: el.default_action } : {}),
+    buttons: el.buttons.slice(0, 3).map((b) => ({
+      type: "web_url" as const,
+      url: b.url,
+      title: b.title.slice(0, 20),
+    })),
+  }));
+
+  const body = new URLSearchParams({
+    recipient: JSON.stringify({ id: recipientIgsid }),
+    message: JSON.stringify({
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "generic",
+          elements: sanitizedElements,
+        },
+      },
+    }),
   });
 
   return graphPost(

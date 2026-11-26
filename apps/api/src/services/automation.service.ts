@@ -1,9 +1,53 @@
 
 import { prisma } from "@replyza/database";
 import type {
+  AutomationProductInput,
   CreateAutomationInput,
   UpdateAutomationInput
 } from "../validators/automation.validator";
+
+async function validateProductOwnership(
+  userId: string,
+  products: AutomationProductInput[]
+) {
+  const ids = products
+    .map((p) => p.affiliateProductId)
+    .filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return;
+
+  const uniqueIds = Array.from(new Set(ids));
+  const owned = await prisma.affiliateProduct.findMany({
+    where: { id: { in: uniqueIds }, userId },
+    select: { id: true },
+  });
+
+  if (owned.length !== uniqueIds.length) {
+    throw new AutomationError(
+      "One or more selected affiliate products were not found",
+      404
+    );
+  }
+}
+
+function mapProductCreateData(products: AutomationProductInput[]) {
+  return products.map((p, index) => ({
+    affiliateProductId: p.affiliateProductId ?? null,
+    name: p.name,
+    imageUrl: p.imageUrl ?? null,
+    description: p.description ?? null,
+    productUrl: p.productUrl ?? null,
+    affiliateUrl: p.affiliateUrl,
+    originalUrl: p.originalUrl ?? null,
+    price: p.price ?? null,
+    discountPrice: p.discountPrice ?? null,
+    category: p.category ?? null,
+    ctaLabel: p.ctaLabel || "Shop Now",
+    customMessage: p.customMessage ?? null,
+    couponCode: p.couponCode ?? null,
+    brand: p.brand ?? null,
+    sortOrder: p.sortOrder ?? index,
+  }));
+}
 
 export class AutomationError extends Error {
   constructor(
@@ -38,46 +82,85 @@ export async function createAutomation(
     );
   }
 
-  // Prevent duplicate automation for the same post.
-  const existingAutomation = await prisma.automation.findUnique({
-    where: {
-      instagramAccountId_mediaId: {
-        instagramAccountId: input.instagramAccountId,
-        mediaId: input.mediaId
-      }
-    },
-    select: {
-      id: true
-    }
-  });
+  const normalizedMediaId = input.mediaId ?? null;
 
-  if (existingAutomation) {
-    throw new AutomationError(
-      "An automation already exists for this post",
-      409
-    );
+  // Prevent duplicate automation for the same specific post.
+  if (normalizedMediaId) {
+    const existingAutomation = await prisma.automation.findFirst({
+      where: {
+        instagramAccountId: input.instagramAccountId,
+        mediaId: normalizedMediaId,
+      },
+      select: { id: true },
+    });
+
+    if (existingAutomation) {
+      throw new AutomationError(
+        "An automation already exists for this post",
+        409
+      );
+    }
   }
+
+  const effectiveDeliveryMode = input.followRequired
+    ? "BUTTON"
+    : (input.deliveryMode ?? "DIRECT");
+
+  let resolvedTemplateId: string | null = null;
+  if (input.templateId) {
+    try {
+      const existingTemplate = await prisma.automationTemplate.findUnique({
+        where: { id: input.templateId },
+        select: { id: true },
+      });
+      resolvedTemplateId = existingTemplate ? existingTemplate.id : null;
+    } catch {
+      resolvedTemplateId = null;
+    }
+  }
+
+  const products = input.products ?? [];
+  await validateProductOwnership(userId, products);
+
+  const effectiveDmLink = input.dmLink ?? products[0]?.affiliateUrl ?? null;
 
   try {
     return await prisma.automation.create({
       data: {
         instagramAccountId: input.instagramAccountId,
         name: input.name,
-        mediaId: input.mediaId,
+        mediaId: normalizedMediaId,
         mediaPermalink: input.mediaPermalink,
         mediaType: input.mediaType,
         triggerType: input.triggerType,
+        keywordMatchMode: input.keywordMatchMode ?? "CONTAINS",
+        keywordMatchLogic: input.keywordMatchLogic ?? "ANY_KEYWORD",
         keywords: input.keywords,
+        publicReplyEnabled: input.publicReplyEnabled ?? true,
         publicReplyText: input.publicReplyText,
+        publicReplyVariations: input.publicReplyVariations ?? [],
         dmMessageText: input.dmMessageText,
-        dmLink: input.dmLink,
+        dmLink: effectiveDmLink,
+        productDeliveryMode: input.productDeliveryMode ?? "SINGLE_MESSAGE",
+        productIntroText: input.productIntroText ?? null,
+        productClosingText: input.productClosingText ?? null,
+        deliveryMode: effectiveDeliveryMode,
+        buttonLabel: input.buttonLabel ?? null,
+        cooldownSeconds: input.cooldownSeconds ?? 0,
+        dmMeFallbackEnabled: input.dmMeFallbackEnabled ?? false,
         followRequired: input.followRequired ?? false,
         followInstructionText: input.followInstructionText,
         followSuccessText: input.followSuccessText,
         followFallbackText: input.followFallbackText,
-        templateId: input.templateId,
-        status: "DRAFT"
-      }
+        followUpEnabled: input.followUpEnabled ?? false,
+        followUpText: input.followUpText ?? null,
+        templateId: resolvedTemplateId,
+        status: "DRAFT",
+        products: products.length > 0 ? { create: mapProductCreateData(products) } : undefined,
+      },
+      include: {
+        products: { orderBy: { sortOrder: "asc" } },
+      },
     });
   } catch (error) {
     // Handle a duplicate created by a concurrent request.
@@ -112,6 +195,9 @@ export async function getUserAutomations(userId: string) {
           username: true,
           instagramUserId: true
         }
+      },
+      products: {
+        orderBy: { sortOrder: "asc" }
       }
     },
     orderBy: {
@@ -139,6 +225,9 @@ export async function getAutomationById(
           username: true,
           instagramUserId: true
         }
+      },
+      products: {
+        orderBy: { sortOrder: "asc" }
       }
     }
   });
@@ -181,11 +270,43 @@ export async function updateAutomation(
     );
   }
 
-  return prisma.automation.update({
-    where: {
-      id: automationId
-    },
-    data: input
+  const { products, ...scalarInput } = input;
+
+  if (products !== undefined) {
+    await validateProductOwnership(userId, products);
+  }
+
+  return prisma.$transaction(async (tx) => {
+    if (products !== undefined) {
+      await tx.automationProduct.deleteMany({
+        where: { automationId },
+      });
+      if (products.length > 0) {
+        await tx.automationProduct.createMany({
+          data: mapProductCreateData(products).map((p) => ({
+            ...p,
+            automationId,
+          })),
+        });
+      }
+    }
+
+    return tx.automation.update({
+      where: {
+        id: automationId
+      },
+      data: {
+        ...scalarInput,
+        ...(products !== undefined && scalarInput.dmLink === undefined
+          ? { dmLink: products[0]?.affiliateUrl ?? existing.dmLink }
+          : {}),
+      },
+      include: {
+        products: {
+          orderBy: { sortOrder: "asc" }
+        }
+      }
+    });
   });
 }
 
@@ -195,7 +316,26 @@ export async function updateAutomationStatus(
   automationId: string,
   status: "ACTIVE" | "PAUSED"
 ) {
-  await getAutomationById(userId, automationId);
+  const existing = await getAutomationById(userId, automationId);
+
+  if (status === "ACTIVE" && existing.mediaId === null) {
+    const activeAllMedia = await prisma.automation.findFirst({
+      where: {
+        instagramAccountId: existing.instagramAccountId,
+        mediaId: null,
+        status: "ACTIVE",
+        id: { not: automationId },
+      },
+      select: { id: true },
+    });
+
+    if (activeAllMedia) {
+      throw new AutomationError(
+        "Only one active all-media automation is allowed per Instagram account",
+        409
+      );
+    }
+  }
 
   return prisma.automation.update({
     where: {
@@ -302,6 +442,20 @@ export async function listUserExecutions(
         metaFollowCheckReplyId: true,
         followVerificationOutcome: true,
         followCheckError: true,
+        conversationState: true,
+        deliveryActions: {
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            actionType: true,
+            status: true,
+            attempts: true,
+            metaId: true,
+            lastErrorCode: true,
+            lastErrorMessage: true,
+            sentAt: true,
+          },
+        },
         automation: {
           select: {
             id: true,
@@ -391,6 +545,20 @@ export async function getUserExecutionById(
       metaFollowCheckReplyId: true,
       followVerificationOutcome: true,
       followCheckError: true,
+      conversationState: true,
+      deliveryActions: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          actionType: true,
+          status: true,
+          attempts: true,
+          metaId: true,
+          lastErrorCode: true,
+          lastErrorMessage: true,
+          sentAt: true,
+        },
+      },
       automation: {
         select: {
           id: true,

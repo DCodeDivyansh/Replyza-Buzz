@@ -49,10 +49,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             required={required}
             className={cn(
-              "w-full rounded-xl border bg-[#FFFDFB] px-3.5 py-2.5 text-sm text-[#17131D] placeholder:text-[#827D87]/70 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:bg-[#F8F5F8] disabled:text-[#827D87] disabled:cursor-not-allowed",
+              "w-full rounded-lg border bg-[#FFFFFF] px-3.5 py-2 text-sm text-[#141413] placeholder:text-[#8C8A84] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-0 disabled:bg-[#F3F2EE] disabled:text-[#8C8A84] disabled:cursor-not-allowed",
               error
-                ? "border-red-300 focus:border-red-500 focus:ring-red-500/20"
-                : "border-[#17131D]/12 focus:border-[#E1306C] focus:ring-[#E1306C]/15",
+                ? "border-red-300 focus:border-[#C81E1E] focus:ring-[#C81E1E]/15"
+                : "border-[#E6E5E1] focus:border-[#141413] focus:ring-[#141413]/10",
               leftIcon && "pl-9",
               rightAction && "pr-10",
               className

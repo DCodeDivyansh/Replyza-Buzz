@@ -38,6 +38,7 @@ export class MetaGraphError extends Error {
   public readonly subcode?: number;
   public readonly isTransient: boolean;
   public readonly fbtraceId?: string;
+  public readonly retryAfterMs?: number;
 
   constructor(
     message: string,
@@ -46,7 +47,8 @@ export class MetaGraphError extends Error {
     code?: number,
     subcode?: number,
     isTransient: boolean = false,
-    fbtraceId?: string
+    fbtraceId?: string,
+    retryAfterMs?: number
   ) {
     super(message);
     this.name = "MetaGraphError";
@@ -56,6 +58,7 @@ export class MetaGraphError extends Error {
     this.subcode = subcode;
     this.isTransient = isTransient;
     this.fbtraceId = fbtraceId;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -114,15 +117,23 @@ export function classifyMetaError(statusCode: number, errorData?: MetaGraphError
 
 export class MetaGraphClient {
   private readonly baseUrl: string;
-  private readonly apiVersion: string;
+  private readonly explicitApiVersion?: string;
   private readonly timeoutMs: number;
   private readonly maxRetries: number;
 
   constructor(config?: MetaGraphClientConfig) {
     this.baseUrl = (config?.baseUrl || process.env.META_GRAPH_BASE_URL || "https://graph.facebook.com").replace(/\/+$/, "");
-    this.apiVersion = config?.apiVersion || process.env.META_GRAPH_API_VERSION || "v21.0";
+    this.explicitApiVersion = config?.apiVersion;
     this.timeoutMs = config?.timeoutMs ?? 10_000;
     this.maxRetries = config?.maxRetries ?? 2;
+  }
+
+  private resolveApiVersion(): string {
+    const version = this.explicitApiVersion || process.env.META_GRAPH_API_VERSION;
+    if (!version || !/^v\d+\.\d+$/.test(version)) {
+      throw new Error("META_GRAPH_API_VERSION environment variable must be set (e.g. v27.0)");
+    }
+    return version;
   }
 
   private buildUrl(path: string): string {
@@ -131,7 +142,7 @@ export class MetaGraphClient {
     if (/^\/v\d+\.\d+\//.test(cleanPath)) {
       return `${this.baseUrl}${cleanPath}`;
     }
-    return `${this.baseUrl}/${this.apiVersion}${cleanPath}`;
+    return `${this.baseUrl}/${this.resolveApiVersion()}${cleanPath}`;
   }
 
   public async get<T>(
@@ -291,10 +302,22 @@ export class MetaGraphClient {
         : rawCategory;
       const isTransient = isAmbiguousPost5xx ? false : rawTransient;
 
+      const rawRetryAfter = res.headers?.get?.("retry-after");
+      let retryAfterMs: number | undefined;
+      if (rawRetryAfter) {
+        const seconds = Number(rawRetryAfter);
+        if (Number.isFinite(seconds) && seconds > 0) {
+          retryAfterMs = seconds * 1000;
+        }
+      }
+
       // Only retry transient errors automatically for idempotent GET/HEAD requests.
       // POST mutations are never retried automatically here to prevent duplicate actions.
       if (isIdempotentMethod && isTransient && attempt <= this.maxRetries) {
-        const backoff = Math.min(300 * Math.pow(2, attempt - 1), 2000) + Math.random() * 100;
+        const backoff =
+          retryAfterMs !== undefined
+            ? Math.min(retryAfterMs, 5_000)
+            : Math.min(300 * Math.pow(2, attempt - 1), 2000) + Math.random() * 100;
         await new Promise((r) => setTimeout(r, backoff));
         return this.executeWithRetry<T>(url, options, attempt + 1);
       }
@@ -306,7 +329,8 @@ export class MetaGraphClient {
         errorData.code,
         errorData.error_subcode,
         isTransient,
-        errorData.fbtrace_id
+        errorData.fbtrace_id,
+        retryAfterMs
       );
     }
 

@@ -57,9 +57,12 @@ export const ModelName = {
   Automation: 'Automation',
   WebhookEvent: 'WebhookEvent',
   AutomationExecution: 'AutomationExecution',
+  DeliveryAction: 'DeliveryAction',
   OutboxEvent: 'OutboxEvent',
   MessagingWebhookEvent: 'MessagingWebhookEvent',
-  AutomationTemplate: 'AutomationTemplate'
+  AutomationTemplate: 'AutomationTemplate',
+  AffiliateProduct: 'AffiliateProduct',
+  AutomationProduct: 'AutomationProduct'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -128,14 +131,27 @@ export const AutomationScalarFieldEnum = {
   mediaPermalink: 'mediaPermalink',
   mediaType: 'mediaType',
   triggerType: 'triggerType',
+  keywordMatchMode: 'keywordMatchMode',
+  keywordMatchLogic: 'keywordMatchLogic',
   keywords: 'keywords',
+  publicReplyEnabled: 'publicReplyEnabled',
   publicReplyText: 'publicReplyText',
+  publicReplyVariations: 'publicReplyVariations',
   dmMessageText: 'dmMessageText',
   dmLink: 'dmLink',
+  productDeliveryMode: 'productDeliveryMode',
+  productIntroText: 'productIntroText',
+  productClosingText: 'productClosingText',
+  deliveryMode: 'deliveryMode',
+  buttonLabel: 'buttonLabel',
+  cooldownSeconds: 'cooldownSeconds',
+  dmMeFallbackEnabled: 'dmMeFallbackEnabled',
   followRequired: 'followRequired',
   followInstructionText: 'followInstructionText',
   followSuccessText: 'followSuccessText',
   followFallbackText: 'followFallbackText',
+  followUpEnabled: 'followUpEnabled',
+  followUpText: 'followUpText',
   templateId: 'templateId',
   status: 'status',
   createdAt: 'createdAt',
@@ -185,10 +201,30 @@ export const AutomationExecutionScalarFieldEnum = {
   followCheckRetryCount: 'followCheckRetryCount',
   metaFollowCheckReplyId: 'metaFollowCheckReplyId',
   followVerificationOutcome: 'followVerificationOutcome',
-  followCheckError: 'followCheckError'
+  followCheckError: 'followCheckError',
+  conversationState: 'conversationState',
+  commenterIgsid: 'commenterIgsid',
+  tapEventMid: 'tapEventMid'
 } as const
 
 export type AutomationExecutionScalarFieldEnum = (typeof AutomationExecutionScalarFieldEnum)[keyof typeof AutomationExecutionScalarFieldEnum]
+
+
+export const DeliveryActionScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  actionType: 'actionType',
+  status: 'status',
+  metaId: 'metaId',
+  attempts: 'attempts',
+  lastErrorCode: 'lastErrorCode',
+  lastErrorMessage: 'lastErrorMessage',
+  sentAt: 'sentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeliveryActionScalarFieldEnum = (typeof DeliveryActionScalarFieldEnum)[keyof typeof DeliveryActionScalarFieldEnum]
 
 
 export const OutboxEventScalarFieldEnum = {
@@ -246,6 +282,56 @@ export const AutomationTemplateScalarFieldEnum = {
 } as const
 
 export type AutomationTemplateScalarFieldEnum = (typeof AutomationTemplateScalarFieldEnum)[keyof typeof AutomationTemplateScalarFieldEnum]
+
+
+export const AffiliateProductScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  brand: 'brand',
+  description: 'description',
+  imageUrl: 'imageUrl',
+  affiliateUrl: 'affiliateUrl',
+  originalUrl: 'originalUrl',
+  price: 'price',
+  discountPrice: 'discountPrice',
+  discountInfo: 'discountInfo',
+  couponCode: 'couponCode',
+  affiliatePartner: 'affiliatePartner',
+  category: 'category',
+  ctaLabel: 'ctaLabel',
+  notes: 'notes',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AffiliateProductScalarFieldEnum = (typeof AffiliateProductScalarFieldEnum)[keyof typeof AffiliateProductScalarFieldEnum]
+
+
+export const AutomationProductScalarFieldEnum = {
+  id: 'id',
+  automationId: 'automationId',
+  affiliateProductId: 'affiliateProductId',
+  name: 'name',
+  imageUrl: 'imageUrl',
+  description: 'description',
+  productUrl: 'productUrl',
+  affiliateUrl: 'affiliateUrl',
+  originalUrl: 'originalUrl',
+  price: 'price',
+  discountPrice: 'discountPrice',
+  category: 'category',
+  ctaLabel: 'ctaLabel',
+  customMessage: 'customMessage',
+  couponCode: 'couponCode',
+  brand: 'brand',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AutomationProductScalarFieldEnum = (typeof AutomationProductScalarFieldEnum)[keyof typeof AutomationProductScalarFieldEnum]
 
 
 export const SortOrder = {

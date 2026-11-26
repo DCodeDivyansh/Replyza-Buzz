@@ -1,5 +1,6 @@
-
 import { prisma } from "@replyza/database";
+import { matchCommentKeywords } from "@replyza/shared";
+import { features } from "../config/features";
 import { enqueueAutomationExecution } from "../queues/automation.queue";
 import { logger } from "../utils/logger";
 
@@ -18,44 +19,50 @@ function isDuplicateError(error: unknown): boolean {
   );
 }
 
-export async function findMatchingAutomation(
-  input: MatchAutomationInput
-) {
-  const automation = await prisma.automation.findFirst({
+/**
+ * Deterministic automation precedence:
+ * 1. Media-specific ACTIVE automation matching the comment beats all-media.
+ * 2. All-media ACTIVE automation (mediaId IS NULL) matching the comment.
+ * 3. Oldest active (createdAt ASC) wins; at most one automation fires per comment.
+ */
+export async function findMatchingAutomation(input: MatchAutomationInput) {
+  const candidates = await prisma.automation.findMany({
     where: {
       instagramAccountId: input.instagramAccountId,
-      mediaId: input.mediaId,
       status: "ACTIVE",
+      OR: [{ mediaId: input.mediaId }, { mediaId: null }],
     },
+    orderBy: [{ createdAt: "asc" }],
   });
 
-  if (!automation) return null;
+  // Sort media-specific before all-media while preserving createdAt ASC order
+  candidates.sort((a, b) => {
+    const aSpec = a.mediaId !== null ? 0 : 1;
+    const bSpec = b.mediaId !== null ? 0 : 1;
+    if (aSpec !== bSpec) return aSpec - bSpec;
+    return a.createdAt.getTime() - b.createdAt.getTime();
+  });
 
-  if (automation.triggerType === "ANY_COMMENT") {
-    return automation;
-  }
-
-  if (automation.triggerType === "KEYWORD") {
-    const normalizedComment = input.commentText.toLowerCase();
-
-    const matched = automation.keywords.some((keyword) => {
-      const normalizedKeyword = keyword.trim().toLowerCase();
-
-      return (
-        normalizedKeyword.length > 0 &&
-        normalizedComment.includes(normalizedKeyword)
-      );
-    });
-
-    return matched ? automation : null;
+  for (const automation of candidates) {
+    const mode =
+      automation.triggerType === "ANY_COMMENT"
+        ? "ANY"
+        : automation.keywordMatchMode;
+    const result = matchCommentKeywords(
+      input.commentText,
+      mode,
+      automation.keywords,
+      automation.keywordMatchLogic
+    );
+    if (result.matched) {
+      return automation;
+    }
   }
 
   return null;
 }
 
-export async function matchAndQueueAutomation(
-  webhookEventId: string
-) {
+export async function matchAndQueueAutomation(webhookEventId: string) {
   const txResult = await prisma.$transaction(async (tx) => {
     const event = await tx.webhookEvent.findUnique({
       where: { id: webhookEventId },
@@ -67,9 +74,7 @@ export async function matchAndQueueAutomation(
 
     // An existing execution always takes precedence over a new match.
     let execution = await tx.automationExecution.findUnique({
-      where: {
-        webhookEventId: event.id,
-      },
+      where: { webhookEventId: event.id },
       select: {
         id: true,
         automationId: true,
@@ -78,28 +83,37 @@ export async function matchAndQueueAutomation(
     });
 
     if (!execution) {
-      const automation = await tx.automation.findFirst({
+      const candidates = await tx.automation.findMany({
         where: {
           instagramAccountId: event.instagramAccountId,
-          mediaId: event.mediaId,
           status: "ACTIVE",
+          OR: [{ mediaId: event.mediaId }, { mediaId: null }],
         },
+        orderBy: [{ createdAt: "asc" }],
+      });
+
+      candidates.sort((a, b) => {
+        const aSpec = a.mediaId !== null ? 0 : 1;
+        const bSpec = b.mediaId !== null ? 0 : 1;
+        if (aSpec !== bSpec) return aSpec - bSpec;
+        return a.createdAt.getTime() - b.createdAt.getTime();
       });
 
       let matchedAutomation = null;
-      if (automation) {
-        if (automation.triggerType === "ANY_COMMENT") {
+      for (const automation of candidates) {
+        const mode =
+          automation.triggerType === "ANY_COMMENT"
+            ? "ANY"
+            : automation.keywordMatchMode;
+        const res = matchCommentKeywords(
+          event.commentText,
+          mode,
+          automation.keywords,
+          automation.keywordMatchLogic
+        );
+        if (res.matched) {
           matchedAutomation = automation;
-        } else if (automation.triggerType === "KEYWORD") {
-          const normalizedComment = event.commentText.toLowerCase();
-          const matched = automation.keywords.some((keyword) => {
-            const normalizedKeyword = keyword.trim().toLowerCase();
-            return (
-              normalizedKeyword.length > 0 &&
-              normalizedComment.includes(normalizedKeyword)
-            );
-          });
-          matchedAutomation = matched ? automation : null;
+          break;
         }
       }
 
@@ -115,11 +129,38 @@ export async function matchAndQueueAutomation(
         return { matched: false as const };
       }
 
+      // Per-user cooldown check per automation
+      if (matchedAutomation.cooldownSeconds > 0) {
+        const cutoff = new Date(
+          Date.now() - matchedAutomation.cooldownSeconds * 1000
+        );
+        const recent = await tx.automationExecution.findFirst({
+          where: {
+            automationId: matchedAutomation.id,
+            commenterIgsid: event.commenterInstagramId,
+            createdAt: { gte: cutoff },
+          },
+          select: { id: true },
+        });
+
+        if (recent) {
+          await tx.webhookEvent.update({
+            where: { id: event.id },
+            data: {
+              status: "PROCESSED",
+              processedAt: new Date(),
+            },
+          });
+          return { matched: false as const, cooledDown: true as const };
+        }
+      }
+
       try {
         execution = await tx.automationExecution.create({
           data: {
             automationId: matchedAutomation.id,
             webhookEventId: event.id,
+            commenterIgsid: event.commenterInstagramId,
             status: "PENDING",
           },
           select: {
@@ -134,9 +175,7 @@ export async function matchAndQueueAutomation(
         }
 
         execution = await tx.automationExecution.findUnique({
-          where: {
-            webhookEventId: event.id,
-          },
+          where: { webhookEventId: event.id },
           select: {
             id: true,
             automationId: true,
@@ -165,37 +204,82 @@ export async function matchAndQueueAutomation(
       };
     }
 
-    // Persist an idempotent outbox record in the same transaction so Redis outages
-    // cannot lose matched executions.
-    const outbox = await tx.outboxEvent.upsert({
-      where: {
-        eventType_aggregateId: {
+    // Ensure independent DeliveryAction rows exist for PUBLIC_REPLY and HOOK_DM
+    await tx.deliveryAction.createMany({
+      data: [
+        {
+          executionId: execution.id,
+          actionType: "PUBLIC_REPLY",
+          status: "PENDING",
+        },
+        {
+          executionId: execution.id,
+          actionType: "HOOK_DM",
+          status: "PENDING",
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    const outboxJobs: Array<{
+      id: string;
+      actionType?: "PUBLIC_REPLY" | "HOOK_DM";
+    }> = [];
+
+    if (features.INDEPENDENT_ACTIONS) {
+      for (const actionType of ["PUBLIC_REPLY", "HOOK_DM"] as const) {
+        const ob = await tx.outboxEvent.upsert({
+          where: {
+            eventType_aggregateId: {
+              eventType: "AUTOMATION_ACTION",
+              aggregateId: `${execution.id}:${actionType}`,
+            },
+          },
+          create: {
+            eventType: "AUTOMATION_ACTION",
+            aggregateId: `${execution.id}:${actionType}`,
+            payload: {
+              executionId: execution.id,
+              automationId: execution.automationId,
+              webhookEventId: event.id,
+              actionType,
+            },
+            status: "PENDING",
+          },
+          update: {},
+          select: { id: true },
+        });
+        outboxJobs.push({ id: ob.id, actionType });
+      }
+    } else {
+      const ob = await tx.outboxEvent.upsert({
+        where: {
+          eventType_aggregateId: {
+            eventType: "AUTOMATION_EXECUTION",
+            aggregateId: execution.id,
+          },
+        },
+        create: {
           eventType: "AUTOMATION_EXECUTION",
           aggregateId: execution.id,
+          payload: {
+            executionId: execution.id,
+            automationId: execution.automationId,
+            webhookEventId: event.id,
+          },
+          status: "PENDING",
         },
-      },
-      create: {
-        eventType: "AUTOMATION_EXECUTION",
-        aggregateId: execution.id,
-        payload: {
-          executionId: execution.id,
-          automationId: execution.automationId,
-          webhookEventId: event.id,
-        },
-        status: "PENDING",
-      },
-      update: {},
-      select: {
-        id: true,
-        status: true,
-      },
-    });
+        update: {},
+        select: { id: true },
+      });
+      outboxJobs.push({ id: ob.id });
+    }
 
     return {
       matched: true as const,
       terminalOrActive: false as const,
       execution,
-      outbox,
+      outboxJobs,
       eventId: event.id,
     };
   });
@@ -213,62 +297,59 @@ export async function matchAndQueueAutomation(
     };
   }
 
-  // Best-effort immediate dispatch to BullMQ.
-  // If Redis is unavailable, OutboxEvent remains PENDING for background recovery.
-  try {
-    const queueResult = await enqueueAutomationExecution({
-      executionId: txResult.execution.id,
-      automationId: txResult.execution.automationId,
-      webhookEventId: txResult.eventId,
-    });
+  // Dispatch independent action jobs in parallel; if Redis is unavailable,
+  // OutboxEvent records remain PENDING for background recovery.
+  let anyQueued = false;
+  await Promise.allSettled(
+    txResult.outboxJobs.map(async (job) => {
+      try {
+        const queueResult = await enqueueAutomationExecution({
+          executionId: txResult.execution.id,
+          automationId: txResult.execution.automationId,
+          webhookEventId: txResult.eventId,
+          actionType: job.actionType,
+        });
+        if (queueResult === "QUEUED") {
+          anyQueued = true;
+        }
+        await prisma.outboxEvent.updateMany({
+          where: { id: job.id, status: "PENDING" },
+          data: {
+            status: "DISPATCHED",
+            dispatchedAt: new Date(),
+            lastError: null,
+          },
+        });
+      } catch (err) {
+        const errMsg =
+          err instanceof Error ? err.message : "Redis enqueue failed";
+        logger.warn(
+          {
+            executionId: txResult.execution.id,
+            outboxId: job.id,
+            actionType: job.actionType,
+            err: errMsg,
+          },
+          "Immediate BullMQ dispatch failed; OutboxEvent preserved for recovery"
+        );
+        await prisma.outboxEvent
+          .updateMany({
+            where: { id: job.id, status: "PENDING" },
+            data: {
+              attempts: { increment: 1 },
+              lastError: errMsg,
+              nextAttemptAt: new Date(Date.now() + 5_000),
+            },
+          })
+          .catch(() => {});
+      }
+    })
+  );
 
-    await prisma.outboxEvent.updateMany({
-      where: {
-        id: txResult.outbox.id,
-        status: "PENDING",
-      },
-      data: {
-        status: "DISPATCHED",
-        dispatchedAt: new Date(),
-        lastError: null,
-      },
-    });
-
-    return {
-      matched: true,
-      queued: queueResult === "QUEUED",
-      executionId: txResult.execution.id,
-      executionStatus: txResult.execution.status,
-    };
-  } catch (err) {
-    const errMsg = err instanceof Error ? err.message : "Redis enqueue failed";
-    logger.warn(
-      {
-        executionId: txResult.execution.id,
-        outboxId: txResult.outbox.id,
-        err: errMsg,
-      },
-      "Immediate BullMQ dispatch failed; OutboxEvent preserved for recovery"
-    );
-
-    await prisma.outboxEvent
-      .updateMany({
-        where: { id: txResult.outbox.id, status: "PENDING" },
-        data: {
-          attempts: { increment: 1 },
-          lastError: errMsg,
-          nextAttemptAt: new Date(Date.now() + 5_000),
-        },
-      })
-      .catch((dbErr) => {
-        logger.error({ dbErr, outboxId: txResult.outbox.id }, "Failed to record outbox dispatch error");
-      });
-
-    return {
-      matched: true,
-      queued: false,
-      executionId: txResult.execution.id,
-      executionStatus: txResult.execution.status,
-    };
-  }
+  return {
+    matched: true,
+    queued: anyQueued,
+    executionId: txResult.execution.id,
+    executionStatus: txResult.execution.status,
+  };
 }

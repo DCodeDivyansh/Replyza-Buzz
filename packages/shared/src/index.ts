@@ -5,8 +5,24 @@ export {
 
 export {
   interpolateVariables,
+  validateTemplateVariables,
+  SUPPORTED_TEMPLATE_VARIABLES,
+  type SupportedTemplateVariable,
+  type VariableValidationResult,
   type InterpolationContext,
 } from "./variables";
+
+export {
+  normalizeForMatching,
+  matchCommentKeywords,
+  type KeywordMatchModeType,
+  type KeywordMatchLogicType,
+} from "./keyword-matcher";
+
+export {
+  signFollowCheckPayload,
+  verifyFollowCheckPayload,
+} from "./follow-token";
 
 export {
   MetaGraphClient,

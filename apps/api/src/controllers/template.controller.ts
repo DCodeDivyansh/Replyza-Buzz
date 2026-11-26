@@ -1,18 +1,21 @@
 import type { RequestHandler } from "express";
 import { z } from "zod";
+import { validateTemplateVariables } from "@replyza/shared";
 import {
   listTemplates,
   getTemplateById,
   createCustomTemplate,
+  updateCustomTemplate,
+  duplicateTemplate,
   deleteCustomTemplate,
 } from "../services/template.service";
 import { isValidUuid } from "../utils/uuid";
 
-const createTemplateValidator = z.object({
+const baseTemplateSchema = z.object({
   name: z.string().trim().min(1).max(100),
   category: z.string().trim().max(50).optional(),
   description: z.string().trim().max(500).optional(),
-  triggerType: z.enum(["ANY_COMMENT", "KEYWORD"]),
+  triggerType: z.enum(["ANY_COMMENT", "KEYWORD"]).default("KEYWORD"),
   keywords: z.array(z.string().trim().min(1).max(50)).default([]),
   publicReplyText: z.string().trim().min(1).max(500),
   dmMessageText: z.string().trim().min(1).max(2000),
@@ -22,6 +25,42 @@ const createTemplateValidator = z.object({
   followSuccessText: z.string().trim().max(1000).optional(),
   followFallbackText: z.string().trim().max(1000).optional(),
 });
+
+function validateTemplateFields(
+  data: {
+    publicReplyText?: string;
+    dmMessageText?: string;
+    followInstructionText?: string;
+    followSuccessText?: string;
+    followFallbackText?: string;
+  },
+  ctx: z.RefinementCtx
+) {
+  for (const [key, val] of [
+    ["publicReplyText", data.publicReplyText],
+    ["dmMessageText", data.dmMessageText],
+    ["followInstructionText", data.followInstructionText],
+    ["followSuccessText", data.followSuccessText],
+    ["followFallbackText", data.followFallbackText],
+  ] as const) {
+    if (!val) continue;
+    const check = validateTemplateVariables(val);
+    if (!check.valid) {
+      ctx.addIssue({
+        code: "custom",
+        path: [key],
+        message: `Unsupported variable(s): ${check.unsupportedVariables.map((v) => `{{${v}}}`).join(", ")}`,
+      });
+    }
+  }
+}
+
+const createTemplateValidator = baseTemplateSchema.superRefine(validateTemplateFields);
+
+const updateTemplateValidator = baseTemplateSchema
+  .partial()
+  .strict()
+  .superRefine(validateTemplateFields);
 
 export const getTemplatesController: RequestHandler = async (req, res, next) => {
   try {
@@ -75,7 +114,7 @@ export const createTemplateController: RequestHandler = async (req, res, next) =
     if (!parsed.success) {
       res.status(400).json({
         success: false,
-        message: "Invalid template input",
+        message: parsed.error.issues[0]?.message || "Invalid template input",
         errors: parsed.error.issues,
       });
       return;
@@ -86,6 +125,62 @@ export const createTemplateController: RequestHandler = async (req, res, next) =
     res.status(201).json({
       success: true,
       data: template,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTemplateController: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.user!.id;
+    const templateId = req.params.id as string;
+    const parsed = updateTemplateValidator.safeParse(req.body);
+
+    if (!parsed.success) {
+      res.status(400).json({
+        success: false,
+        message: parsed.error.issues[0]?.message || "Invalid template update",
+        errors: parsed.error.issues,
+      });
+      return;
+    }
+
+    const updated = await updateCustomTemplate(userId, templateId, parsed.data);
+    if (!updated) {
+      res.status(404).json({
+        success: false,
+        message: "Template not found or system template cannot be edited directly",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: updated,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const duplicateTemplateController: RequestHandler = async (req, res, next) => {
+  try {
+    const userId = req.user!.id;
+    const templateId = req.params.id as string;
+    const duplicated = await duplicateTemplate(userId, templateId);
+
+    if (!duplicated) {
+      res.status(404).json({
+        success: false,
+        message: "Template not found",
+      });
+      return;
+    }
+
+    res.status(201).json({
+      success: true,
+      data: duplicated,
     });
   } catch (error) {
     next(error);

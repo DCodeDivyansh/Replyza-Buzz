@@ -18,6 +18,7 @@ model User {
   instagramAccounts InstagramAccount[]
   refreshTokens RefreshToken[]
   automationTemplates AutomationTemplate[]
+  affiliateProducts AffiliateProduct[]
 
   @@map("users")
 }
@@ -113,26 +114,97 @@ enum OutboxStatus {
   FAILED
 }
 
+enum KeywordMatchMode {
+  CONTAINS
+  EXACT
+  ANY
+}
+
+enum KeywordMatchLogic {
+  ANY_KEYWORD
+  ALL_KEYWORDS
+}
+
+enum ProductDeliveryMode {
+  SINGLE_MESSAGE
+  SEPARATE_MESSAGES
+  GENERIC_CARDS
+  SELECTION_PROMPT
+}
+
+enum ProductStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum DeliveryMode {
+  DIRECT
+  BUTTON
+}
+
+enum DeliveryActionType {
+  PUBLIC_REPLY
+  HOOK_DM
+  LINK_DM
+  FOLLOW_FALLBACK_DM
+}
+
+enum DeliveryActionStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+  SKIPPED
+  NEEDS_REVIEW
+}
+
+enum ConversationState {
+  HOOK_SENT
+  AWAITING_TAP
+  TAPPED
+  FOLLOW_CHECKING
+  AWAITING_FOLLOW
+  COMPLETED
+  EXPIRED_WINDOW
+  FAILED
+  NEEDS_RECONNECT
+}
+
 model Automation {
   id                 String            @id @default(uuid()) @db.Uuid
   instagramAccountId String            @db.Uuid
 
   name               String
-  mediaId            String
+  mediaId            String?
   mediaPermalink     String?
   mediaType          String?
 
   triggerType        AutomationTrigger
+  keywordMatchMode   KeywordMatchMode  @default(CONTAINS)
+  keywordMatchLogic  KeywordMatchLogic @default(ANY_KEYWORD)
   keywords           String[]          @default([])
 
-  publicReplyText    String
-  dmMessageText      String
-  dmLink             String?
+  publicReplyEnabled    Boolean        @default(true)
+  publicReplyText       String
+  publicReplyVariations String[]       @default([])
+  dmMessageText         String
+  dmLink                String?
+
+  productDeliveryMode   ProductDeliveryMode @default(SINGLE_MESSAGE)
+  productIntroText      String?
+  productClosingText    String?
+
+  deliveryMode          DeliveryMode      @default(DIRECT)
+  buttonLabel           String?
+  cooldownSeconds       Int               @default(0)
+  dmMeFallbackEnabled   Boolean           @default(false)
 
   followRequired        Boolean           @default(false)
   followInstructionText String?
   followSuccessText     String?
   followFallbackText    String?
+  followUpEnabled       Boolean           @default(false)
+  followUpText          String?
   templateId            String?           @db.Uuid
 
   status             AutomationStatus  @default(DRAFT)
@@ -140,10 +212,12 @@ model Automation {
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
 
-  instagramAccount   InstagramAccount  @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  instagramAccount   InstagramAccount    @relation(fields: [instagramAccountId], references: [id], onDelete: Cascade)
+  template           AutomationTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   executions         AutomationExecution[]
+  products           AutomationProduct[]
 
-  @@unique([instagramAccountId, mediaId])
+  @@index([instagramAccountId, mediaId])
   @@index([instagramAccountId, status])
   @@map("automations")
 }
@@ -197,21 +271,47 @@ model AutomationExecution {
   retryCount                Int             @default(0)
   lastAttemptAt             DateTime?
 
-  followCheckStatus         ActionStatus?   @default(PENDING)
+  followCheckStatus         ActionStatus?      @default(PENDING)
   followCheckSentAt         DateTime?
   followCheckVerifiedAt     DateTime?
-  followCheckRetryCount     Int             @default(0)
+  followCheckRetryCount     Int                @default(0)
   metaFollowCheckReplyId    String?
   followVerificationOutcome String?
   followCheckError          String?
 
+  conversationState         ConversationState?
+  commenterIgsid            String?
+  tapEventMid               String?            @unique
+
   automation         Automation      @relation(fields: [automationId], references: [id], onDelete: Cascade)
   webhookEvent       WebhookEvent    @relation(fields: [webhookEventId], references: [id], onDelete: Cascade)
   messagingEvents    MessagingWebhookEvent[]
+  deliveryActions    DeliveryAction[]
 
   @@index([automationId, createdAt])
+  @@index([commenterIgsid, createdAt])
   @@index([status])
   @@map("automation_executions")
+}
+
+model DeliveryAction {
+  id               String               @id @default(uuid()) @db.Uuid
+  executionId      String               @db.Uuid
+  actionType       DeliveryActionType
+  status           DeliveryActionStatus @default(PENDING)
+  metaId           String?
+  attempts         Int                  @default(0)
+  lastErrorCode    String?
+  lastErrorMessage String?
+  sentAt           DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  execution AutomationExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+
+  @@unique([executionId, actionType])
+  @@index([status, createdAt])
+  @@map("delivery_actions")
 }
 
 model OutboxEvent {
@@ -274,8 +374,67 @@ model AutomationTemplate {
   updatedAt             DateTime          @updatedAt
 
   user                  User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automations           Automation[]
 
   @@index([userId])
   @@index([isSystem])
   @@map("automation_templates")
+}
+
+model AffiliateProduct {
+  id               String        @id @default(uuid()) @db.Uuid
+  userId           String        @db.Uuid
+  name             String
+  brand            String?
+  description      String?
+  imageUrl         String?
+  affiliateUrl     String
+  originalUrl      String?
+  price            String?
+  discountPrice    String?
+  discountInfo     String?
+  couponCode       String?
+  affiliatePartner String?
+  category         String?
+  ctaLabel         String        @default("Shop Now")
+  notes            String?
+  status           ProductStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automationProducts AutomationProduct[]
+
+  @@index([userId, status])
+  @@index([userId, category])
+  @@index([userId, brand])
+  @@map("affiliate_products")
+}
+
+model AutomationProduct {
+  id                 String   @id @default(uuid()) @db.Uuid
+  automationId       String   @db.Uuid
+  affiliateProductId String?  @db.Uuid
+  name               String
+  imageUrl           String?
+  description        String?
+  productUrl         String?
+  affiliateUrl       String
+  originalUrl        String?
+  price              String?
+  discountPrice      String?
+  category           String?
+  ctaLabel           String   @default("Shop Now")
+  customMessage      String?
+  couponCode         String?
+  brand              String?
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  automation       Automation        @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  affiliateProduct AffiliateProduct? @relation(fields: [affiliateProductId], references: [id], onDelete: SetNull)
+
+  @@index([automationId, sortOrder])
+  @@map("automation_products")
 }

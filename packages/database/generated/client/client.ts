@@ -72,6 +72,11 @@ export type WebhookEvent = Prisma.WebhookEventModel
  */
 export type AutomationExecution = Prisma.AutomationExecutionModel
 /**
+ * Model DeliveryAction
+ * 
+ */
+export type DeliveryAction = Prisma.DeliveryActionModel
+/**
  * Model OutboxEvent
  * 
  */
@@ -86,3 +91,13 @@ export type MessagingWebhookEvent = Prisma.MessagingWebhookEventModel
  * 
  */
 export type AutomationTemplate = Prisma.AutomationTemplateModel
+/**
+ * Model AffiliateProduct
+ * 
+ */
+export type AffiliateProduct = Prisma.AffiliateProductModel
+/**
+ * Model AutomationProduct
+ * 
+ */
+export type AutomationProduct = Prisma.AutomationProductModel
