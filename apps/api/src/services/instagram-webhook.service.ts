@@ -437,23 +437,25 @@ export async function persistInstagramCommentEvents(
               igsid: senderId,
               instagramUserId: entryInstagramUserId,
               providerEventId,
+              ...(selectedProductIndex !== undefined ? { selectedProductIndex } : {}),
             });
 
-            await prisma.outboxEvent.updateMany({
-              where: { id: outboxId, status: "PENDING" },
-              data: {
-                status: "DISPATCHED",
-                dispatchedAt: new Date(),
-                lastError: null,
-              },
-            });
-
-            if (messagingEventId) {
-              await prisma.messagingWebhookEvent.updateMany({
-                where: { id: messagingEventId, status: "RECEIVED" },
-                data: { status: "PROCESSING" },
-              });
-            }
+            await Promise.all([
+              prisma.outboxEvent.updateMany({
+                where: { id: outboxId, status: "PENDING" },
+                data: {
+                  status: "DISPATCHED",
+                  dispatchedAt: new Date(),
+                  lastError: null,
+                },
+              }),
+              messagingEventId
+                ? prisma.messagingWebhookEvent.updateMany({
+                    where: { id: messagingEventId, status: "RECEIVED" },
+                    data: { status: "PROCESSING" },
+                  })
+                : Promise.resolve(),
+            ]);
           } catch (err) {
             const errMsg =
               err instanceof Error ? err.message : "Redis enqueue failed";
@@ -530,6 +532,15 @@ export async function persistInstagramCommentEvents(
       }
 
       let webhookEventId: string;
+      let prefetchedEvent:
+        | {
+            id: string;
+            instagramAccountId: string;
+            mediaId: string;
+            commenterInstagramId: string;
+            commentText: string;
+          }
+        | undefined;
 
       try {
         const event = await prisma.webhookEvent.create({
@@ -544,10 +555,17 @@ export async function persistInstagramCommentEvents(
             commentText: comment.text,
             eventPayload: JSON.parse(JSON.stringify(comment)),
           },
-          select: { id: true },
+          select: {
+            id: true,
+            instagramAccountId: true,
+            mediaId: true,
+            commenterInstagramId: true,
+            commentText: true,
+          },
         });
 
         webhookEventId = event.id;
+        prefetchedEvent = event;
         saved++;
       } catch (error) {
         if (!isDuplicateError(error)) {
@@ -563,7 +581,13 @@ export async function persistInstagramCommentEvents(
               commentId: comment.id,
             },
           },
-          select: { id: true },
+          select: {
+            id: true,
+            instagramAccountId: true,
+            mediaId: true,
+            commenterInstagramId: true,
+            commentText: true,
+          },
         });
 
         if (!existingEvent) {
@@ -573,9 +597,10 @@ export async function persistInstagramCommentEvents(
         }
 
         webhookEventId = existingEvent.id;
+        prefetchedEvent = existingEvent;
       }
 
-      await matchAndQueueAutomation(webhookEventId);
+      await matchAndQueueAutomation(webhookEventId, prefetchedEvent);
     }
   }
 

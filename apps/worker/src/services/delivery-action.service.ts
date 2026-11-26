@@ -19,6 +19,38 @@ export async function claimDeliveryAction(
   executionId: string,
   actionType: DeliveryActionKind
 ): Promise<ClaimedDeliveryAction | null> {
+  // Fast path: rows for PUBLIC_REPLY / HOOK_DM are pre-created at match time,
+  // so a single atomic UPDATE ... RETURNING avoids an extra upsert round-trip.
+  const rows = await prisma.$queryRaw<ClaimedDeliveryAction[]>`
+    UPDATE "delivery_actions"
+    SET "status" = 'SENDING'::"DeliveryActionStatus",
+        "attempts" = "attempts" + 1,
+        "updatedAt" = NOW()
+    WHERE "executionId" = ${executionId}::uuid
+      AND "actionType" = ${actionType}::"DeliveryActionType"
+      AND "status" = 'PENDING'::"DeliveryActionStatus"
+    RETURNING "id", "attempts"
+  `;
+
+  if (rows.length === 1) {
+    return rows[0];
+  }
+
+  // Slow path: ensure row exists (e.g., LINK_DM / FOLLOW_FALLBACK_DM or legacy executions)
+  const existing = await prisma.deliveryAction.findUnique({
+    where: {
+      executionId_actionType: {
+        executionId,
+        actionType,
+      },
+    },
+    select: { status: true },
+  });
+
+  if (existing) {
+    return null;
+  }
+
   await prisma.deliveryAction.upsert({
     where: {
       executionId_actionType: {
@@ -34,7 +66,7 @@ export async function claimDeliveryAction(
     update: {},
   });
 
-  const rows = await prisma.$queryRaw<ClaimedDeliveryAction[]>`
+  const retryRows = await prisma.$queryRaw<ClaimedDeliveryAction[]>`
     UPDATE "delivery_actions"
     SET "status" = 'SENDING'::"DeliveryActionStatus",
         "attempts" = "attempts" + 1,
@@ -45,7 +77,7 @@ export async function claimDeliveryAction(
     RETURNING "id", "attempts"
   `;
 
-  return rows.length === 1 ? rows[0] : null;
+  return retryRows.length === 1 ? retryRows[0] : null;
 }
 
 export async function markDeliveryActionSent(

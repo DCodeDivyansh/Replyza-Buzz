@@ -62,11 +62,32 @@ export async function findMatchingAutomation(input: MatchAutomationInput) {
   return null;
 }
 
-export async function matchAndQueueAutomation(webhookEventId: string) {
+export interface PrefetchedWebhookEvent {
+  id: string;
+  instagramAccountId: string;
+  mediaId: string;
+  commenterInstagramId: string;
+  commentText: string;
+}
+
+export async function matchAndQueueAutomation(
+  webhookEventId: string,
+  prefetchedEvent?: PrefetchedWebhookEvent
+) {
+  let isFreshExecution = false;
   const txResult = await prisma.$transaction(async (tx) => {
-    const event = await tx.webhookEvent.findUnique({
-      where: { id: webhookEventId },
-    });
+    const event =
+      prefetchedEvent ??
+      (await tx.webhookEvent.findUnique({
+        where: { id: webhookEventId },
+        select: {
+          id: true,
+          instagramAccountId: true,
+          mediaId: true,
+          commenterInstagramId: true,
+          commentText: true,
+        },
+      }));
 
     if (!event) {
       throw new Error(`Webhook event not found: ${webhookEventId}`);
@@ -169,6 +190,7 @@ export async function matchAndQueueAutomation(webhookEventId: string) {
             status: true,
           },
         });
+        isFreshExecution = true;
       } catch (error) {
         if (!isDuplicateError(error)) {
           throw error;
@@ -303,12 +325,15 @@ export async function matchAndQueueAutomation(webhookEventId: string) {
   await Promise.allSettled(
     txResult.outboxJobs.map(async (job) => {
       try {
-        const queueResult = await enqueueAutomationExecution({
-          executionId: txResult.execution.id,
-          automationId: txResult.execution.automationId,
-          webhookEventId: txResult.eventId,
-          actionType: job.actionType,
-        });
+        const queueResult = await enqueueAutomationExecution(
+          {
+            executionId: txResult.execution.id,
+            automationId: txResult.execution.automationId,
+            webhookEventId: txResult.eventId,
+            actionType: job.actionType,
+          },
+          { skipExistingCheck: isFreshExecution }
+        );
         if (queueResult === "QUEUED") {
           anyQueued = true;
         }

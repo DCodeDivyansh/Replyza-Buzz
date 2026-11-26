@@ -172,11 +172,18 @@ worker.on("error", (error) => {
   console.error("[Worker] Error:", error.message);
 });
 
+let isDispatchingOutbox = false;
 const outboxTimer = setInterval(() => {
-  void dispatchPendingOutboxEvents().catch((err) => {
-    console.error("[OutboxDispatcher] Error:", err);
-  });
-}, 5_000);
+  if (isDispatchingOutbox) return;
+  isDispatchingOutbox = true;
+  void dispatchPendingOutboxEvents()
+    .catch((err) => {
+      console.error("[OutboxDispatcher] Error:", err);
+    })
+    .finally(() => {
+      isDispatchingOutbox = false;
+    });
+}, 1_000);
 
 const recoveryTimer = setInterval(() => {
   void recoverOrphanedRecords().catch((err) => {

@@ -89,11 +89,12 @@ test.describe("Web Application End-to-End Smoke Test", () => {
     });
     expect(page.url()).toContain("mediaId=");
 
-    // Fill automation name & add a product link in the 2-column builder
-    console.log("[Playwright] Configuring 2-column builder...");
+    // Fill automation name & add a product link in the 4-step builder
+    console.log("[Playwright] Configuring 4-step builder...");
     await page.waitForSelector('input[aria-label="Automation name"]', { timeout: 10000 });
     await page.fill('input[aria-label="Automation name"]', "Playwright Web Automation");
 
+    await page.getByRole("button", { name: /DM & Products/i }).click();
     await page.click('button:has-text("Add Custom Link")');
     await page.fill('input[placeholder*="affiliate.example.com"]', "https://example.com/promo");
     await page.fill('input[placeholder*="Glow Serum"]', "Promo Product");
@@ -101,7 +102,8 @@ test.describe("Web Application End-to-End Smoke Test", () => {
 
     // Activate the automation
     console.log("[Playwright] Activating automation...");
-    await page.click('button:has-text("Save & Activate")');
+    await page.getByRole("button", { name: /Review & Launch/i }).click();
+    await page.locator('button:has-text("Activate Automation")').first().click();
 
     // Should redirect to /automations
     await page.waitForURL((url) => url.pathname === "/automations", { timeout: 15000 });

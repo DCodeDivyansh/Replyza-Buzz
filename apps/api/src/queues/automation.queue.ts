@@ -43,22 +43,26 @@ export const automationQueue = new Queue<AutomationJobData>(
 );
 
 export async function enqueueAutomationExecution(
-  data: AutomationJobData
+  data: AutomationJobData,
+  options?: { skipExistingCheck?: boolean }
 ): Promise<"QUEUED" | "ALREADY_QUEUED"> {
   const jobId = data.actionType
     ? `${data.executionId}__${data.actionType}`
     : data.executionId;
-  const existingJob = await automationQueue.getJob(jobId);
 
-  if (existingJob) {
-    const state = await existingJob.getState();
+  if (!options?.skipExistingCheck) {
+    const existingJob = await automationQueue.getJob(jobId);
 
-    if (state !== "completed" && state !== "failed") {
-      return "ALREADY_QUEUED";
+    if (existingJob) {
+      const state = await existingJob.getState();
+
+      if (state !== "completed" && state !== "failed") {
+        return "ALREADY_QUEUED";
+      }
+
+      // Remove an old terminal BullMQ job before re-enqueueing.
+      await existingJob.remove();
     }
-
-    // Remove an old terminal BullMQ job before re-enqueueing.
-    await existingJob.remove();
   }
 
   await automationQueue.add(
