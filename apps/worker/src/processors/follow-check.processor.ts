@@ -77,11 +77,19 @@ export async function processFollowCheckJob(
   const { automation } = execution;
   const { instagramAccount } = automation;
 
-  // Idempotency: if link delivery already succeeded or execution is terminal, do not send duplicate DMs
+  // Idempotency: if link delivery already succeeded or execution is terminal, do not send duplicate DMs.
+  // An execution in AWAITING_TAP/TAPPED/FOLLOW_CHECKING/AWAITING_FOLLOW is still waiting for user action
+  // even if initial hook delivery actions have completed.
+  const isAwaitingUserAction =
+    execution.conversationState === "AWAITING_TAP" ||
+    execution.conversationState === "TAPPED" ||
+    execution.conversationState === "FOLLOW_CHECKING" ||
+    execution.conversationState === "AWAITING_FOLLOW";
+
   if (
     execution.followCheckStatus === "SUCCESS" ||
-    execution.status === "COMPLETED" ||
     execution.conversationState === "COMPLETED" ||
+    (execution.status === "COMPLETED" && !isAwaitingUserAction) ||
     execution.conversationState === "EXPIRED_WINDOW" ||
     execution.conversationState === "NEEDS_RECONNECT" ||
     (execution.conversationState === "FAILED" &&

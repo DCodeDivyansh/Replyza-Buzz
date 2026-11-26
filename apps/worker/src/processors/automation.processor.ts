@@ -262,6 +262,14 @@ async function finalizeExecution(
       select: {
         publicReplyStatus: true,
         privateReplyStatus: true,
+        conversationState: true,
+        followCheckStatus: true,
+        automation: {
+          select: {
+            followRequired: true,
+            deliveryMode: true,
+          },
+        },
       },
     });
 
@@ -274,6 +282,16 @@ async function finalizeExecution(
     const publicStatus = execution.publicReplyStatus;
     const privateStatus = execution.privateReplyStatus;
 
+    const awaitingInteraction =
+      execution.followCheckStatus !== "SUCCESS" &&
+      execution.conversationState !== "COMPLETED" &&
+      (execution.conversationState === "AWAITING_TAP" ||
+        execution.conversationState === "TAPPED" ||
+        execution.conversationState === "FOLLOW_CHECKING" ||
+        execution.conversationState === "AWAITING_FOLLOW" ||
+        execution.automation.followRequired ||
+        execution.automation.deliveryMode === "BUTTON");
+
     let finalStatus: "COMPLETED" | "PARTIAL" | "FAILED" | "RETRY_PENDING";
 
     if (
@@ -285,7 +303,7 @@ async function finalizeExecution(
       publicStatus === "SUCCESS" &&
       privateStatus === "SUCCESS"
     ) {
-      finalStatus = "COMPLETED";
+      finalStatus = awaitingInteraction ? "PARTIAL" : "COMPLETED";
     } else if (
       publicStatus === "SUCCESS" ||
       privateStatus === "SUCCESS" ||
@@ -316,7 +334,9 @@ async function finalizeExecution(
       data: {
         status: finalStatus,
         completedAt:
-          finalStatus === "RETRY_PENDING" || hasUncertainOutcome
+          finalStatus === "RETRY_PENDING" ||
+          hasUncertainOutcome ||
+          awaitingInteraction
             ? null
             : new Date(),
         leaseToken: null,

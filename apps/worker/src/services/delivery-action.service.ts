@@ -161,15 +161,33 @@ export async function syncExecutionFromDeliveryActions(
   webhookEventId: string
 ): Promise<void> {
   await prisma.$transaction(async (tx) => {
-    const actions = await tx.deliveryAction.findMany({
-      where: {
-        executionId,
-        actionType: { in: ["PUBLIC_REPLY", "HOOK_DM"] },
-      },
-    });
+    const [actions, execution] = await Promise.all([
+      tx.deliveryAction.findMany({
+        where: {
+          executionId,
+          actionType: { in: ["PUBLIC_REPLY", "HOOK_DM", "LINK_DM"] },
+        },
+      }),
+      tx.automationExecution.findUnique({
+        where: { id: executionId },
+        select: {
+          conversationState: true,
+          followCheckStatus: true,
+          automation: {
+            select: {
+              followRequired: true,
+              deliveryMode: true,
+              productDeliveryMode: true,
+              _count: { select: { products: true } },
+            },
+          },
+        },
+      }),
+    ]);
 
     const pub = actions.find((a) => a.actionType === "PUBLIC_REPLY");
     const dm = actions.find((a) => a.actionType === "HOOK_DM");
+    const linkDm = actions.find((a) => a.actionType === "LINK_DM");
 
     const mapToActionStatus = (
       s?: string
@@ -193,9 +211,30 @@ export async function syncExecutionFromDeliveryActions(
     const pubStatus = mapToActionStatus(pub?.status);
     const dmStatus = mapToActionStatus(dm?.status);
 
+    const isTwoStepAutomation = Boolean(
+      execution &&
+        (execution.automation.followRequired ||
+          execution.automation.deliveryMode === "BUTTON" ||
+          (execution.automation.productDeliveryMode === "SELECTION_PROMPT" &&
+            execution.automation._count.products > 1))
+    );
+    const isAwaitingState =
+      execution?.conversationState === "AWAITING_TAP" ||
+      execution?.conversationState === "TAPPED" ||
+      execution?.conversationState === "FOLLOW_CHECKING" ||
+      execution?.conversationState === "AWAITING_FOLLOW";
+    const awaitingInteraction =
+      linkDm?.status !== "SENT" &&
+      execution?.followCheckStatus !== "SUCCESS" &&
+      execution?.conversationState !== "COMPLETED" &&
+      (isAwaitingState || isTwoStepAutomation);
+
     let execStatus: "PENDING" | "PROCESSING" | "COMPLETED" | "PARTIAL" | "FAILED" | "RETRY_PENDING" = "PROCESSING";
-    if (pubStatus === "SUCCESS" && dmStatus === "SUCCESS") {
-      execStatus = "COMPLETED";
+    if (
+      (pubStatus === "SUCCESS" || pubStatus === "SKIPPED") &&
+      dmStatus === "SUCCESS"
+    ) {
+      execStatus = awaitingInteraction ? "PARTIAL" : "COMPLETED";
     } else if (pubStatus === "FAILED" && dmStatus === "FAILED") {
       execStatus = "FAILED";
     } else if (
@@ -210,11 +249,16 @@ export async function syncExecutionFromDeliveryActions(
     }
 
     const errors = [pub?.lastErrorMessage, dm?.lastErrorMessage].filter(Boolean);
-    const isTerminal =
+    const isInitialPhaseDone =
       pubStatus !== "PENDING" &&
       pubStatus !== "PROCESSING" &&
       dmStatus !== "PENDING" &&
       dmStatus !== "PROCESSING";
+    const isFinalized =
+      (execStatus === "COMPLETED" || execStatus === "FAILED") &&
+      isInitialPhaseDone &&
+      pubStatus !== "UNKNOWN" &&
+      dmStatus !== "UNKNOWN";
 
     await tx.automationExecution.update({
       where: { id: executionId },
@@ -225,11 +269,11 @@ export async function syncExecutionFromDeliveryActions(
         metaPrivateReplyId: dm?.metaId ?? undefined,
         status: execStatus,
         errorMessage: errors.length > 0 ? errors.join(" | ") : null,
-        completedAt: isTerminal && pubStatus !== "UNKNOWN" && dmStatus !== "UNKNOWN" ? new Date() : null,
+        completedAt: isFinalized ? new Date() : null,
       },
     });
 
-    if (isTerminal) {
+    if (isInitialPhaseDone) {
       await tx.webhookEvent.update({
         where: { id: webhookEventId },
         data: {
