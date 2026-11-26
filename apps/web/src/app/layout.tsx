@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Anton, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
+
+const anton = Anton({
+  variable: "--font-anton",
+  subsets: ["latin"],
+  weight: "400",
+});
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -35,9 +41,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakartaDisplay.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
+      className={`${anton.variable} ${plusJakartaDisplay.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} h-full antialiased scroll-smooth`}
     >
-      <body className="min-h-full flex flex-col bg-[#FAF9F6] font-sans text-[#141413] selection:bg-[#D94E28]/15 selection:text-[#141413]">
+      <body className="min-h-full flex flex-col bg-[#F7F1EC] font-sans text-[#161413] selection:bg-[#E1306C]/15 selection:text-[#161413]">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

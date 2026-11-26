@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --bg-canvas: #FAF9F6;
+  --bg-canvas: #F7F1EC;
+  --bg-hero: #FCE8EC;
   --bg-surface: #FFFFFF;
+  --bg-pill: #EDE4DD;
   --bg-subtle: #F3F2EE;
   --border-hairline: #E6E5E1;
   --border-strong: #D1CFC9;
-  --text-primary: #141413;
-  --text-secondary: #5C5B57;
+  --text-primary: #161413;
+  --text-secondary: #6E655F;
   --text-muted: #8C8A84;
-  --accent-primary: #D94E28;
-  --accent-primary-hover: #C0421F;
-  --accent-primary-soft: #FDF2EE;
+  --accent-primary: #E1306C;
+  --accent-primary-hover: #C8255C;
+  --accent-secondary: #F77737;
+  --accent-primary-soft: #FCE8EC;
   --status-success: #0D7A5F;
   --status-success-soft: #ECF7F3;
 }
@@ -25,6 +28,7 @@
   --color-accent: var(--accent-primary);
   --color-success: var(--status-success);
   --color-muted: var(--text-muted);
+  --font-anton: var(--font-anton);
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
@@ -36,9 +40,15 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
+.font-editorial {
+  font-family: var(--font-anton), var(--font-display), sans-serif;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+}
+
 .font-display {
   font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
 }
 
 .font-mono-num {
@@ -46,11 +56,27 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Tactile accent helpers (no purple/blue gradients) */
-.brand-accent-bg {
-  background-color: var(--accent-primary);
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
-.brand-accent-bg:hover {
-  background-color: var(--accent-primary-hover);
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 28s linear infinite;
+}
+
+.marquee-wrapper:hover .animate-marquee {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
 }
