@@ -44,25 +44,53 @@ export function WorkflowPath() {
     <section
       id="workflow"
       ref={sectionRef}
-      className="relative bg-[#F7F1EC] py-20 sm:py-28 px-4 sm:px-8 overflow-hidden"
+      className="relative bg-[#F7F1EC] py-14 md:py-24 px-4 sm:px-8 overflow-x-clip"
     >
       <div className="max-w-5xl mx-auto relative">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: "some" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="text-center space-y-2 mb-16 sm:mb-24"
+          className="text-center space-y-2 mb-12 md:mb-24"
         >
           <p className="font-mono-num text-xs font-semibold uppercase tracking-[0.2em] text-[#E1306C]">
             AUTOMATION ENGINE
           </p>
-          <h2 className="font-editorial text-5xl sm:text-6xl lg:text-7xl uppercase text-[#161413]">
+          <h2 className="font-editorial text-4xl sm:text-6xl lg:text-7xl uppercase text-[#161413]">
             HOW IT WORKS
           </h2>
         </motion.div>
 
-        {/* Continuous Winding SVG Path (Desktop) */}
+        {/* Mobile Vertical Timeline (< 768px) */}
+        <div className="md:hidden relative pl-7 space-y-8">
+          <div
+            aria-hidden="true"
+            className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-[#E1306C]"
+          />
+          {MILESTONES.map((m) => (
+            <motion.div
+              key={`mob-${m.num}`}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: "some" }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="relative rounded-2xl border border-[#161413]/10 bg-white p-5 space-y-3"
+            >
+              <span className="absolute -left-[27px] top-5 h-5 w-5 rounded-full bg-[#E1306C] text-white font-mono-num text-[10px] font-bold flex items-center justify-center ring-4 ring-[#F7F1EC]">
+                {m.num}
+              </span>
+              <h3 className="font-editorial text-3xl uppercase text-[#161413]">
+                {m.line1} <span className="text-[#E1306C]">{m.line2}</span>
+              </h3>
+              <p className="rounded-xl bg-[#F7F1EC] border border-[#161413]/8 px-3.5 py-2.5 text-xs font-medium text-[#161413] rotate-0">
+                {m.badge}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop Continuous Winding SVG Path (>= 768px) */}
         <svg
           viewBox="0 0 800 760"
           fill="none"
@@ -84,17 +112,17 @@ export function WorkflowPath() {
           />
         </svg>
 
-        {/* Staggered Milestones (Vertical left timeline on mobile <768px) */}
-        <div className="relative z-10 border-l-2 border-[#E1306C]/30 pl-6 md:border-l-0 md:pl-0 space-y-12 sm:space-y-16 md:space-y-28">
+        {/* Desktop Staggered Milestones (>= 768px) */}
+        <div className="hidden md:block relative z-10 space-y-28">
           {MILESTONES.map((m) => (
             <motion.div
               key={m.num}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ once: true, amount: "some" }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               className={`flex flex-col ${
-                m.align === "right" ? "md:items-end md:text-right" : "md:items-start md:text-left"
+                m.align === "right" ? "items-end text-right" : "items-start text-left"
               }`}
             >
               <div className="max-w-md space-y-4">
@@ -105,7 +133,7 @@ export function WorkflowPath() {
                   <span>STEP {m.num}</span>
                 </div>
 
-                <h3 className="font-editorial text-4xl sm:text-5xl lg:text-6xl uppercase text-[#161413]">
+                <h3 className="font-editorial text-5xl lg:text-6xl uppercase text-[#161413]">
                   <span className="block">{m.line1}</span>
                   <span className="block text-[#E1306C]">{m.line2}</span>
                 </h3>
@@ -114,9 +142,9 @@ export function WorkflowPath() {
                   initial={{ rotate: m.initialRotate, scale: 0.96 }}
                   whileInView={{ rotate: m.initialRotate, scale: 1 }}
                   whileHover={{ rotate: 0, scale: 1.02 }}
-                  viewport={{ once: true, amount: 0.2 }}
+                  viewport={{ once: true, amount: "some" }}
                   transition={{ type: "spring", stiffness: 280, damping: 20 }}
-                  className={`inline-block rounded-2xl border px-4 py-3 text-xs sm:text-sm font-medium shadow-xs ${m.pillBg}`}
+                  className={`inline-block rounded-2xl border px-4 py-3 text-sm font-medium shadow-xs ${m.pillBg}`}
                 >
                   {m.badge}
                 </motion.div>

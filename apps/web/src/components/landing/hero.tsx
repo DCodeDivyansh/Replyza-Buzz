@@ -118,7 +118,7 @@ export function LandingHero() {
               <span>INSTAGRAM CREATOR COMMERCE</span>
             </motion.div>
 
-            <h1 className="font-editorial text-[2.5rem] min-[390px]:text-[3rem] sm:text-6xl lg:text-[72px] leading-[0.95] uppercase text-[#161413]">
+            <h1 className="font-editorial text-[2.25rem] min-[390px]:text-[2.75rem] sm:text-6xl lg:text-[4.25rem] leading-[0.96] uppercase text-[#161413] break-words">
               {["EVERY COMMENT", "TURNS INTO A", "PRODUCT DM."].map((line, i) => (
                 <span key={line} className="block overflow-hidden">
                   <motion.span
@@ -150,10 +150,10 @@ export function LandingHero() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.32, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col min-[400px]:flex-row items-center justify-center lg:justify-start gap-3 pt-1 w-full sm:w-auto"
+              className="flex flex-col min-[420px]:flex-row items-center justify-center lg:justify-start gap-3 pt-1 w-full sm:w-auto"
             >
               <motion.div
-                className="w-full min-[400px]:w-auto"
+                className="w-full min-[420px]:w-auto"
                 style={{ x: smoothMagX, y: smoothMagY }}
                 onMouseMove={(e) => {
                   const r = e.currentTarget.getBoundingClientRect();
@@ -167,7 +167,7 @@ export function LandingHero() {
               >
                 <Link
                   href={isAuthenticated ? "/dashboard" : "/register"}
-                  className="group w-full min-[400px]:w-auto inline-flex items-center justify-center gap-3 rounded-full bg-[#161413] pl-6 pr-2 py-2.5 text-sm font-semibold text-[#F7F1EC] hover:bg-[#2A2624] transition-colors"
+                  className="group w-full min-[420px]:w-auto inline-flex items-center justify-center gap-3 rounded-full bg-[#161413] pl-6 pr-2 py-2.5 text-sm font-semibold text-[#F7F1EC] hover:bg-[#2A2624] transition-colors"
                 >
                   <span>{isAuthenticated ? "Open Dashboard" : "Start Automating Free"}</span>
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E1306C] text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:rotate-45">
@@ -178,7 +178,7 @@ export function LandingHero() {
 
               <a
                 href="#features"
-                className="w-full min-[400px]:w-auto inline-flex items-center justify-center rounded-full bg-white border border-[#161413]/15 px-5 py-3 text-sm font-semibold text-[#161413] hover:bg-[#EDE4DD] transition-colors"
+                className="w-full min-[420px]:w-auto inline-flex items-center justify-center rounded-full bg-white border border-[#161413]/15 px-5 py-3 text-sm font-semibold text-[#161413] hover:bg-[#EDE4DD] transition-colors"
               >
                 Explore Features
               </a>
@@ -219,7 +219,7 @@ export function LandingHero() {
               onMouseMove={handlePhoneMouseMove}
               onMouseLeave={handlePhoneMouseLeave}
               style={{ perspective: 1000 }}
-              className="relative w-full max-w-[320px] sm:max-w-[340px] mx-auto"
+              className="relative w-full max-w-[310px] sm:max-w-[340px] mx-auto"
             >
               {/* Hardware Side Buttons */}
               <span

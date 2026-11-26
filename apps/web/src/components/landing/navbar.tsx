@@ -16,8 +16,8 @@ export function LandingNavbar() {
   const smoothY = useSpring(magY, { stiffness: 320, damping: 20 });
 
   return (
-    <header className="sticky top-0 z-40 w-full px-4 sm:px-6 lg:px-8 py-3.5">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-40 w-full px-4 sm:px-6 lg:px-8 py-3">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
         {/* Left: Floating White Pill Links (Desktop & Tablet) */}
         <nav
           aria-label="Primary navigation"
@@ -43,24 +43,13 @@ export function LandingNavbar() {
           </a>
         </nav>
 
-        {/* Mobile Hamburger + Wordmark */}
-        <div className="flex items-center gap-2.5 md:hidden">
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((v) => !v)}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={mobileMenuOpen}
-            className="h-9 w-9 rounded-full bg-white/95 border border-[#161413]/10 flex items-center justify-center text-[#161413] cursor-pointer"
-          >
-            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
-          <Link
-            href="/"
-            className="font-editorial text-2xl tracking-tight text-[#E1306C] uppercase select-none whitespace-nowrap"
-          >
-            Replyza Buzz
-          </Link>
-        </div>
+        {/* Mobile Left: Wordmark */}
+        <Link
+          href="/"
+          className="md:hidden font-editorial text-xl min-[390px]:text-2xl tracking-tight text-[#E1306C] uppercase select-none whitespace-nowrap"
+        >
+          Replyza Buzz
+        </Link>
 
         {/* Center Wordmark (Desktop & Tablet) */}
         <Link
@@ -70,7 +59,7 @@ export function LandingNavbar() {
           Replyza Buzz
         </Link>
 
-        {/* Right: Live Status Pill (lg+ only) + CTA */}
+        {/* Right: Live Status Pill (lg+ only) + CTA + Mobile Hamburger */}
         <div className="flex items-center gap-2 shrink-0">
           <div className="hidden lg:inline-flex items-center gap-2 rounded-full bg-white/95 backdrop-blur-sm border border-[#161413]/10 px-3.5 py-2 text-[11px] font-mono-num font-medium text-[#161413] whitespace-nowrap">
             <span className="h-2 w-2 rounded-full bg-[#0D7A5F]" />
@@ -119,6 +108,17 @@ export function LandingNavbar() {
               </motion.div>
             </div>
           )}
+
+          {/* Mobile 44x44px Hamburger Tap Target */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+            className="md:hidden h-11 w-11 rounded-full bg-white/95 border border-[#161413]/10 flex items-center justify-center text-[#161413] cursor-pointer shrink-0"
+          >
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </div>
 

@@ -44,7 +44,7 @@ function IlluminatedWord({
   progress: MotionValue<number>;
   range: [number, number];
 }) {
-  const opacity = useTransform(progress, range, [0.28, 1]);
+  const opacity = useTransform(progress, range, [0.45, 1]);
 
   return (
     <motion.span
@@ -68,14 +68,14 @@ export function LandingManifesto() {
   return (
     <section
       ref={containerRef}
-      className="bg-[#F7F1EC] py-20 sm:py-28 px-4 sm:px-8"
+      className="bg-[#F7F1EC] py-14 md:py-24 px-4 sm:px-8"
     >
       <div className="max-w-4xl mx-auto text-center space-y-6">
         <p className="font-mono-num text-xs font-semibold uppercase tracking-[0.2em] text-[#E1306C]">
           WHY REPLYZA BUZZ
         </p>
 
-        <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.15] tracking-tight">
+        <h2 className="font-display text-2xl min-[390px]:text-3xl md:text-5xl font-bold leading-[1.15] tracking-tight">
           {MANIFESTO_WORDS.map((item, i) => {
             const start = i / MANIFESTO_WORDS.length;
             const end = start + 1 / MANIFESTO_WORDS.length;

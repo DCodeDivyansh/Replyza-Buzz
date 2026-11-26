@@ -31,25 +31,25 @@ export function LandingFaq() {
   const [openIdx, setOpenIdx] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-[#F7F1EC] py-20 sm:py-28 px-4 sm:px-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+    <section id="faq" className="bg-[#F7F1EC] py-14 md:py-24 px-4 sm:px-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         {/* Left Sticky Column */}
         <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
           <div className="space-y-2">
             <p className="font-mono-num text-xs font-semibold uppercase tracking-[0.2em] text-[#E1306C]">
               FAQ
             </p>
-            <h2 className="font-editorial text-5xl sm:text-6xl uppercase text-[#161413]">
+            <h2 className="font-editorial text-4xl sm:text-6xl uppercase text-[#161413]">
               THINGS YOU MIGHT ASK
             </h2>
           </div>
 
           {/* Playful Flat-Line Editorial Mascot / Notification Bell */}
-          <div className="inline-flex items-center gap-4 rounded-3xl bg-[#EDE4DD] border border-[#161413]/10 p-5">
+          <div className="flex sm:inline-flex items-center gap-3.5 rounded-3xl bg-[#EDE4DD] border border-[#161413]/10 p-4 sm:p-5 max-w-full">
             <svg
               viewBox="0 0 80 80"
               fill="none"
-              className="h-16 w-16 shrink-0"
+              className="h-12 w-12 sm:h-16 sm:w-16 shrink-0"
               aria-hidden="true"
             >
               <circle cx="40" cy="40" r="36" fill="#FCE8EC" stroke="#161413" strokeWidth="2.5" />
@@ -104,7 +104,7 @@ export function LandingFaq() {
                   aria-expanded={isOpen}
                   className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-4 sm:py-5 text-left cursor-pointer"
                 >
-                  <span className="font-display text-sm sm:text-base font-bold text-[#161413]">
+                  <span className="font-display text-base sm:text-lg font-bold text-[#161413]">
                     {item.q}
                   </span>
                   <span

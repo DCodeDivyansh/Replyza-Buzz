@@ -221,7 +221,7 @@ export function FeatureShowcase() {
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: "some" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="text-center space-y-2"
         >
@@ -234,7 +234,7 @@ export function FeatureShowcase() {
         </motion.div>
 
         {/* 3 Well-Proportioned Editorial Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {FEATURE_CARDS.map((card, i) => {
             const Icon = card.icon;
             const isHovered = hoveredId === card.id;
@@ -244,7 +244,7 @@ export function FeatureShowcase() {
                 key={card.id}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
+                viewport={{ once: true, amount: "some" }}
                 transition={{
                   duration: 0.5,
                   delay: i * 0.08,
@@ -252,9 +252,7 @@ export function FeatureShowcase() {
                 }}
                 onMouseEnter={() => setHoveredId(card.id)}
                 onMouseLeave={() => setHoveredId(null)}
-                className={`group space-y-2.5 ${
-                  i === 2 ? "md:col-span-2 lg:col-span-1" : ""
-                }`}
+                className="group space-y-2.5"
               >
                 {/* Compact Outer Header Bar: Category Label + Rotating Arrow */}
                 <div className="flex items-center justify-between gap-3 px-1">
@@ -285,7 +283,7 @@ export function FeatureShowcase() {
                 <motion.div
                   animate={isHovered ? { y: -6 } : { y: 0 }}
                   transition={{ type: "spring", stiffness: 280, damping: 24 }}
-                  className={`flex flex-col justify-between p-6 sm:p-7 rounded-3xl border min-h-[440px] gap-5 overflow-hidden ${card.cardBg}`}
+                  className={`flex flex-col justify-between h-auto lg:min-h-[440px] p-5 sm:p-7 rounded-3xl border gap-5 overflow-hidden ${card.cardBg}`}
                 >
                   {/* Top Pill + Bold Title Inside Card */}
                   <div className="space-y-2.5">
@@ -328,7 +326,7 @@ export function FeatureShowcase() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          viewport={{ once: true, amount: "some" }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           className="relative pt-6 text-center max-w-4xl mx-auto space-y-6"
         >
