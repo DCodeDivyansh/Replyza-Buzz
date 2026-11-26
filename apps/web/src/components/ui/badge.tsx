@@ -32,16 +32,16 @@ export function Badge({
   }
 
   const variantStyles = {
-    default: "bg-[#F8F5F8] text-[#17131D] border-[#17131D]/10",
-    active: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
-    draft: "bg-[#F8F5F8] text-[#827D87] border-[#17131D]/10",
+    default: "bg-[#F3F2EE] text-[#141413] border-[#E6E5E1]",
+    active: "bg-[#ECF7F3] text-[#0D7A5F] border-[#0D7A5F]/20",
+    draft: "bg-[#F3F2EE] text-[#5C5B57] border-[#E6E5E1]",
     paused: "bg-amber-50 text-amber-800 border-amber-200/80",
-    indigo: "bg-[#833AB4]/10 text-[#833AB4] border-[#833AB4]/20",
-    danger: "bg-red-50 text-red-700 border-red-200/80",
-    purple: "bg-[#E1306C]/10 text-[#E1306C] border-[#E1306C]/20",
-    blue: "bg-sky-50 text-sky-700 border-sky-200/80",
-    gray: "bg-[#F8F5F8] text-[#827D87] border-[#17131D]/10",
-    green: "bg-emerald-50 text-emerald-700 border-emerald-200/80",
+    indigo: "bg-[#FDF2EE] text-[#D94E28] border-[#D94E28]/20",
+    danger: "bg-red-50 text-[#C81E1E] border-red-200/80",
+    purple: "bg-[#FDF2EE] text-[#D94E28] border-[#D94E28]/20",
+    blue: "bg-[#F3F2EE] text-[#141413] border-[#E6E5E1]",
+    gray: "bg-[#F3F2EE] text-[#5C5B57] border-[#E6E5E1]",
+    green: "bg-[#ECF7F3] text-[#0D7A5F] border-[#0D7A5F]/20",
   };
 
   return (

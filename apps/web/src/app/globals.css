@@ -1,84 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFFDFB;
-  --foreground: #17131D;
-  --surface-soft: #F8F5F8;
-  --muted: #827D87;
-  --ig-purple: #833AB4;
-  --ig-pink: #E1306C;
-  --ig-orange: #F77737;
-  --ig-yellow: #FCAF45;
+  --bg-canvas: #FAF9F6;
+  --bg-surface: #FFFFFF;
+  --bg-subtle: #F3F2EE;
+  --border-hairline: #E6E5E1;
+  --border-strong: #D1CFC9;
+  --text-primary: #141413;
+  --text-secondary: #5C5B57;
+  --text-muted: #8C8A84;
+  --accent-primary: #D94E28;
+  --accent-primary-hover: #C0421F;
+  --accent-primary-soft: #FDF2EE;
+  --status-success: #0D7A5F;
+  --status-success-soft: #ECF7F3;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface-soft: var(--surface-soft);
-  --color-muted: var(--muted);
+  --color-background: var(--bg-canvas);
+  --color-foreground: var(--text-primary);
+  --color-surface: var(--bg-surface);
+  --color-subtle: var(--bg-subtle);
+  --color-border-hairline: var(--border-hairline);
+  --color-accent: var(--accent-primary);
+  --color-success: var(--status-success);
+  --color-muted: var(--text-muted);
   --font-display: var(--font-display);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
 .font-display {
   font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  letter-spacing: -0.025em;
 }
 
-.ig-gradient {
-  background: linear-gradient(135deg, #833AB4 0%, #E1306C 42%, #F77737 76%, #FCAF45 100%);
+.font-mono-num {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
 }
 
-.ig-gradient-text {
-  background: linear-gradient(135deg, #833AB4 0%, #E1306C 48%, #F77737 82%, #FCAF45 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Tactile accent helpers (no purple/blue gradients) */
+.brand-accent-bg {
+  background-color: var(--accent-primary);
 }
 
-.hero-ambient {
-  background:
-    radial-gradient(circle at 14% 18%, rgba(131, 58, 180, 0.14), transparent 45%),
-    radial-gradient(circle at 86% 22%, rgba(252, 175, 69, 0.18), transparent 44%),
-    radial-gradient(circle at 52% 78%, rgba(225, 48, 108, 0.12), transparent 52%),
-    #FFFDFB;
-}
-
-@keyframes floatSlow {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes floatDelayed {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(7px);
-  }
-}
-
-.animate-float-slow {
-  animation: floatSlow 6s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-  animation: floatDelayed 7.5s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-float-slow,
-  .animate-float-delayed {
-    animation: none !important;
-  }
+.brand-accent-bg:hover {
+  background-color: var(--accent-primary-hover);
 }

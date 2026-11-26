@@ -83,50 +83,32 @@ test.describe("Web Application End-to-End Smoke Test", () => {
     console.log("[Playwright] Clicking 'Automate Post' on media card...");
     await mediaCard.getByRole("link", { name: "Automate Post" }).click();
 
-    // Should navigate to /automations/new with mediaId pre-selected (Step 2: Template)
+    // Should navigate to /automations/new with mediaId pre-selected
     await page.waitForURL((url) => url.pathname.includes("/automations/new") && url.search.includes("mediaId="), {
       timeout: 10000,
     });
     expect(page.url()).toContain("mediaId=");
 
-    // Step 2: Choose Template
-    console.log("[Playwright] Step 2: Choosing template...");
-    await page.waitForSelector('button:has-text("Choose Template")', { timeout: 10000 });
-    const chooseTemplateBtn = page.locator('button:has-text("Choose Template")').first();
-    await chooseTemplateBtn.click();
+    // Fill automation name & add a product link in the 2-column builder
+    console.log("[Playwright] Configuring 2-column builder...");
+    await page.waitForSelector('input[aria-label="Automation name"]', { timeout: 10000 });
+    await page.fill('input[aria-label="Automation name"]', "Playwright Web Automation");
 
-    // Step 3: Trigger settings
-    console.log("[Playwright] Step 3: Configuring trigger...");
-    await page.waitForSelector("#auto-name", { timeout: 10000 });
-    await page.fill("#auto-name", "Playwright Web Automation");
-
-    // Click Next Step
-    await page.click('button:has-text("Next Step")');
-
-    // Step 4: Craft Responses
-    console.log("[Playwright] Step 4: Reviewing responses...");
-    await page.waitForSelector('textarea', { timeout: 10000 });
-    await page.click('button:has-text("Next Step")');
-
-    // Step 5: Follow Gate & Link
-    console.log("[Playwright] Step 5: Setting link destination...");
-    await page.waitForSelector("#target-link", { timeout: 10000 });
-    await page.fill("#target-link", "https://example.com/promo");
-    await page.click('button:has-text("Next Step")');
-
-    // Step 6: Live Preview & Launch
-    console.log("[Playwright] Step 6: Verifying preview & activating...");
-    await page.waitForSelector('button:has-text("Activate Automation")', { timeout: 10000 });
+    await page.click('button:has-text("Add Custom Link")');
+    await page.fill('input[placeholder*="affiliate.example.com"]', "https://example.com/promo");
+    await page.fill('input[placeholder*="Glow Serum"]', "Promo Product");
+    await page.click('button:has-text("Save Product")');
 
     // Activate the automation
-    await page.click('button:has-text("Activate Automation")');
+    console.log("[Playwright] Activating automation...");
+    await page.click('button:has-text("Save & Activate")');
 
     // Should redirect to /automations
-    await page.waitForURL((url) => url.pathname.includes("/automations"), { timeout: 15000 });
+    await page.waitForURL((url) => url.pathname === "/automations", { timeout: 15000 });
     expect(page.url()).toContain("/automations");
 
     // Verify automation appears in list
-    const automationRow = page.locator('div', { hasText: "Playwright Web Automation" }).first();
+    const automationRow = page.locator('tr', { hasText: "Playwright Web Automation" }).first();
     await expect(automationRow).toBeVisible({ timeout: 10000 });
 
     // 6. Pause Automation
@@ -143,7 +125,7 @@ test.describe("Web Application End-to-End Smoke Test", () => {
     await page.goto("/templates");
     await page.waitForLoadState("networkidle");
     await expect(page.getByRole("heading", { name: "Automation Templates" })).toBeVisible({ timeout: 10000 });
-    await expect(page.locator('div', { hasText: "Free Resource Guide" }).first()).toBeVisible();
+    await expect(page.locator('div', { hasText: "Friendly Link Delivery" }).first()).toBeVisible();
 
     // 7b. Verify Activity Log Page
     console.log("[Playwright] Navigating to /activity...");
