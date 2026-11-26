@@ -90,7 +90,7 @@ export function LandingFooter() {
         <motion.div
           whileHover={{ scale: 1.02, y: -4 }}
           transition={{ type: "spring", stiffness: 220, damping: 22 }}
-          className="font-editorial text-[24vw] sm:text-[22vw] uppercase text-[#161413]/95 text-center leading-[0.82] tracking-tight translate-y-[6%] cursor-default"
+          className="font-editorial text-[18.5vw] uppercase text-[#161413]/95 text-center leading-[0.85] tracking-tight translate-y-[6%] cursor-default"
         >
           REPLYZA
         </motion.div>

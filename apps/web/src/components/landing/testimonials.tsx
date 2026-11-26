@@ -62,15 +62,15 @@ export function LandingTestimonials() {
           {/* Background peeking cards */}
           <motion.div
             aria-hidden="true"
-            animate={deckHovered ? { rotate: -3.5, x: -6 } : { rotate: -2, x: 0 }}
+            animate={deckHovered ? { rotate: -3.5, x: -6 } : { rotate: 0, x: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="absolute inset-x-4 top-6 bottom-4 rounded-3xl bg-[#F7F1EC]/65 border border-[#161413]/10"
+            className="hidden sm:block absolute inset-x-4 top-6 bottom-4 rounded-3xl bg-[#F7F1EC]/65 sm:-rotate-2 border border-[#161413]/10"
           />
           <motion.div
             aria-hidden="true"
-            animate={deckHovered ? { rotate: 3, x: 6 } : { rotate: 1.5, x: 0 }}
+            animate={deckHovered ? { rotate: 3, x: 6 } : { rotate: 0, x: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="absolute inset-x-2 top-5 bottom-5 rounded-3xl bg-[#F7F1EC]/85 border border-[#161413]/10"
+            className="hidden sm:block absolute inset-x-2 top-5 bottom-5 rounded-3xl bg-[#F7F1EC]/85 sm:rotate-[1.5deg] border border-[#161413]/10"
           />
 
           <AnimatePresence mode="wait">
@@ -87,7 +87,7 @@ export function LandingTestimonials() {
                 if (info.offset.x > 50) prev();
               }}
               onClick={next}
-              className="relative rounded-3xl bg-[#F7F1EC] border border-[#161413]/15 p-7 sm:p-10 shadow-[0_20px_50px_rgba(22,20,19,0.16)] cursor-grab active:cursor-grabbing select-none"
+              className="relative rounded-3xl bg-[#F7F1EC] border border-[#161413]/15 p-5 sm:p-8 shadow-[0_20px_50px_rgba(22,20,19,0.16)] cursor-grab active:cursor-grabbing select-none rotate-0 sm:-rotate-1"
             >
               <div className="flex items-center justify-between mb-6">
                 <Quote className="h-7 w-7 text-[#E1306C]" />

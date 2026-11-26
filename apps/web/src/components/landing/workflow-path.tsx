@@ -84,8 +84,8 @@ export function WorkflowPath() {
           />
         </svg>
 
-        {/* Staggered Milestones */}
-        <div className="relative z-10 space-y-16 sm:space-y-28">
+        {/* Staggered Milestones (Vertical left timeline on mobile <768px) */}
+        <div className="relative z-10 border-l-2 border-[#E1306C]/30 pl-6 md:border-l-0 md:pl-0 space-y-12 sm:space-y-16 md:space-y-28">
           {MILESTONES.map((m) => (
             <motion.div
               key={m.num}
