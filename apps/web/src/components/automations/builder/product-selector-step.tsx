@@ -87,42 +87,42 @@ function SortableProductRow({
       style={style}
       className={`flex items-center gap-3 rounded-xl border bg-white p-3 transition-shadow ${
         isDragging
-          ? "border-[#17131D] shadow-md z-10"
-          : "border-[#17131D]/10 hover:border-[#17131D]/20"
+          ? "border-[#161413] shadow-md z-10"
+          : "border-[#161413]/10 hover:border-[#161413]/20"
       }`}
     >
       <button
         type="button"
         {...attributes}
         {...listeners}
-        className="p-1 text-[#827D87] hover:text-[#17131D] cursor-grab active:cursor-grabbing touch-none"
+        className="p-1 text-[#6E655F] hover:text-[#161413] cursor-grab active:cursor-grabbing touch-none"
         title="Drag to reorder"
       >
         <GripVertical className="h-4 w-4" />
       </button>
 
-      <div className="h-11 w-11 rounded-lg bg-[#F8F5F8] border border-[#17131D]/8 overflow-hidden shrink-0 flex items-center justify-center">
+      <div className="h-11 w-11 rounded-lg bg-[#F7F1EC] border border-[#161413]/8 overflow-hidden shrink-0 flex items-center justify-center">
         {item.imageUrl ? (
           /* eslint-disable-next-line @next/next/no-img-element */
           <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
         ) : (
-          <Package className="h-4 w-4 text-[#827D87]" />
+          <Package className="h-4 w-4 text-[#6E655F]" />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono font-semibold text-[#827D87]">
+          <span className="text-[10px] font-mono font-semibold text-[#6E655F]">
             #{index + 1}
           </span>
-          <p className="text-xs font-semibold text-[#17131D] truncate">{item.name}</p>
+          <p className="text-xs font-semibold text-[#161413] truncate">{item.name}</p>
           {(item.discountPrice || item.price) && (
             <span className="text-[11px] font-semibold text-emerald-700 shrink-0">
               {item.discountPrice || item.price}
             </span>
           )}
         </div>
-        <p className="text-[11px] text-indigo-600 truncate mt-0.5">
+        <p className="text-[11px] text-[#E1306C] truncate mt-0.5">
           {item.affiliateUrl}
         </p>
       </div>
@@ -131,7 +131,7 @@ function SortableProductRow({
         <button
           type="button"
           onClick={onEdit}
-          className="p-1.5 rounded-lg text-[#827D87] hover:text-[#17131D] hover:bg-[#F8F5F8] cursor-pointer"
+          className="p-1.5 rounded-lg text-[#6E655F] hover:text-[#161413] hover:bg-[#F7F1EC] cursor-pointer"
           title="Edit product"
         >
           <Edit2 className="h-3.5 w-3.5" />
@@ -139,7 +139,7 @@ function SortableProductRow({
         <button
           type="button"
           onClick={onDuplicate}
-          className="p-1.5 rounded-lg text-[#827D87] hover:text-[#17131D] hover:bg-[#F8F5F8] cursor-pointer"
+          className="p-1.5 rounded-lg text-[#6E655F] hover:text-[#161413] hover:bg-[#F7F1EC] cursor-pointer"
           title="Duplicate"
         >
           <Copy className="h-3.5 w-3.5" />
@@ -147,7 +147,7 @@ function SortableProductRow({
         <button
           type="button"
           onClick={onRemove}
-          className="p-1.5 rounded-lg text-[#827D87] hover:text-red-600 hover:bg-red-50 cursor-pointer"
+          className="p-1.5 rounded-lg text-[#6E655F] hover:text-red-600 hover:bg-red-50 cursor-pointer"
           title="Remove"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -530,14 +530,14 @@ export function ProductSelectorStep({
           </SortableContext>
         </DndContext>
       ) : (
-        <div className="rounded-xl border border-dashed border-[#17131D]/15 bg-[#F8F5F8]/60 p-5 text-center text-xs text-[#827D87]">
+        <div className="rounded-xl border border-dashed border-[#161413]/15 bg-[#F7F1EC]/60 p-5 text-center text-xs text-[#6E655F]">
           No products added yet. Pick from your Affiliate Product Library, add a link, or bulk-paste multiple links above.
         </div>
       )}
 
       {/* Delivery Format Selector */}
       <div className="space-y-2 pt-2">
-        <label className="text-xs font-semibold text-[#17131D]">
+        <label className="text-xs font-semibold text-[#161413]">
           How should products be delivered in DM?
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -550,13 +550,13 @@ export function ProductSelectorStep({
                 onClick={() => onChangeProductDeliveryMode(opt.id)}
                 className={`text-left rounded-xl border p-3 transition-all cursor-pointer ${
                   active
-                    ? "border-[#17131D] bg-[#F8F5F8] ring-1 ring-[#17131D]/15"
-                    : "border-[#17131D]/10 bg-white hover:border-[#17131D]/25"
+                    ? "border-[#161413] bg-[#F7F1EC] ring-1 ring-[#161413]/15"
+                    : "border-[#161413]/10 bg-white hover:border-[#161413]/25"
                 }`}
               >
-                <div className="text-xs font-semibold text-[#17131D]">{opt.label}</div>
-                <p className="text-[11px] text-[#827D87] mt-0.5">{opt.description}</p>
-                <p className="text-[10px] text-indigo-600 mt-1.5 font-medium">
+                <div className="text-xs font-semibold text-[#161413]">{opt.label}</div>
+                <p className="text-[11px] text-[#6E655F] mt-0.5">{opt.description}</p>
+                <p className="text-[10px] text-[#E1306C] mt-1.5 font-medium">
                   {opt.apiNote}
                 </p>
               </button>
@@ -601,7 +601,7 @@ export function ProductSelectorStep({
         className="max-w-2xl"
       >
         {libraryProducts.length === 0 ? (
-          <p className="text-xs text-[#827D87] py-8 text-center">
+          <p className="text-xs text-[#6E655F] py-8 text-center">
             Your Affiliate Product Library is empty. Add products in the Product Library tab or use &ldquo;Add Custom Link&rdquo;.
           </p>
         ) : (
@@ -617,7 +617,7 @@ export function ProductSelectorStep({
             ))}
           </div>
         )}
-        <div className="flex justify-end pt-4 mt-4 border-t border-[#17131D]/8">
+        <div className="flex justify-end pt-4 mt-4 border-t border-[#161413]/8">
           <Button type="button" size="sm" onClick={() => setLibraryOpen(false)}>
             Done ({products.length} selected)
           </Button>
@@ -714,7 +714,7 @@ export function ProductSelectorStep({
             onChange={(e) => setPDesc(e.target.value)}
             rows={2}
           />
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#17131D]/8">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#161413]/8">
             <Button
               type="button"
               variant="secondary"
@@ -745,7 +745,7 @@ export function ProductSelectorStep({
             rows={6}
             placeholder={`Product 1 | https://affiliate-link-1.com\nProduct 2 | https://affiliate-link-2.com\nhttps://affiliate-link-3.com`}
           />
-          <label className="flex items-center gap-2 text-xs text-[#17131D] cursor-pointer">
+          <label className="flex items-center gap-2 text-xs text-[#161413] cursor-pointer">
             <input
               type="checkbox"
               checked={bulkExtract}
@@ -753,7 +753,7 @@ export function ProductSelectorStep({
             />
             Auto-extract titles & images where supported
           </label>
-          <div className="flex justify-end gap-2 pt-2 border-t border-[#17131D]/8">
+          <div className="flex justify-end gap-2 pt-2 border-t border-[#161413]/8">
             <Button
               type="button"
               variant="secondary"

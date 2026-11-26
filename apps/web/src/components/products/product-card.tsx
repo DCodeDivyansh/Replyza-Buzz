@@ -11,6 +11,7 @@ import {
   Trash2,
   Check,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProductCardProps {
   product: AffiliateProduct;
@@ -36,10 +37,10 @@ export function ProductCard({
 
   return (
     <div
-      className={`group flex flex-col rounded-2xl border bg-[#FFFDFB] overflow-hidden transition-all duration-200 ${
+      className={`group flex flex-col rounded-2xl border bg-[#FFFFFF] overflow-hidden transition-all duration-200 ${
         selected
-          ? "border-[#17131D] ring-2 ring-[#17131D]/15 shadow-sm"
-          : "border-[#17131D]/10 hover:border-[#17131D]/25 hover:shadow-sm"
+          ? "border-[#E1306C] ring-2 ring-[#E1306C]/20"
+          : "border-[#E6DFD8] hover:border-[#D5CCC3]"
       }`}
     >
       {/* Product Image */}
@@ -127,17 +128,30 @@ export function ProductCard({
           </p>
         )}
 
-        {/* Link preview */}
-        <a
-          href={product.affiliateUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-3 flex items-center gap-1.5 text-[11px] text-indigo-600 hover:text-indigo-700 truncate"
-          title={product.affiliateUrl}
-        >
-          <ExternalLink className="h-3 w-3 shrink-0" />
-          <span className="truncate">{product.affiliateUrl}</span>
-        </a>
+        {/* Link preview + One-click Copy */}
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <a
+            href={product.affiliateUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-[11px] text-[#E1306C] hover:underline truncate min-w-0"
+            title={product.affiliateUrl}
+          >
+            <ExternalLink className="h-3 w-3 shrink-0" />
+            <span className="font-mono-num truncate">{product.affiliateUrl}</span>
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard?.writeText(product.affiliateUrl);
+              toast.success("Affiliate URL copied");
+            }}
+            className="p-1 rounded-md text-[#6E655F] hover:text-[#161413] hover:bg-[#F2EBE4] shrink-0 cursor-pointer"
+            title="Copy affiliate URL"
+          >
+            <Copy className="h-3 w-3" />
+          </button>
+        </div>
 
         {/* Actions Footer */}
         <div className="mt-auto pt-3.5 border-t border-[#17131D]/6 flex items-center justify-between gap-2">
