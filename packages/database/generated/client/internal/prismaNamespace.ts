@@ -398,6 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  AffiliateIntegration: 'AffiliateIntegration',
   InstagramAccount: 'InstagramAccount',
   RefreshToken: 'RefreshToken',
   Automation: 'Automation',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "deliveryAction" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate" | "affiliateProduct" | "automationProduct"
+    modelProps: "user" | "affiliateIntegration" | "instagramAccount" | "refreshToken" | "automation" | "webhookEvent" | "automationExecution" | "deliveryAction" | "outboxEvent" | "messagingWebhookEvent" | "automationTemplate" | "affiliateProduct" | "automationProduct"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -499,6 +500,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    AffiliateIntegration: {
+      payload: Prisma.$AffiliateIntegrationPayload<ExtArgs>
+      fields: Prisma.AffiliateIntegrationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AffiliateIntegrationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AffiliateIntegrationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>
+        }
+        findFirst: {
+          args: Prisma.AffiliateIntegrationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AffiliateIntegrationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>
+        }
+        findMany: {
+          args: Prisma.AffiliateIntegrationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>[]
+        }
+        create: {
+          args: Prisma.AffiliateIntegrationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>
+        }
+        createMany: {
+          args: Prisma.AffiliateIntegrationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AffiliateIntegrationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>[]
+        }
+        delete: {
+          args: Prisma.AffiliateIntegrationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>
+        }
+        update: {
+          args: Prisma.AffiliateIntegrationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>
+        }
+        deleteMany: {
+          args: Prisma.AffiliateIntegrationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AffiliateIntegrationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AffiliateIntegrationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>[]
+        }
+        upsert: {
+          args: Prisma.AffiliateIntegrationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AffiliateIntegrationPayload>
+        }
+        aggregate: {
+          args: Prisma.AffiliateIntegrationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAffiliateIntegration>
+        }
+        groupBy: {
+          args: Prisma.AffiliateIntegrationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AffiliateIntegrationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AffiliateIntegrationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AffiliateIntegrationCountAggregateOutputType> | number
         }
       }
     }
@@ -1366,6 +1441,20 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const AffiliateIntegrationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  publisherId: 'publisherId',
+  apiKeyEncrypted: 'apiKeyEncrypted',
+  isEnabled: 'isEnabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AffiliateIntegrationScalarFieldEnum = (typeof AffiliateIntegrationScalarFieldEnum)[keyof typeof AffiliateIntegrationScalarFieldEnum]
+
+
 export const InstagramAccountScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -1696,6 +1785,27 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'AffiliateProvider'
+ */
+export type EnumAffiliateProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AffiliateProvider'>
+    
+
+
+/**
+ * Reference to a field of type 'AffiliateProvider[]'
+ */
+export type ListEnumAffiliateProviderFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AffiliateProvider[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
  * Reference to a field of type 'InstagramAccountStatus'
  */
 export type EnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstagramAccountStatus'>
@@ -1706,13 +1816,6 @@ export type EnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRefInpu
  * Reference to a field of type 'InstagramAccountStatus[]'
  */
 export type ListEnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstagramAccountStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -2133,6 +2236,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  affiliateIntegration?: Prisma.AffiliateIntegrationOmit
   instagramAccount?: Prisma.InstagramAccountOmit
   refreshToken?: Prisma.RefreshTokenOmit
   automation?: Prisma.AutomationOmit

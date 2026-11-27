@@ -19,6 +19,7 @@ import instagramAccountRoutes from "./routes/instagram-account.routes";
 import templateRoutes from "./routes/template.routes";
 import metaRoutes from "./routes/meta.routes";
 import productRoutes from "./routes/product.routes";
+import cuelinksRoutes from "./routes/cuelinks.routes";
 
 import { notFoundHandler } from "./middleware/not-found.middleware";
 import { errorHandler } from "./middleware/error.middleware";
@@ -94,6 +95,7 @@ app.use("/api/v1/instagram", instagramAccountRoutes);
 app.use("/api/v1/templates", templateRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/meta", metaRoutes);
+app.use("/api/v1/integrations/cuelinks", cuelinksRoutes);
 
 // Error handling must come after all routes.
 app.use(notFoundHandler);

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   DndContext,
   closestCenter,
@@ -29,14 +30,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal } from "@/components/ui/modal";
 import { ProductCard } from "@/components/products/product-card";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest, ApiClientError } from "@/lib/api-client";
+import { isCuelinksUrl } from "@replyza/shared";
 import { toast } from "sonner";
 import {
+  CheckCircle2,
   Copy,
   Edit2,
   GripVertical,
   Info,
   Layers,
+  Link2,
   Package,
   Plus,
   ShoppingBag,
@@ -45,6 +49,7 @@ import {
 } from "lucide-react";
 
 interface ProductSelectorStepProps {
+  automationId?: string;
   products: AutomationProductItem[];
   onChangeProducts: (next: AutomationProductItem[]) => void;
   productDeliveryMode: ProductDeliveryMode;
@@ -190,6 +195,7 @@ const DELIVERY_FORMAT_OPTIONS: Array<{
 ];
 
 export function ProductSelectorStep({
+  automationId,
   products,
   onChangeProducts,
   productDeliveryMode,
@@ -219,6 +225,60 @@ export function ProductSelectorStep({
   const [pDesc, setPDesc] = useState("");
   const [pCustomMsg, setPCustomMsg] = useState("");
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isConvertingAffiliate, setIsConvertingAffiliate] = useState(false);
+  const [cuelinksConnected, setCuelinksConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiRequest<{ connected: boolean }>("/integrations/cuelinks")
+      .then((res) => {
+        if (!cancelled && res.data) {
+          setCuelinksConnected(res.data.connected);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCuelinksConnected(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleConvertAffiliate = async () => {
+    if (!pUrl.trim()) {
+      toast.error("Paste a product URL first.");
+      return;
+    }
+    setIsConvertingAffiliate(true);
+    try {
+      const res = await apiRequest<{
+        affiliateUrl: string;
+        alreadyConverted: boolean;
+      }>("/integrations/cuelinks/convert", {
+        method: "POST",
+        body: JSON.stringify({
+          url: pUrl.trim(),
+          ...(automationId ? { subid: automationId } : {}),
+        }),
+      });
+      if (res.data?.affiliateUrl) {
+        setPUrl(res.data.affiliateUrl);
+        toast.success(
+          res.data.alreadyConverted
+            ? "Already an active Cuelinks affiliate link"
+            : "Converted to Cuelinks affiliate link!"
+        );
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof ApiClientError
+          ? err.message
+          : "Could not convert URL. Check Cuelinks settings."
+      );
+    } finally {
+      setIsConvertingAffiliate(false);
+    }
+  };
 
   // Bulk paste state
   const [bulkText, setBulkText] = useState("");
@@ -632,26 +692,56 @@ export function ProductSelectorStep({
         className="max-w-lg"
       >
         <div className="space-y-3.5 max-h-[70vh] overflow-y-auto pr-1">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1">
-              <Input
-                label="Affiliate / Product URL *"
-                value={pUrl}
-                onChange={(e) => setPUrl(e.target.value)}
-                placeholder="https://affiliate.example.com/item?tag=you"
-              />
+          <div className="space-y-1.5">
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <Input
+                  label="Affiliate / Product URL *"
+                  value={pUrl}
+                  onChange={(e) => setPUrl(e.target.value)}
+                  placeholder="https://affiliate.example.com/item?tag=you"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={handleExtractInline}
+                isLoading={isExtracting}
+                className="rounded-xl shrink-0"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Auto-fill
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleExtractInline}
-              isLoading={isExtracting}
-              className="rounded-xl shrink-0"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Auto-fill
-            </Button>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {cuelinksConnected ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleConvertAffiliate}
+                  isLoading={isConvertingAffiliate}
+                  className="h-7 rounded-lg text-[11px] gap-1"
+                >
+                  <Link2 className="h-3 w-3" />
+                  Convert to Affiliate Link
+                </Button>
+              ) : (
+                <Link
+                  href="/settings#integrations"
+                  className="text-[11px] font-medium text-[#6E655F] hover:text-[#E1306C] underline underline-offset-2"
+                >
+                  Connect Cuelinks in Settings → Integrations
+                </Link>
+              )}
+              {isCuelinksUrl(pUrl) && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Affiliate Link Active
+                </span>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <Input

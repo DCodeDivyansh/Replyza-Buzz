@@ -9,6 +9,13 @@
 * 🟢 You can import this file directly.
 */
 
+export const AffiliateProvider = {
+  CUELINKS: 'CUELINKS'
+} as const
+
+export type AffiliateProvider = (typeof AffiliateProvider)[keyof typeof AffiliateProvider]
+
+
 export const InstagramAccountStatus = {
   ACTIVE: 'ACTIVE',
   NEEDS_RECONNECT: 'NEEDS_RECONNECT'

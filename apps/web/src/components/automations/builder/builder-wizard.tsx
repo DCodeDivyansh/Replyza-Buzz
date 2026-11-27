@@ -600,6 +600,7 @@ export function BuilderWizard({
                     </h2>
                   </div>
                   <ProductSelectorStep
+                    automationId={initialData?.id}
                     products={products}
                     onChangeProducts={setProducts}
                     productDeliveryMode={productDeliveryMode}

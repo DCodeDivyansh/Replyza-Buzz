@@ -539,20 +539,12 @@ export type InstagramAccountUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.InstagramAccountScalarWhereInput | Prisma.InstagramAccountScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type NullableDateTimeFieldUpdateOperationsInput = {
   set?: Date | string | null
 }
 
 export type EnumInstagramAccountStatusFieldUpdateOperationsInput = {
   set?: $Enums.InstagramAccountStatus
-}
-
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
 }
 
 export type InstagramAccountCreateNestedOneWithoutAutomationsInput = {

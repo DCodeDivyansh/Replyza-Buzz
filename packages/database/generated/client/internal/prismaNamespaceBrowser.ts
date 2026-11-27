@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  AffiliateIntegration: 'AffiliateIntegration',
   InstagramAccount: 'InstagramAccount',
   RefreshToken: 'RefreshToken',
   Automation: 'Automation',
@@ -90,6 +91,20 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const AffiliateIntegrationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  provider: 'provider',
+  publisherId: 'publisherId',
+  apiKeyEncrypted: 'apiKeyEncrypted',
+  isEnabled: 'isEnabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AffiliateIntegrationScalarFieldEnum = (typeof AffiliateIntegrationScalarFieldEnum)[keyof typeof AffiliateIntegrationScalarFieldEnum]
 
 
 export const InstagramAccountScalarFieldEnum = {

@@ -47,6 +47,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model AffiliateIntegration
+ * 
+ */
+export type AffiliateIntegration = Prisma.AffiliateIntegrationModel
+/**
  * Model InstagramAccount
  * 
  */
