@@ -62,6 +62,11 @@ export default function EditAutomationPage({
 
     const updatePayload: UpdateAutomationPayload = {
       name: payload.name,
+      targetMode: payload.targetMode,
+      scheduledActivateAt: payload.scheduledActivateAt,
+      bindingWindowMinutes: payload.bindingWindowMinutes,
+      mediaTypeFilter: payload.mediaTypeFilter,
+      captionKeywordFilter: payload.captionKeywordFilter,
       triggerType: payload.triggerType,
       keywordMatchMode: payload.keywordMatchMode,
       keywordMatchLogic: payload.keywordMatchLogic,

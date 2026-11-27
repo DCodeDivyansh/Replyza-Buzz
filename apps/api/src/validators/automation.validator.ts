@@ -81,7 +81,11 @@ export const createAutomationSchema = z
 
     name: z.string().trim().min(1).max(100),
 
-    // Nullable for all-media automations
+    // Nullable for all-media, next-post, or scheduled automations
+    targetMode: z
+      .enum(["SPECIFIC_POST", "ALL_POSTS", "NEXT_POST", "SCHEDULED_TIME"])
+      .optional(),
+
     mediaId: z.string().trim().min(1).max(255).nullable().optional(),
 
     mediaPermalink: z.string().url().nullable().optional(),
@@ -90,6 +94,16 @@ export const createAutomationSchema = z
       .enum(["IMAGE", "VIDEO", "CAROUSEL_ALBUM", "REELS"])
       .nullable()
       .optional(),
+
+    scheduledActivateAt: z.string().datetime().nullable().optional(),
+
+    bindingWindowEndAt: z.string().datetime().nullable().optional(),
+
+    bindingWindowMinutes: z.number().int().min(5).max(120).optional(),
+
+    mediaTypeFilter: z.enum(["ANY", "REELS", "FEED"]).default("ANY"),
+
+    captionKeywordFilter: z.string().trim().max(100).nullable().optional(),
 
     triggerType: z.enum(["ANY_COMMENT", "KEYWORD"]),
 
@@ -176,6 +190,26 @@ export const createAutomationSchema = z
       });
     }
 
+    if (data.targetMode === "SCHEDULED_TIME" && !data.scheduledActivateAt) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["scheduledActivateAt"],
+        message: "scheduledActivateAt is required for scheduled automations",
+      });
+    }
+
+    if (data.scheduledActivateAt && data.bindingWindowEndAt) {
+      const startMs = new Date(data.scheduledActivateAt).getTime();
+      const endMs = new Date(data.bindingWindowEndAt).getTime();
+      if (endMs <= startMs || endMs - startMs > 2 * 60 * 60 * 1000) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["bindingWindowEndAt"],
+          message: "bindingWindowEndAt must be after scheduledActivateAt and within 2 hours",
+        });
+      }
+    }
+
     checkVariables(ctx, [
       { path: "publicReplyText", value: data.publicReplyText },
       { path: "dmMessageText", value: data.dmMessageText },
@@ -192,7 +226,21 @@ export const updateAutomationSchema = z
   .object({
     name: z.string().trim().min(1).max(100).optional(),
 
+    targetMode: z
+      .enum(["SPECIFIC_POST", "ALL_POSTS", "NEXT_POST", "SCHEDULED_TIME"])
+      .optional(),
+
     mediaId: z.string().trim().min(1).max(255).nullable().optional(),
+
+    scheduledActivateAt: z.string().datetime().nullable().optional(),
+
+    bindingWindowEndAt: z.string().datetime().nullable().optional(),
+
+    bindingWindowMinutes: z.number().int().min(5).max(120).optional(),
+
+    mediaTypeFilter: z.enum(["ANY", "REELS", "FEED"]).optional(),
+
+    captionKeywordFilter: z.string().trim().max(100).nullable().optional(),
 
     triggerType: z.enum(["ANY_COMMENT", "KEYWORD"]).optional(),
 
@@ -285,7 +333,7 @@ export const updateAutomationSchema = z
   });
 
 export const automationStatusSchema = z.object({
-  status: z.enum(["ACTIVE", "PAUSED"])
+  status: z.enum(["ACTIVE", "PAUSED", "SCHEDULED"])
 });
 
 export type CreateAutomationInput = z.infer<

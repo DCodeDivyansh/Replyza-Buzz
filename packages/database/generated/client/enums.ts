@@ -27,11 +27,32 @@ export type AutomationTrigger = (typeof AutomationTrigger)[keyof typeof Automati
 
 export const AutomationStatus = {
   DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
   ACTIVE: 'ACTIVE',
-  PAUSED: 'PAUSED'
+  PAUSED: 'PAUSED',
+  EXPIRED: 'EXPIRED'
 } as const
 
 export type AutomationStatus = (typeof AutomationStatus)[keyof typeof AutomationStatus]
+
+
+export const TargetMode = {
+  SPECIFIC_POST: 'SPECIFIC_POST',
+  ALL_POSTS: 'ALL_POSTS',
+  NEXT_POST: 'NEXT_POST',
+  SCHEDULED_TIME: 'SCHEDULED_TIME'
+} as const
+
+export type TargetMode = (typeof TargetMode)[keyof typeof TargetMode]
+
+
+export const MediaTypeFilter = {
+  ANY: 'ANY',
+  REELS: 'REELS',
+  FEED: 'FEED'
+} as const
+
+export type MediaTypeFilter = (typeof MediaTypeFilter)[keyof typeof MediaTypeFilter]
 
 
 export const WebhookEventStatus = {

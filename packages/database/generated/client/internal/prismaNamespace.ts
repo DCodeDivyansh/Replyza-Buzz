@@ -1401,9 +1401,14 @@ export const AutomationScalarFieldEnum = {
   id: 'id',
   instagramAccountId: 'instagramAccountId',
   name: 'name',
+  targetMode: 'targetMode',
   mediaId: 'mediaId',
   mediaPermalink: 'mediaPermalink',
   mediaType: 'mediaType',
+  scheduledActivateAt: 'scheduledActivateAt',
+  bindingWindowEndAt: 'bindingWindowEndAt',
+  mediaTypeFilter: 'mediaTypeFilter',
+  captionKeywordFilter: 'captionKeywordFilter',
   triggerType: 'triggerType',
   keywordMatchMode: 'keywordMatchMode',
   keywordMatchLogic: 'keywordMatchLogic',
@@ -1708,6 +1713,34 @@ export type ListEnumInstagramAccountStatusFieldRefInput<$PrismaModel> = FieldRef
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'TargetMode'
+ */
+export type EnumTargetModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TargetMode'>
+    
+
+
+/**
+ * Reference to a field of type 'TargetMode[]'
+ */
+export type ListEnumTargetModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TargetMode[]'>
+    
+
+
+/**
+ * Reference to a field of type 'MediaTypeFilter'
+ */
+export type EnumMediaTypeFilterFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MediaTypeFilter'>
+    
+
+
+/**
+ * Reference to a field of type 'MediaTypeFilter[]'
+ */
+export type ListEnumMediaTypeFilterFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MediaTypeFilter[]'>
     
 
 

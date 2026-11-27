@@ -24,9 +24,26 @@ import {
   InstagramMedia,
   KeywordMatchLogic,
   KeywordMatchMode,
+  MediaTypeFilter,
   ProductDeliveryMode,
+  TargetMode,
   Template,
 } from "@/types/automation";
+
+export function utcIsoToLocalDateTimeInput(iso?: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export function localDateTimeInputToUtcIso(localVal: string): string | null {
+  if (!localVal) return null;
+  const d = new Date(localVal);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
 import { LivePreview } from "./live-preview";
 import { ProductSelectorStep } from "./product-selector-step";
 import { StepFollowDm } from "./step-follow-dm";
@@ -97,8 +114,21 @@ export function BuilderWizard({
   });
   const [selectedMediaPreview, setSelectedMediaPreview] =
     useState<InstagramMedia | null>(null);
-  const [allMedia, setAllMedia] = useState<boolean>(
-    () => !searchParams.get("mediaId") && initialData?.mediaId === null
+  const [targetMode, setTargetMode] = useState<TargetMode>(() => {
+    if (searchParams.get("mediaId")) return "SPECIFIC_POST";
+    if (initialData?.targetMode) return initialData.targetMode;
+    if (initialData?.mediaId === null) return "ALL_POSTS";
+    return "SPECIFIC_POST";
+  });
+  const [scheduledActivateAtLocal, setScheduledActivateAtLocal] = useState<string>(
+    () => utcIsoToLocalDateTimeInput(initialData?.scheduledActivateAt)
+  );
+  const [bindingWindowMinutes, setBindingWindowMinutes] = useState<number>(30);
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaTypeFilter>(
+    initialData?.mediaTypeFilter || "ANY"
+  );
+  const [captionKeywordFilter, setCaptionKeywordFilter] = useState<string>(
+    initialData?.captionKeywordFilter || ""
   );
 
   const [triggerType, setTriggerType] = useState<"ANY_COMMENT" | "KEYWORD">(
@@ -260,9 +290,20 @@ export function BuilderWizard({
       setActiveStep(0);
       return null;
     }
-    if (!allMedia && !mediaId) {
+    if (targetMode === "SPECIFIC_POST" && !mediaId) {
       setValidationError(
-        "Step 01: Select an Instagram post/Reel or choose All Posts & Reels."
+        "Step 01: Select an Instagram post/Reel or choose another target mode."
+      );
+      setActiveStep(0);
+      return null;
+    }
+    const scheduledIso =
+      targetMode === "SCHEDULED_TIME"
+        ? localDateTimeInputToUtcIso(scheduledActivateAtLocal)
+        : null;
+    if (targetMode === "SCHEDULED_TIME" && !scheduledIso) {
+      setValidationError(
+        "Step 01: Choose a valid scheduled date and time."
       );
       setActiveStep(0);
       return null;
@@ -319,9 +360,16 @@ export function BuilderWizard({
     return {
       instagramAccountId: accountId,
       name: name.trim(),
-      mediaId: allMedia ? null : mediaId,
-      mediaPermalink: allMedia ? null : mediaPermalink || null,
-      mediaType: allMedia ? null : mediaType,
+      targetMode,
+      mediaId: targetMode === "SPECIFIC_POST" ? mediaId : null,
+      mediaPermalink:
+        targetMode === "SPECIFIC_POST" ? mediaPermalink || null : null,
+      mediaType: targetMode === "SPECIFIC_POST" ? mediaType : null,
+      scheduledActivateAt: scheduledIso,
+      bindingWindowMinutes:
+        targetMode === "SCHEDULED_TIME" ? bindingWindowMinutes : undefined,
+      mediaTypeFilter,
+      captionKeywordFilter: captionKeywordFilter.trim() || null,
       triggerType,
       keywordMatchMode,
       keywordMatchLogic,
@@ -479,8 +527,16 @@ export function BuilderWizard({
                   onChangeAccountId={setAccountId}
                   discoveredAccounts={discoveredAccounts}
                   isEditMode={isEditMode}
-                  allMedia={allMedia}
-                  onChangeAllMedia={setAllMedia}
+                  targetMode={targetMode}
+                  onChangeTargetMode={setTargetMode}
+                  scheduledActivateAtLocal={scheduledActivateAtLocal}
+                  onChangeScheduledActivateAtLocal={setScheduledActivateAtLocal}
+                  bindingWindowMinutes={bindingWindowMinutes}
+                  onChangeBindingWindowMinutes={setBindingWindowMinutes}
+                  mediaTypeFilter={mediaTypeFilter}
+                  onChangeMediaTypeFilter={setMediaTypeFilter}
+                  captionKeywordFilter={captionKeywordFilter}
+                  onChangeCaptionKeywordFilter={setCaptionKeywordFilter}
                   mediaId={mediaId}
                   onSelectMedia={(m) => {
                     setMediaId(m.id);

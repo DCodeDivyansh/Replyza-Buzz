@@ -5,6 +5,7 @@ import { redisConnection } from "./config/redis";
 import { processAutomationJob } from "./processors/automation.processor";
 import { checkTokenExpirations } from "./processors/token-expiry.processor";
 import { processFollowCheckJob } from "./processors/follow-check.processor";
+import { processScheduleBindingJob } from "./processors/schedule-binding.processor";
 import {
   dispatchPendingOutboxEvents,
   recoverOrphanedRecords,
@@ -32,6 +33,22 @@ const followCheckWorker = new Worker(
     concurrency: 10,
   }
 );
+
+const scheduleBindingWorker = new Worker(
+  "schedule-binding",
+  processScheduleBindingJob,
+  {
+    connection: redisConnection,
+    concurrency: 5,
+  }
+);
+
+scheduleBindingWorker.on("failed", (job, error) => {
+  console.error(
+    `[ScheduleBindingWorker] Job failed: ${job?.id ?? "unknown"}`,
+    error.message
+  );
+});
 
 followCheckWorker.on("completed", (job) => {
   console.log(`[FollowCheckWorker] Job completed: ${job.id}`);
@@ -206,6 +223,7 @@ async function shutdown(signal: string) {
 
   await worker.close();
   await followCheckWorker.close();
+  await scheduleBindingWorker.close();
   await tokenExpiryWorker.close();
   await tokenExpiryQueue.close();
   await redisConnection.quit();

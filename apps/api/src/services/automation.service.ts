@@ -1,5 +1,9 @@
 
 import { prisma } from "@replyza/database";
+import {
+  scheduleBindingPollJob,
+  cancelBindingPollJob,
+} from "../queues/schedule-binding.queue";
 import type {
   AutomationProductInput,
   CreateAutomationInput,
@@ -82,7 +86,25 @@ export async function createAutomation(
     );
   }
 
-  const normalizedMediaId = input.mediaId ?? null;
+  const resolvedTargetMode =
+    input.targetMode ?? (input.mediaId ? "SPECIFIC_POST" : "ALL_POSTS");
+  const normalizedMediaId =
+    resolvedTargetMode === "SPECIFIC_POST" ? (input.mediaId ?? null) : null;
+
+  const scheduledActivateAt =
+    resolvedTargetMode === "SCHEDULED_TIME" && input.scheduledActivateAt
+      ? new Date(input.scheduledActivateAt)
+      : null;
+
+  const bindingWindowEndAt =
+    resolvedTargetMode === "SCHEDULED_TIME" && scheduledActivateAt
+      ? input.bindingWindowEndAt
+        ? new Date(input.bindingWindowEndAt)
+        : new Date(
+            scheduledActivateAt.getTime() +
+              (input.bindingWindowMinutes ?? 30) * 60 * 1000
+          )
+      : null;
 
   // Prevent duplicate automation for the same specific post.
   if (normalizedMediaId) {
@@ -129,9 +151,14 @@ export async function createAutomation(
       data: {
         instagramAccountId: input.instagramAccountId,
         name: input.name,
+        targetMode: resolvedTargetMode,
         mediaId: normalizedMediaId,
-        mediaPermalink: input.mediaPermalink,
-        mediaType: input.mediaType,
+        mediaPermalink: resolvedTargetMode === "SPECIFIC_POST" ? input.mediaPermalink : null,
+        mediaType: resolvedTargetMode === "SPECIFIC_POST" ? input.mediaType : null,
+        scheduledActivateAt,
+        bindingWindowEndAt,
+        mediaTypeFilter: input.mediaTypeFilter ?? "ANY",
+        captionKeywordFilter: input.captionKeywordFilter ?? null,
         triggerType: input.triggerType,
         keywordMatchMode: input.keywordMatchMode ?? "CONTAINS",
         keywordMatchLogic: input.keywordMatchLogic ?? "ANY_KEYWORD",
@@ -270,13 +297,31 @@ export async function updateAutomation(
     );
   }
 
-  const { products, ...scalarInput } = input;
+  const { products, bindingWindowMinutes, ...scalarInput } = input;
 
   if (products !== undefined) {
     await validateProductOwnership(userId, products);
   }
 
-  return prisma.$transaction(async (tx) => {
+  const nextTargetMode = scalarInput.targetMode ?? existing.targetMode;
+  const nextScheduledAt =
+    scalarInput.scheduledActivateAt !== undefined
+      ? scalarInput.scheduledActivateAt
+        ? new Date(scalarInput.scheduledActivateAt)
+        : null
+      : existing.scheduledActivateAt;
+  const nextWindowEnd =
+    scalarInput.bindingWindowEndAt !== undefined
+      ? scalarInput.bindingWindowEndAt
+        ? new Date(scalarInput.bindingWindowEndAt)
+        : null
+      : bindingWindowMinutes !== undefined && nextScheduledAt
+        ? new Date(nextScheduledAt.getTime() + bindingWindowMinutes * 60 * 1000)
+        : scalarInput.scheduledActivateAt && nextScheduledAt
+          ? new Date(nextScheduledAt.getTime() + 30 * 60 * 1000)
+          : existing.bindingWindowEndAt;
+
+  const updated = await prisma.$transaction(async (tx) => {
     if (products !== undefined) {
       await tx.automationProduct.deleteMany({
         where: { automationId },
@@ -297,6 +342,11 @@ export async function updateAutomation(
       },
       data: {
         ...scalarInput,
+        ...(scalarInput.scheduledActivateAt !== undefined ? { scheduledActivateAt: nextScheduledAt } : {}),
+        ...(nextWindowEnd !== existing.bindingWindowEndAt ? { bindingWindowEndAt: nextWindowEnd } : {}),
+        ...(nextTargetMode === "SCHEDULED_TIME" && existing.status === "EXPIRED" && nextWindowEnd && nextWindowEnd.getTime() > Date.now()
+          ? { status: "SCHEDULED" }
+          : {}),
         ...(products !== undefined && scalarInput.dmLink === undefined
           ? { dmLink: products[0]?.affiliateUrl ?? existing.dmLink }
           : {}),
@@ -308,20 +358,48 @@ export async function updateAutomation(
       }
     });
   });
+
+  if (updated.status === "SCHEDULED" && updated.targetMode === "SCHEDULED_TIME" && updated.scheduledActivateAt) {
+    await scheduleBindingPollJob(updated.id, updated.instagramAccountId, updated.scheduledActivateAt).catch(() => {});
+  } else {
+    await cancelBindingPollJob(updated.id).catch(() => {});
+  }
+
+  return updated;
 }
 
-// Activate or pause automation.
+// Activate, schedule, or pause automation.
 export async function updateAutomationStatus(
   userId: string,
   automationId: string,
-  status: "ACTIVE" | "PAUSED"
+  status: "ACTIVE" | "PAUSED" | "SCHEDULED"
 ) {
   const existing = await getAutomationById(userId, automationId);
 
-  if (status === "ACTIVE" && existing.mediaId === null) {
+  let targetStatus = status;
+
+  if (
+    (status === "ACTIVE" || status === "SCHEDULED") &&
+    existing.targetMode === "SCHEDULED_TIME" &&
+    existing.mediaId === null
+  ) {
+    if (!existing.scheduledActivateAt) {
+      throw new AutomationError("Scheduled automation is missing scheduledActivateAt", 400);
+    }
+    const windowEnd =
+      existing.bindingWindowEndAt ??
+      new Date(existing.scheduledActivateAt.getTime() + 30 * 60 * 1000);
+    if (windowEnd.getTime() <= Date.now()) {
+      throw new AutomationError("Scheduled binding window has already expired", 400);
+    }
+    targetStatus = "SCHEDULED";
+  }
+
+  if (targetStatus === "ACTIVE" && existing.targetMode === "ALL_POSTS" && existing.mediaId === null) {
     const activeAllMedia = await prisma.automation.findFirst({
       where: {
         instagramAccountId: existing.instagramAccountId,
+        targetMode: "ALL_POSTS",
         mediaId: null,
         status: "ACTIVE",
         id: { not: automationId },
@@ -337,14 +415,26 @@ export async function updateAutomationStatus(
     }
   }
 
-  return prisma.automation.update({
+  const updated = await prisma.automation.update({
     where: {
       id: automationId
     },
     data: {
-      status
+      status: targetStatus
     }
   });
+
+  if (targetStatus === "SCHEDULED" && existing.scheduledActivateAt) {
+    await scheduleBindingPollJob(
+      existing.id,
+      existing.instagramAccountId,
+      existing.scheduledActivateAt
+    ).catch(() => {});
+  } else if (targetStatus === "PAUSED") {
+    await cancelBindingPollJob(existing.id).catch(() => {});
+  }
+
+  return updated;
 }
 
 // Delete automation.
@@ -353,6 +443,8 @@ export async function deleteAutomation(
   automationId: string
 ) {
   await getAutomationById(userId, automationId);
+
+  await cancelBindingPollJob(automationId).catch(() => {});
 
   await prisma.automation.delete({
     where: {

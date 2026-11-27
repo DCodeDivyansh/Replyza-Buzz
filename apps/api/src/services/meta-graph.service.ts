@@ -114,6 +114,22 @@ export class MetaGraphService {
   }
 
   /**
+   * Fetch metadata for a single Instagram media object (used for webhook lazy binding).
+   */
+  public async getMediaItem(
+    mediaId: string,
+    accessToken: string
+  ): Promise<InstagramMediaItem> {
+    return this.client.get<InstagramMediaItem>(
+      encodeURIComponent(mediaId),
+      {
+        fields: "id,caption,media_type,media_product_type,permalink,timestamp",
+      },
+      accessToken
+    );
+  }
+
+  /**
    * Subscribe an account for Instagram webhook deliveries (comments, messages).
    */
   public async subscribeWebhooks(

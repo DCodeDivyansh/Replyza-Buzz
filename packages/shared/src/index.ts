@@ -33,3 +33,12 @@ export {
   type MetaGraphClientConfig,
   type MetaGraphErrorDetails,
 } from "./meta-graph-client";
+
+
+export {
+  matchesScheduledMediaFilters,
+  type TargetModeType,
+  type MediaTypeFilterType,
+  type BindableMediaCandidate,
+  type ScheduledBindingRule,
+} from "./schedule-matcher";

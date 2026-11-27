@@ -1,5 +1,7 @@
 export type AutomationTrigger = "ANY_COMMENT" | "KEYWORD";
-export type AutomationStatus = "DRAFT" | "ACTIVE" | "PAUSED";
+export type AutomationStatus = "DRAFT" | "SCHEDULED" | "ACTIVE" | "PAUSED" | "EXPIRED";
+export type TargetMode = "SPECIFIC_POST" | "ALL_POSTS" | "NEXT_POST" | "SCHEDULED_TIME";
+export type MediaTypeFilter = "ANY" | "REELS" | "FEED";
 export type MediaType = "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM" | "REELS";
 
 export interface InstagramAccountInfo {
@@ -68,9 +70,14 @@ export interface Automation {
   id: string;
   instagramAccountId: string;
   name: string;
+  targetMode?: TargetMode;
   mediaId: string | null;
   mediaPermalink: string | null;
   mediaType: MediaType | null;
+  scheduledActivateAt?: string | null;
+  bindingWindowEndAt?: string | null;
+  mediaTypeFilter?: MediaTypeFilter;
+  captionKeywordFilter?: string | null;
   triggerType: AutomationTrigger;
   keywordMatchMode?: KeywordMatchMode;
   keywordMatchLogic?: KeywordMatchLogic;
@@ -104,9 +111,15 @@ export interface Automation {
 export interface CreateAutomationPayload {
   instagramAccountId: string;
   name: string;
+  targetMode?: TargetMode;
   mediaId?: string | null;
   mediaPermalink?: string | null;
   mediaType?: MediaType | null;
+  scheduledActivateAt?: string | null;
+  bindingWindowEndAt?: string | null;
+  bindingWindowMinutes?: number;
+  mediaTypeFilter?: MediaTypeFilter;
+  captionKeywordFilter?: string | null;
   triggerType: AutomationTrigger;
   keywordMatchMode?: KeywordMatchMode;
   keywordMatchLogic?: KeywordMatchLogic;
@@ -135,7 +148,13 @@ export interface CreateAutomationPayload {
 
 export interface UpdateAutomationPayload {
   name?: string;
+  targetMode?: TargetMode;
   mediaId?: string | null;
+  scheduledActivateAt?: string | null;
+  bindingWindowEndAt?: string | null;
+  bindingWindowMinutes?: number;
+  mediaTypeFilter?: MediaTypeFilter;
+  captionKeywordFilter?: string | null;
   triggerType?: AutomationTrigger;
   keywordMatchMode?: KeywordMatchMode;
   keywordMatchLogic?: KeywordMatchLogic;

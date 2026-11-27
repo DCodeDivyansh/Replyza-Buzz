@@ -76,8 +76,23 @@ enum AutomationTrigger {
 
 enum AutomationStatus {
   DRAFT
+  SCHEDULED
   ACTIVE
   PAUSED
+  EXPIRED
+}
+
+enum TargetMode {
+  SPECIFIC_POST
+  ALL_POSTS
+  NEXT_POST
+  SCHEDULED_TIME
+}
+
+enum MediaTypeFilter {
+  ANY
+  REELS
+  FEED
 }
 
 enum WebhookEventStatus {
@@ -175,9 +190,14 @@ model Automation {
   instagramAccountId String            @db.Uuid
 
   name               String
+  targetMode         TargetMode        @default(SPECIFIC_POST)
   mediaId            String?
   mediaPermalink     String?
   mediaType          String?
+  scheduledActivateAt DateTime?
+  bindingWindowEndAt  DateTime?
+  mediaTypeFilter    MediaTypeFilter   @default(ANY)
+  captionKeywordFilter String?
 
   triggerType        AutomationTrigger
   keywordMatchMode   KeywordMatchMode  @default(CONTAINS)
@@ -219,6 +239,7 @@ model Automation {
 
   @@index([instagramAccountId, mediaId])
   @@index([instagramAccountId, status])
+  @@index([instagramAccountId, status, targetMode])
   @@map("automations")
 }
 

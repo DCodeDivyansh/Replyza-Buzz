@@ -1,7 +1,13 @@
 import { prisma } from "@replyza/database";
-import { matchCommentKeywords } from "@replyza/shared";
+import {
+  matchCommentKeywords,
+  matchesScheduledMediaFilters,
+} from "@replyza/shared";
 import { features } from "../config/features";
 import { enqueueAutomationExecution } from "../queues/automation.queue";
+import { cancelBindingPollJob } from "../queues/schedule-binding.queue";
+import { decryptToken } from "../utils/token-encryption";
+import { metaGraphService } from "./meta-graph.service";
 import { logger } from "../utils/logger";
 
 interface MatchAutomationInput {
@@ -30,7 +36,10 @@ export async function findMatchingAutomation(input: MatchAutomationInput) {
     where: {
       instagramAccountId: input.instagramAccountId,
       status: "ACTIVE",
-      OR: [{ mediaId: input.mediaId }, { mediaId: null }],
+      OR: [
+        { mediaId: input.mediaId },
+        { mediaId: null, targetMode: "ALL_POSTS" },
+      ],
     },
     orderBy: [{ createdAt: "asc" }],
   });
@@ -70,24 +79,155 @@ export interface PrefetchedWebhookEvent {
   commentText: string;
 }
 
+/**
+ * Lazily binds a SCHEDULED_TIME or NEXT_POST automation when the first comment
+ * webhook arrives for a newly published post before the poller runs.
+ */
+async function tryLazyBindForMedia(
+  instagramAccountId: string,
+  mediaId: string
+): Promise<void> {
+  const activeForMedia = await prisma.automation.findFirst({
+    where: {
+      instagramAccountId,
+      status: "ACTIVE",
+      OR: [{ mediaId }, { mediaId: null, targetMode: "ALL_POSTS" }],
+    },
+    select: { id: true },
+  });
+
+  if (activeForMedia) {
+    return;
+  }
+
+  const now = new Date();
+  const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+
+  const bindableCandidates = await prisma.automation.findMany({
+    where: {
+      instagramAccountId,
+      mediaId: null,
+      OR: [
+        {
+          status: "SCHEDULED",
+          targetMode: "SCHEDULED_TIME",
+          scheduledActivateAt: { lte: fiveMinutesFromNow },
+          AND: [
+            {
+              OR: [
+                { bindingWindowEndAt: null },
+                { bindingWindowEndAt: { gte: now } },
+              ],
+            },
+          ],
+        },
+        {
+          status: "ACTIVE",
+          targetMode: "NEXT_POST",
+        },
+      ],
+    },
+    orderBy: [{ createdAt: "asc" }],
+  });
+
+  if (bindableCandidates.length === 0) {
+    return;
+  }
+
+  const account = await prisma.instagramAccount.findUnique({
+    where: { id: instagramAccountId },
+    select: {
+      encryptedAccessToken: true,
+      status: true,
+    },
+  });
+
+  if (!account || account.status === "NEEDS_RECONNECT") {
+    return;
+  }
+
+  let accessToken: string;
+  try {
+    accessToken = decryptToken(account.encryptedAccessToken);
+  } catch {
+    return;
+  }
+
+  let mediaItem;
+  try {
+    mediaItem = await metaGraphService.getMediaItem(mediaId, accessToken);
+  } catch (err) {
+    logger.warn(
+      { instagramAccountId, mediaId, err: err instanceof Error ? err.message : "unknown" },
+      "Lazy-binding media metadata fetch failed"
+    );
+    return;
+  }
+
+  for (const candidate of bindableCandidates) {
+    if (!matchesScheduledMediaFilters(mediaItem, candidate, now)) {
+      continue;
+    }
+
+    const resolvedMediaType =
+      mediaItem.media_product_type === "REELS"
+        ? "REELS"
+        : (mediaItem.media_type ?? null);
+
+    const bound = await prisma.automation.updateMany({
+      where: {
+        id: candidate.id,
+        status: candidate.status,
+        mediaId: null,
+      },
+      data: {
+        mediaId,
+        mediaPermalink: mediaItem.permalink ?? null,
+        mediaType: resolvedMediaType,
+        status: "ACTIVE",
+      },
+    });
+
+    if (bound.count === 1) {
+      logger.info(
+        { automationId: candidate.id, mediaId, targetMode: candidate.targetMode },
+        "Lazily bound scheduled/next-post automation from incoming comment webhook"
+      );
+      await cancelBindingPollJob(candidate.id).catch(() => {});
+      break;
+    }
+  }
+}
+
 export async function matchAndQueueAutomation(
   webhookEventId: string,
   prefetchedEvent?: PrefetchedWebhookEvent
 ) {
+  const resolvedEvent =
+    prefetchedEvent ??
+    (await prisma.webhookEvent.findUnique({
+      where: { id: webhookEventId },
+      select: {
+        id: true,
+        instagramAccountId: true,
+        mediaId: true,
+        commenterInstagramId: true,
+        commentText: true,
+      },
+    }));
+
+  if (!resolvedEvent) {
+    throw new Error(`Webhook event not found: ${webhookEventId}`);
+  }
+
+  await tryLazyBindForMedia(
+    resolvedEvent.instagramAccountId,
+    resolvedEvent.mediaId
+  );
+
   let isFreshExecution = false;
   const txResult = await prisma.$transaction(async (tx) => {
-    const event =
-      prefetchedEvent ??
-      (await tx.webhookEvent.findUnique({
-        where: { id: webhookEventId },
-        select: {
-          id: true,
-          instagramAccountId: true,
-          mediaId: true,
-          commenterInstagramId: true,
-          commentText: true,
-        },
-      }));
+    const event = resolvedEvent;
 
     if (!event) {
       throw new Error(`Webhook event not found: ${webhookEventId}`);
@@ -108,7 +248,10 @@ export async function matchAndQueueAutomation(
         where: {
           instagramAccountId: event.instagramAccountId,
           status: "ACTIVE",
-          OR: [{ mediaId: event.mediaId }, { mediaId: null }],
+          OR: [
+            { mediaId: event.mediaId },
+            { mediaId: null, targetMode: "ALL_POSTS" },
+          ],
         },
         orderBy: [{ createdAt: "asc" }],
       });

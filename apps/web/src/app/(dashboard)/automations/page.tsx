@@ -28,8 +28,10 @@ import {
 const STATUS_TABS: Array<{ id: "ALL" | AutomationStatus; label: string }> = [
   { id: "ALL", label: "All" },
   { id: "ACTIVE", label: "Active" },
+  { id: "SCHEDULED", label: "Scheduled" },
   { id: "PAUSED", label: "Paused" },
   { id: "DRAFT", label: "Drafts" },
+  { id: "EXPIRED", label: "Expired" },
 ];
 
 export default function AutomationsPage() {
@@ -254,7 +256,13 @@ export default function AutomationsPage() {
                           </Link>
                           <div className="font-mono-num text-[10px] text-[#6E655F] mt-0.5">
                             @{auto.instagramAccount?.username || "instagram"} ·{" "}
-                            {auto.mediaId ? "Specific Post" : "All Posts"}
+                            {auto.mediaId
+                              ? "Specific Post"
+                              : auto.targetMode === "SCHEDULED_TIME"
+                                ? "Scheduled Post"
+                                : auto.targetMode === "NEXT_POST"
+                                  ? "Next Post"
+                                  : "All Posts"}
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
@@ -287,7 +295,16 @@ export default function AutomationsPage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <Badge status={auto.status} />
+                          <Badge status={auto.status}>
+                            {auto.status === "SCHEDULED" && auto.scheduledActivateAt
+                              ? `Scheduled for ${new Date(auto.scheduledActivateAt).toLocaleString(undefined, {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                })}`
+                              : auto.status}
+                          </Badge>
                         </td>
                         <td className="py-3.5 px-4 font-mono-num text-[11px] text-[#6E655F]">
                           {formatDate(auto.updatedAt)}

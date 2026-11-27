@@ -38,9 +38,14 @@ export type AutomationMinAggregateOutputType = {
   id: string | null
   instagramAccountId: string | null
   name: string | null
+  targetMode: $Enums.TargetMode | null
   mediaId: string | null
   mediaPermalink: string | null
   mediaType: string | null
+  scheduledActivateAt: Date | null
+  bindingWindowEndAt: Date | null
+  mediaTypeFilter: $Enums.MediaTypeFilter | null
+  captionKeywordFilter: string | null
   triggerType: $Enums.AutomationTrigger | null
   keywordMatchMode: $Enums.KeywordMatchMode | null
   keywordMatchLogic: $Enums.KeywordMatchLogic | null
@@ -71,9 +76,14 @@ export type AutomationMaxAggregateOutputType = {
   id: string | null
   instagramAccountId: string | null
   name: string | null
+  targetMode: $Enums.TargetMode | null
   mediaId: string | null
   mediaPermalink: string | null
   mediaType: string | null
+  scheduledActivateAt: Date | null
+  bindingWindowEndAt: Date | null
+  mediaTypeFilter: $Enums.MediaTypeFilter | null
+  captionKeywordFilter: string | null
   triggerType: $Enums.AutomationTrigger | null
   keywordMatchMode: $Enums.KeywordMatchMode | null
   keywordMatchLogic: $Enums.KeywordMatchLogic | null
@@ -104,9 +114,14 @@ export type AutomationCountAggregateOutputType = {
   id: number
   instagramAccountId: number
   name: number
+  targetMode: number
   mediaId: number
   mediaPermalink: number
   mediaType: number
+  scheduledActivateAt: number
+  bindingWindowEndAt: number
+  mediaTypeFilter: number
+  captionKeywordFilter: number
   triggerType: number
   keywordMatchMode: number
   keywordMatchLogic: number
@@ -149,9 +164,14 @@ export type AutomationMinAggregateInputType = {
   id?: true
   instagramAccountId?: true
   name?: true
+  targetMode?: true
   mediaId?: true
   mediaPermalink?: true
   mediaType?: true
+  scheduledActivateAt?: true
+  bindingWindowEndAt?: true
+  mediaTypeFilter?: true
+  captionKeywordFilter?: true
   triggerType?: true
   keywordMatchMode?: true
   keywordMatchLogic?: true
@@ -182,9 +202,14 @@ export type AutomationMaxAggregateInputType = {
   id?: true
   instagramAccountId?: true
   name?: true
+  targetMode?: true
   mediaId?: true
   mediaPermalink?: true
   mediaType?: true
+  scheduledActivateAt?: true
+  bindingWindowEndAt?: true
+  mediaTypeFilter?: true
+  captionKeywordFilter?: true
   triggerType?: true
   keywordMatchMode?: true
   keywordMatchLogic?: true
@@ -215,9 +240,14 @@ export type AutomationCountAggregateInputType = {
   id?: true
   instagramAccountId?: true
   name?: true
+  targetMode?: true
   mediaId?: true
   mediaPermalink?: true
   mediaType?: true
+  scheduledActivateAt?: true
+  bindingWindowEndAt?: true
+  mediaTypeFilter?: true
+  captionKeywordFilter?: true
   triggerType?: true
   keywordMatchMode?: true
   keywordMatchLogic?: true
@@ -337,9 +367,14 @@ export type AutomationGroupByOutputType = {
   id: string
   instagramAccountId: string
   name: string
+  targetMode: $Enums.TargetMode
   mediaId: string | null
   mediaPermalink: string | null
   mediaType: string | null
+  scheduledActivateAt: Date | null
+  bindingWindowEndAt: Date | null
+  mediaTypeFilter: $Enums.MediaTypeFilter
+  captionKeywordFilter: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode: $Enums.KeywordMatchMode
   keywordMatchLogic: $Enums.KeywordMatchLogic
@@ -395,9 +430,14 @@ export type AutomationWhereInput = {
   id?: Prisma.UuidFilter<"Automation"> | string
   instagramAccountId?: Prisma.UuidFilter<"Automation"> | string
   name?: Prisma.StringFilter<"Automation"> | string
+  targetMode?: Prisma.EnumTargetModeFilter<"Automation"> | $Enums.TargetMode
   mediaId?: Prisma.StringNullableFilter<"Automation"> | string | null
   mediaPermalink?: Prisma.StringNullableFilter<"Automation"> | string | null
   mediaType?: Prisma.StringNullableFilter<"Automation"> | string | null
+  scheduledActivateAt?: Prisma.DateTimeNullableFilter<"Automation"> | Date | string | null
+  bindingWindowEndAt?: Prisma.DateTimeNullableFilter<"Automation"> | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFilter<"Automation"> | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.StringNullableFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFilter<"Automation"> | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFilter<"Automation"> | $Enums.KeywordMatchLogic
@@ -434,9 +474,14 @@ export type AutomationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   instagramAccountId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  targetMode?: Prisma.SortOrder
   mediaId?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaPermalink?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaType?: Prisma.SortOrderInput | Prisma.SortOrder
+  scheduledActivateAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  bindingWindowEndAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mediaTypeFilter?: Prisma.SortOrder
+  captionKeywordFilter?: Prisma.SortOrderInput | Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
   keywordMatchLogic?: Prisma.SortOrder
@@ -476,9 +521,14 @@ export type AutomationWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AutomationWhereInput | Prisma.AutomationWhereInput[]
   instagramAccountId?: Prisma.UuidFilter<"Automation"> | string
   name?: Prisma.StringFilter<"Automation"> | string
+  targetMode?: Prisma.EnumTargetModeFilter<"Automation"> | $Enums.TargetMode
   mediaId?: Prisma.StringNullableFilter<"Automation"> | string | null
   mediaPermalink?: Prisma.StringNullableFilter<"Automation"> | string | null
   mediaType?: Prisma.StringNullableFilter<"Automation"> | string | null
+  scheduledActivateAt?: Prisma.DateTimeNullableFilter<"Automation"> | Date | string | null
+  bindingWindowEndAt?: Prisma.DateTimeNullableFilter<"Automation"> | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFilter<"Automation"> | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.StringNullableFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFilter<"Automation"> | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFilter<"Automation"> | $Enums.KeywordMatchLogic
@@ -515,9 +565,14 @@ export type AutomationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   instagramAccountId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  targetMode?: Prisma.SortOrder
   mediaId?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaPermalink?: Prisma.SortOrderInput | Prisma.SortOrder
   mediaType?: Prisma.SortOrderInput | Prisma.SortOrder
+  scheduledActivateAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  bindingWindowEndAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  mediaTypeFilter?: Prisma.SortOrder
+  captionKeywordFilter?: Prisma.SortOrderInput | Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
   keywordMatchLogic?: Prisma.SortOrder
@@ -558,9 +613,14 @@ export type AutomationScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"Automation"> | string
   instagramAccountId?: Prisma.UuidWithAggregatesFilter<"Automation"> | string
   name?: Prisma.StringWithAggregatesFilter<"Automation"> | string
+  targetMode?: Prisma.EnumTargetModeWithAggregatesFilter<"Automation"> | $Enums.TargetMode
   mediaId?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   mediaPermalink?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   mediaType?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
+  scheduledActivateAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Automation"> | Date | string | null
+  bindingWindowEndAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Automation"> | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterWithAggregatesFilter<"Automation"> | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.StringNullableWithAggregatesFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerWithAggregatesFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeWithAggregatesFilter<"Automation"> | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicWithAggregatesFilter<"Automation"> | $Enums.KeywordMatchLogic
@@ -592,9 +652,14 @@ export type AutomationScalarWhereWithAggregatesInput = {
 export type AutomationCreateInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -630,9 +695,14 @@ export type AutomationUncheckedCreateInput = {
   id?: string
   instagramAccountId: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -666,9 +736,14 @@ export type AutomationUncheckedCreateInput = {
 export type AutomationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -704,9 +779,14 @@ export type AutomationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -741,9 +821,14 @@ export type AutomationCreateManyInput = {
   id?: string
   instagramAccountId: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -775,9 +860,14 @@ export type AutomationCreateManyInput = {
 export type AutomationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -809,9 +899,14 @@ export type AutomationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -862,9 +957,14 @@ export type AutomationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   instagramAccountId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  targetMode?: Prisma.SortOrder
   mediaId?: Prisma.SortOrder
   mediaPermalink?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  scheduledActivateAt?: Prisma.SortOrder
+  bindingWindowEndAt?: Prisma.SortOrder
+  mediaTypeFilter?: Prisma.SortOrder
+  captionKeywordFilter?: Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
   keywordMatchLogic?: Prisma.SortOrder
@@ -901,9 +1001,14 @@ export type AutomationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   instagramAccountId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  targetMode?: Prisma.SortOrder
   mediaId?: Prisma.SortOrder
   mediaPermalink?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  scheduledActivateAt?: Prisma.SortOrder
+  bindingWindowEndAt?: Prisma.SortOrder
+  mediaTypeFilter?: Prisma.SortOrder
+  captionKeywordFilter?: Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
   keywordMatchLogic?: Prisma.SortOrder
@@ -934,9 +1039,14 @@ export type AutomationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   instagramAccountId?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  targetMode?: Prisma.SortOrder
   mediaId?: Prisma.SortOrder
   mediaPermalink?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  scheduledActivateAt?: Prisma.SortOrder
+  bindingWindowEndAt?: Prisma.SortOrder
+  mediaTypeFilter?: Prisma.SortOrder
+  captionKeywordFilter?: Prisma.SortOrder
   triggerType?: Prisma.SortOrder
   keywordMatchMode?: Prisma.SortOrder
   keywordMatchLogic?: Prisma.SortOrder
@@ -1020,6 +1130,14 @@ export type AutomationCreatekeywordsInput = {
 
 export type AutomationCreatepublicReplyVariationsInput = {
   set: string[]
+}
+
+export type EnumTargetModeFieldUpdateOperationsInput = {
+  set?: $Enums.TargetMode
+}
+
+export type EnumMediaTypeFilterFieldUpdateOperationsInput = {
+  set?: $Enums.MediaTypeFilter
 }
 
 export type EnumAutomationTriggerFieldUpdateOperationsInput = {
@@ -1137,9 +1255,14 @@ export type AutomationUpdateOneRequiredWithoutProductsNestedInput = {
 export type AutomationCreateWithoutInstagramAccountInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1173,9 +1296,14 @@ export type AutomationCreateWithoutInstagramAccountInput = {
 export type AutomationUncheckedCreateWithoutInstagramAccountInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1239,9 +1367,14 @@ export type AutomationScalarWhereInput = {
   id?: Prisma.UuidFilter<"Automation"> | string
   instagramAccountId?: Prisma.UuidFilter<"Automation"> | string
   name?: Prisma.StringFilter<"Automation"> | string
+  targetMode?: Prisma.EnumTargetModeFilter<"Automation"> | $Enums.TargetMode
   mediaId?: Prisma.StringNullableFilter<"Automation"> | string | null
   mediaPermalink?: Prisma.StringNullableFilter<"Automation"> | string | null
   mediaType?: Prisma.StringNullableFilter<"Automation"> | string | null
+  scheduledActivateAt?: Prisma.DateTimeNullableFilter<"Automation"> | Date | string | null
+  bindingWindowEndAt?: Prisma.DateTimeNullableFilter<"Automation"> | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFilter<"Automation"> | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.StringNullableFilter<"Automation"> | string | null
   triggerType?: Prisma.EnumAutomationTriggerFilter<"Automation"> | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFilter<"Automation"> | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFilter<"Automation"> | $Enums.KeywordMatchLogic
@@ -1273,9 +1406,14 @@ export type AutomationScalarWhereInput = {
 export type AutomationCreateWithoutExecutionsInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1310,9 +1448,14 @@ export type AutomationUncheckedCreateWithoutExecutionsInput = {
   id?: string
   instagramAccountId: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1361,9 +1504,14 @@ export type AutomationUpdateToOneWithWhereWithoutExecutionsInput = {
 export type AutomationUpdateWithoutExecutionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1398,9 +1546,14 @@ export type AutomationUncheckedUpdateWithoutExecutionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1433,9 +1586,14 @@ export type AutomationUncheckedUpdateWithoutExecutionsInput = {
 export type AutomationCreateWithoutTemplateInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1470,9 +1628,14 @@ export type AutomationUncheckedCreateWithoutTemplateInput = {
   id?: string
   instagramAccountId: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1531,9 +1694,14 @@ export type AutomationUpdateManyWithWhereWithoutTemplateInput = {
 export type AutomationCreateWithoutProductsInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1568,9 +1736,14 @@ export type AutomationUncheckedCreateWithoutProductsInput = {
   id?: string
   instagramAccountId: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1619,9 +1792,14 @@ export type AutomationUpdateToOneWithWhereWithoutProductsInput = {
 export type AutomationUpdateWithoutProductsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1656,9 +1834,14 @@ export type AutomationUncheckedUpdateWithoutProductsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1691,9 +1874,14 @@ export type AutomationUncheckedUpdateWithoutProductsInput = {
 export type AutomationCreateManyInstagramAccountInput = {
   id?: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1725,9 +1913,14 @@ export type AutomationCreateManyInstagramAccountInput = {
 export type AutomationUpdateWithoutInstagramAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1761,9 +1954,14 @@ export type AutomationUpdateWithoutInstagramAccountInput = {
 export type AutomationUncheckedUpdateWithoutInstagramAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1797,9 +1995,14 @@ export type AutomationUncheckedUpdateWithoutInstagramAccountInput = {
 export type AutomationUncheckedUpdateManyWithoutInstagramAccountInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1832,9 +2035,14 @@ export type AutomationCreateManyTemplateInput = {
   id?: string
   instagramAccountId: string
   name: string
+  targetMode?: $Enums.TargetMode
   mediaId?: string | null
   mediaPermalink?: string | null
   mediaType?: string | null
+  scheduledActivateAt?: Date | string | null
+  bindingWindowEndAt?: Date | string | null
+  mediaTypeFilter?: $Enums.MediaTypeFilter
+  captionKeywordFilter?: string | null
   triggerType: $Enums.AutomationTrigger
   keywordMatchMode?: $Enums.KeywordMatchMode
   keywordMatchLogic?: $Enums.KeywordMatchLogic
@@ -1865,9 +2073,14 @@ export type AutomationCreateManyTemplateInput = {
 export type AutomationUpdateWithoutTemplateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1902,9 +2115,14 @@ export type AutomationUncheckedUpdateWithoutTemplateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -1938,9 +2156,14 @@ export type AutomationUncheckedUpdateManyWithoutTemplateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   instagramAccountId?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  targetMode?: Prisma.EnumTargetModeFieldUpdateOperationsInput | $Enums.TargetMode
   mediaId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaPermalink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   mediaType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  scheduledActivateAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  bindingWindowEndAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  mediaTypeFilter?: Prisma.EnumMediaTypeFilterFieldUpdateOperationsInput | $Enums.MediaTypeFilter
+  captionKeywordFilter?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   triggerType?: Prisma.EnumAutomationTriggerFieldUpdateOperationsInput | $Enums.AutomationTrigger
   keywordMatchMode?: Prisma.EnumKeywordMatchModeFieldUpdateOperationsInput | $Enums.KeywordMatchMode
   keywordMatchLogic?: Prisma.EnumKeywordMatchLogicFieldUpdateOperationsInput | $Enums.KeywordMatchLogic
@@ -2012,9 +2235,14 @@ export type AutomationSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   id?: boolean
   instagramAccountId?: boolean
   name?: boolean
+  targetMode?: boolean
   mediaId?: boolean
   mediaPermalink?: boolean
   mediaType?: boolean
+  scheduledActivateAt?: boolean
+  bindingWindowEndAt?: boolean
+  mediaTypeFilter?: boolean
+  captionKeywordFilter?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
   keywordMatchLogic?: boolean
@@ -2052,9 +2280,14 @@ export type AutomationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   instagramAccountId?: boolean
   name?: boolean
+  targetMode?: boolean
   mediaId?: boolean
   mediaPermalink?: boolean
   mediaType?: boolean
+  scheduledActivateAt?: boolean
+  bindingWindowEndAt?: boolean
+  mediaTypeFilter?: boolean
+  captionKeywordFilter?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
   keywordMatchLogic?: boolean
@@ -2089,9 +2322,14 @@ export type AutomationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   id?: boolean
   instagramAccountId?: boolean
   name?: boolean
+  targetMode?: boolean
   mediaId?: boolean
   mediaPermalink?: boolean
   mediaType?: boolean
+  scheduledActivateAt?: boolean
+  bindingWindowEndAt?: boolean
+  mediaTypeFilter?: boolean
+  captionKeywordFilter?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
   keywordMatchLogic?: boolean
@@ -2126,9 +2364,14 @@ export type AutomationSelectScalar = {
   id?: boolean
   instagramAccountId?: boolean
   name?: boolean
+  targetMode?: boolean
   mediaId?: boolean
   mediaPermalink?: boolean
   mediaType?: boolean
+  scheduledActivateAt?: boolean
+  bindingWindowEndAt?: boolean
+  mediaTypeFilter?: boolean
+  captionKeywordFilter?: boolean
   triggerType?: boolean
   keywordMatchMode?: boolean
   keywordMatchLogic?: boolean
@@ -2157,7 +2400,7 @@ export type AutomationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type AutomationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instagramAccountId" | "name" | "mediaId" | "mediaPermalink" | "mediaType" | "triggerType" | "keywordMatchMode" | "keywordMatchLogic" | "keywords" | "publicReplyEnabled" | "publicReplyText" | "publicReplyVariations" | "dmMessageText" | "dmLink" | "productDeliveryMode" | "productIntroText" | "productClosingText" | "deliveryMode" | "buttonLabel" | "cooldownSeconds" | "dmMeFallbackEnabled" | "followRequired" | "followInstructionText" | "followSuccessText" | "followFallbackText" | "followUpEnabled" | "followUpText" | "templateId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["automation"]>
+export type AutomationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "instagramAccountId" | "name" | "targetMode" | "mediaId" | "mediaPermalink" | "mediaType" | "scheduledActivateAt" | "bindingWindowEndAt" | "mediaTypeFilter" | "captionKeywordFilter" | "triggerType" | "keywordMatchMode" | "keywordMatchLogic" | "keywords" | "publicReplyEnabled" | "publicReplyText" | "publicReplyVariations" | "dmMessageText" | "dmLink" | "productDeliveryMode" | "productIntroText" | "productClosingText" | "deliveryMode" | "buttonLabel" | "cooldownSeconds" | "dmMeFallbackEnabled" | "followRequired" | "followInstructionText" | "followSuccessText" | "followFallbackText" | "followUpEnabled" | "followUpText" | "templateId" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["automation"]>
 export type AutomationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   instagramAccount?: boolean | Prisma.InstagramAccountDefaultArgs<ExtArgs>
   template?: boolean | Prisma.Automation$templateArgs<ExtArgs>
@@ -2186,9 +2429,14 @@ export type $AutomationPayload<ExtArgs extends runtime.Types.Extensions.Internal
     id: string
     instagramAccountId: string
     name: string
+    targetMode: $Enums.TargetMode
     mediaId: string | null
     mediaPermalink: string | null
     mediaType: string | null
+    scheduledActivateAt: Date | null
+    bindingWindowEndAt: Date | null
+    mediaTypeFilter: $Enums.MediaTypeFilter
+    captionKeywordFilter: string | null
     triggerType: $Enums.AutomationTrigger
     keywordMatchMode: $Enums.KeywordMatchMode
     keywordMatchLogic: $Enums.KeywordMatchLogic
@@ -2645,9 +2893,14 @@ export interface AutomationFieldRefs {
   readonly id: Prisma.FieldRef<"Automation", 'String'>
   readonly instagramAccountId: Prisma.FieldRef<"Automation", 'String'>
   readonly name: Prisma.FieldRef<"Automation", 'String'>
+  readonly targetMode: Prisma.FieldRef<"Automation", 'TargetMode'>
   readonly mediaId: Prisma.FieldRef<"Automation", 'String'>
   readonly mediaPermalink: Prisma.FieldRef<"Automation", 'String'>
   readonly mediaType: Prisma.FieldRef<"Automation", 'String'>
+  readonly scheduledActivateAt: Prisma.FieldRef<"Automation", 'DateTime'>
+  readonly bindingWindowEndAt: Prisma.FieldRef<"Automation", 'DateTime'>
+  readonly mediaTypeFilter: Prisma.FieldRef<"Automation", 'MediaTypeFilter'>
+  readonly captionKeywordFilter: Prisma.FieldRef<"Automation", 'String'>
   readonly triggerType: Prisma.FieldRef<"Automation", 'AutomationTrigger'>
   readonly keywordMatchMode: Prisma.FieldRef<"Automation", 'KeywordMatchMode'>
   readonly keywordMatchLogic: Prisma.FieldRef<"Automation", 'KeywordMatchLogic'>

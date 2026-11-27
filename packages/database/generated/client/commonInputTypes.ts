@@ -192,6 +192,20 @@ export type BoolWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
+export type EnumTargetModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.TargetMode | Prisma.EnumTargetModeFieldRefInput<$PrismaModel>
+  in?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTargetModeFilter<$PrismaModel> | $Enums.TargetMode
+}
+
+export type EnumMediaTypeFilterFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaTypeFilter | Prisma.EnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaTypeFilterFilter<$PrismaModel> | $Enums.MediaTypeFilter
+}
+
 export type EnumAutomationTriggerFilter<$PrismaModel = never> = {
   equals?: $Enums.AutomationTrigger | Prisma.EnumAutomationTriggerFieldRefInput<$PrismaModel>
   in?: $Enums.AutomationTrigger[] | Prisma.ListEnumAutomationTriggerFieldRefInput<$PrismaModel>
@@ -255,6 +269,26 @@ export type EnumAutomationStatusFilter<$PrismaModel = never> = {
   in?: $Enums.AutomationStatus[] | Prisma.ListEnumAutomationStatusFieldRefInput<$PrismaModel>
   notIn?: $Enums.AutomationStatus[] | Prisma.ListEnumAutomationStatusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumAutomationStatusFilter<$PrismaModel> | $Enums.AutomationStatus
+}
+
+export type EnumTargetModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TargetMode | Prisma.EnumTargetModeFieldRefInput<$PrismaModel>
+  in?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTargetModeWithAggregatesFilter<$PrismaModel> | $Enums.TargetMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTargetModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTargetModeFilter<$PrismaModel>
+}
+
+export type EnumMediaTypeFilterWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaTypeFilter | Prisma.EnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaTypeFilterWithAggregatesFilter<$PrismaModel> | $Enums.MediaTypeFilter
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMediaTypeFilterFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMediaTypeFilterFilter<$PrismaModel>
 }
 
 export type EnumAutomationTriggerWithAggregatesFilter<$PrismaModel = never> = {
@@ -792,6 +826,20 @@ export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolFilter<$PrismaModel>
 }
 
+export type NestedEnumTargetModeFilter<$PrismaModel = never> = {
+  equals?: $Enums.TargetMode | Prisma.EnumTargetModeFieldRefInput<$PrismaModel>
+  in?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTargetModeFilter<$PrismaModel> | $Enums.TargetMode
+}
+
+export type NestedEnumMediaTypeFilterFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaTypeFilter | Prisma.EnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaTypeFilterFilter<$PrismaModel> | $Enums.MediaTypeFilter
+}
+
 export type NestedEnumAutomationTriggerFilter<$PrismaModel = never> = {
   equals?: $Enums.AutomationTrigger | Prisma.EnumAutomationTriggerFieldRefInput<$PrismaModel>
   in?: $Enums.AutomationTrigger[] | Prisma.ListEnumAutomationTriggerFieldRefInput<$PrismaModel>
@@ -843,6 +891,26 @@ export type NestedEnumAutomationStatusFilter<$PrismaModel = never> = {
   in?: $Enums.AutomationStatus[] | Prisma.ListEnumAutomationStatusFieldRefInput<$PrismaModel>
   notIn?: $Enums.AutomationStatus[] | Prisma.ListEnumAutomationStatusFieldRefInput<$PrismaModel>
   not?: Prisma.NestedEnumAutomationStatusFilter<$PrismaModel> | $Enums.AutomationStatus
+}
+
+export type NestedEnumTargetModeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TargetMode | Prisma.EnumTargetModeFieldRefInput<$PrismaModel>
+  in?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.TargetMode[] | Prisma.ListEnumTargetModeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumTargetModeWithAggregatesFilter<$PrismaModel> | $Enums.TargetMode
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTargetModeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTargetModeFilter<$PrismaModel>
+}
+
+export type NestedEnumMediaTypeFilterWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.MediaTypeFilter | Prisma.EnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  in?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  notIn?: $Enums.MediaTypeFilter[] | Prisma.ListEnumMediaTypeFilterFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumMediaTypeFilterWithAggregatesFilter<$PrismaModel> | $Enums.MediaTypeFilter
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumMediaTypeFilterFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumMediaTypeFilterFilter<$PrismaModel>
 }
 
 export type NestedEnumAutomationTriggerWithAggregatesFilter<$PrismaModel = never> = {

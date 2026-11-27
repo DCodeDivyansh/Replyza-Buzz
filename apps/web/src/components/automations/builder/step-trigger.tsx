@@ -6,9 +6,11 @@ import {
   InstagramMedia,
   KeywordMatchLogic,
   KeywordMatchMode,
+  MediaTypeFilter,
+  TargetMode,
 } from "@/types/automation";
 import { MediaGrid } from "@/components/media/media-grid";
-import { Plus, Trash2, X } from "lucide-react";
+import { CalendarClock, Plus, Sparkles, Trash2, X } from "lucide-react";
 
 interface StepTriggerProps {
   name: string;
@@ -17,8 +19,16 @@ interface StepTriggerProps {
   onChangeAccountId: (v: string) => void;
   discoveredAccounts: InstagramAccountInfo[];
   isEditMode: boolean;
-  allMedia: boolean;
-  onChangeAllMedia: (v: boolean) => void;
+  targetMode: TargetMode;
+  onChangeTargetMode: (v: TargetMode) => void;
+  scheduledActivateAtLocal: string;
+  onChangeScheduledActivateAtLocal: (v: string) => void;
+  bindingWindowMinutes: number;
+  onChangeBindingWindowMinutes: (v: number) => void;
+  mediaTypeFilter: MediaTypeFilter;
+  onChangeMediaTypeFilter: (v: MediaTypeFilter) => void;
+  captionKeywordFilter: string;
+  onChangeCaptionKeywordFilter: (v: string) => void;
   mediaId: string;
   onSelectMedia: (m: InstagramMedia) => void;
   triggerType: "ANY_COMMENT" | "KEYWORD";
@@ -44,8 +54,16 @@ export function StepTrigger({
   onChangeAccountId,
   discoveredAccounts,
   isEditMode,
-  allMedia,
-  onChangeAllMedia,
+  targetMode,
+  onChangeTargetMode,
+  scheduledActivateAtLocal,
+  onChangeScheduledActivateAtLocal,
+  bindingWindowMinutes,
+  onChangeBindingWindowMinutes,
+  mediaTypeFilter,
+  onChangeMediaTypeFilter,
+  captionKeywordFilter,
+  onChangeCaptionKeywordFilter,
   mediaId,
   onSelectMedia,
   triggerType,
@@ -137,31 +155,33 @@ export function StepTrigger({
             </p>
           </div>
 
-          <div className="inline-flex rounded-full border border-[#E6DFD8] bg-[#F7F1EC] p-1 self-start">
-            <button
-              type="button"
-              disabled={isEditMode}
-              onClick={() => onChangeAllMedia(false)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60 ${
-                !allMedia ? "bg-[#161413] text-[#F7F1EC]" : "text-[#6E655F]"
-              }`}
-            >
-              Specific Post / Reel
-            </button>
-            <button
-              type="button"
-              disabled={isEditMode}
-              onClick={() => onChangeAllMedia(true)}
-              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60 ${
-                allMedia ? "bg-[#161413] text-[#F7F1EC]" : "text-[#6E655F]"
-              }`}
-            >
-              All Posts &amp; Reels
-            </button>
+          <div className="flex flex-wrap gap-1.5 rounded-2xl border border-[#E6DFD8] bg-[#F7F1EC] p-1 self-start">
+            {(
+              [
+                { id: "SPECIFIC_POST", label: "Specific Post / Reel" },
+                { id: "ALL_POSTS", label: "All Posts & Reels" },
+                { id: "SCHEDULED_TIME", label: "Schedule Upcoming" },
+                { id: "NEXT_POST", label: "Next Post / Reel" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={isEditMode && targetMode !== "SCHEDULED_TIME"}
+                onClick={() => onChangeTargetMode(opt.id)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60 ${
+                  targetMode === opt.id
+                    ? "bg-[#161413] text-[#F7F1EC]"
+                    : "text-[#6E655F] hover:text-[#161413]"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {!allMedia && accountId && !isEditMode && (
+        {targetMode === "SPECIFIC_POST" && accountId && !isEditMode && (
           <MediaGrid
             initialAccountId={accountId}
             selectedMediaId={mediaId}
@@ -169,11 +189,105 @@ export function StepTrigger({
           />
         )}
 
-        {isEditMode && (
+        {(targetMode === "SCHEDULED_TIME" || targetMode === "NEXT_POST") && (
+          <div className="rounded-xl border border-[#E6DFD8] bg-[#F7F1EC]/70 p-4 space-y-4">
+            <div className="flex items-start gap-2.5">
+              <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#FCE8EC] text-[#E1306C]">
+                {targetMode === "SCHEDULED_TIME" ? (
+                  <CalendarClock className="h-4 w-4" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#161413]">
+                  {targetMode === "SCHEDULED_TIME"
+                    ? "Schedule for Upcoming Post or Reel"
+                    : "Bind to Your Next Published Post or Reel"}
+                </p>
+                <p className="text-[11px] text-[#6E655F]">
+                  {targetMode === "SCHEDULED_TIME"
+                    ? "Publish your post natively on Instagram at the scheduled time. Replyza will automatically bind and reply from the very first comment."
+                    : "Replyza will automatically bind to the very next post or Reel you publish on Instagram."}
+                </p>
+              </div>
+            </div>
+
+            {targetMode === "SCHEDULED_TIME" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-mono-num text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6E655F] block mb-1">
+                    Scheduled Publish Time (Local)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    aria-label="Scheduled publish time"
+                    value={scheduledActivateAtLocal}
+                    onChange={(e) => onChangeScheduledActivateAtLocal(e.target.value)}
+                    className="w-full rounded-xl border border-[#E6DFD8] bg-white px-3 py-2 text-xs font-semibold text-[#161413] focus:border-[#E1306C] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="font-mono-num text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6E655F] block mb-1">
+                    Binding Window
+                  </label>
+                  <select
+                    aria-label="Binding window duration"
+                    value={bindingWindowMinutes}
+                    onChange={(e) => onChangeBindingWindowMinutes(Number(e.target.value))}
+                    className="w-full rounded-xl border border-[#E6DFD8] bg-white px-3 py-2 text-xs font-semibold text-[#161413] focus:border-[#E1306C] focus:outline-none"
+                  >
+                    <option value={15}>15 minutes</option>
+                    <option value={30}>30 minutes (recommended)</option>
+                    <option value={60}>1 hour</option>
+                    <option value={120}>2 hours</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="font-mono-num text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6E655F] block mb-1">
+                  Media Type Filter
+                </label>
+                <select
+                  aria-label="Media type filter"
+                  value={mediaTypeFilter}
+                  onChange={(e) => onChangeMediaTypeFilter(e.target.value as MediaTypeFilter)}
+                  className="w-full rounded-xl border border-[#E6DFD8] bg-white px-3 py-2 text-xs font-semibold text-[#161413] focus:border-[#E1306C] focus:outline-none"
+                >
+                  <option value="ANY">Any Post or Reel</option>
+                  <option value="REELS">Reels Only</option>
+                  <option value="FEED">Feed Posts Only</option>
+                </select>
+              </div>
+              <div>
+                <label className="font-mono-num text-[10px] font-semibold uppercase tracking-[0.08em] text-[#6E655F] block mb-1">
+                  Caption Keyword Filter (Optional)
+                </label>
+                <input
+                  type="text"
+                  aria-label="Caption keyword filter"
+                  value={captionKeywordFilter}
+                  onChange={(e) => onChangeCaptionKeywordFilter(e.target.value)}
+                  placeholder="e.g. #summerdrop"
+                  className="w-full rounded-xl border border-[#E6DFD8] bg-white px-3 py-2 text-xs text-[#161413] placeholder:text-[#8C8A84] focus:border-[#E1306C] focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isEditMode && targetMode !== "SCHEDULED_TIME" && (
           <div className="rounded-xl bg-[#F7F1EC] border border-[#E6DFD8] px-3.5 py-2.5 text-xs text-[#6E655F]">
             Target locked:{" "}
             <strong className="text-[#161413]">
-              {allMedia ? "All Posts & Reels" : `Media ID ${mediaId}`}
+              {targetMode === "ALL_POSTS"
+                ? "All Posts & Reels"
+                : targetMode === "NEXT_POST"
+                  ? "Next Post / Reel"
+                  : `Media ID ${mediaId}`}
             </strong>
           </div>
         )}
